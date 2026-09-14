@@ -1,0 +1,20 @@
+{
+  "name": "insurcheck",
+  "version": "1.0.0",
+  "description": "Ontario Auto Insurance Sanity-Check & Rate Benchmark Platform",
+  "type": "module",
+  "scripts": {
+    "start": "node server/index.js",
+    "dev:server": "node --watch server/index.js",
+    "dev:client": "npm run dev --prefix client",
+    "dev": "concurrently \"npm run dev:server\" \"npm run dev:client\"",
+    "seed": "node server/seed.js",
+    "build": "npm run build --prefix client"
+  },
+  "dependencies": {
+    "concurrently": "^9.1.2",
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.7",
+    "express": "^4.21.2"
+  }
+}
