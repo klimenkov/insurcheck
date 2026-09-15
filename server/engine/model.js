@@ -109,32 +109,60 @@ export function evaluateInsurance(params) {
   const standardRate = calculatedStandard;                   // Standard 1M + Collision + Comprehensive ($1,000 deductible)
   const comprehensiveRate = Math.round(calculatedStandard * 1.30); // 2M Liability, $500 deductible, Rental, Roadside
 
+  const coverageTiers = {
+    minimum: {
+      id: 'minimum',
+      name: 'Basic Liability (1M)',
+      rate: minimumRate,
+      description: 'Mandatory Ontario minimum + DCPD. No collision or comprehensive.'
+    },
+    standard: {
+      id: 'standard',
+      name: 'Standard Package',
+      rate: standardRate,
+      description: 'Liability 1M + Collision & Comprehensive with $1,000 deductible.'
+    },
+    comprehensive: {
+      id: 'comprehensive',
+      name: 'Full Protection',
+      rate: comprehensiveRate,
+      description: 'Liability 2M, $500 deductible, Loss of Use (rental car), and Roadside Assistance.'
+    }
+  };
+
+  // Determine target benchmark based on user's chosen coverage package
+  const selectedLevel = (params.coverageLevel && coverageTiers[params.coverageLevel])
+    ? params.coverageLevel
+    : 'standard';
+  const targetRate = coverageTiers[selectedLevel].rate;
+  const targetName = coverageTiers[selectedLevel].name;
+
   // Sanity check comparison with user's current payment
-  const current = parseFloat(currentPremium) || calculatedStandard;
-  const monthlyDifference = Math.round(current - standardRate);
+  const current = parseFloat(currentPremium) || targetRate;
+  const monthlyDifference = Math.round(current - targetRate);
   const annualDifference = monthlyDifference * 12;
 
   let verdict = 'FAIR_RATE';
   let verdictTitle = 'Fair Market Price';
-  let verdictMessage = 'Your current rate is aligned with current Ontario market benchmarks for your vehicle and regional risk profile.';
+  let verdictMessage = `Your rate of $${current}/mo is closely aligned with Ontario benchmarks for ${targetName} ($${targetRate}/mo actuarial baseline).`;
   let verdictColor = 'emerald';
 
-  const ratio = current / standardRate;
+  const ratio = current / targetRate;
 
   if (ratio >= 1.35) {
     verdict = 'SEVERE_OVERPAY';
     verdictTitle = 'Significant Overpayment!';
-    verdictMessage = `You are paying ~${Math.round((ratio - 1) * 100)}% more than standard market benchmarks for Ontario.`;
+    verdictMessage = `You are paying ~${Math.round((ratio - 1) * 100)}% more than standard market benchmarks for ${targetName}.`;
     verdictColor = 'red';
   } else if (ratio >= 1.14) {
     verdict = 'OVERPAYING';
     verdictTitle = 'Higher Than Market Average';
-    verdictMessage = 'You could likely save substantially by shopping quotes prior to your next policy renewal.';
+    verdictMessage = `You could save ~$${monthlyDifference}/mo by shopping quotes for ${targetName} prior to your renewal.`;
     verdictColor = 'amber';
   } else if (ratio <= 0.85) {
     verdict = 'GREAT_DEAL';
     verdictTitle = 'Excellent Deal!';
-    verdictMessage = 'Your current premium is well below Ontario regional averages. Keep this policy active!';
+    verdictMessage = `Your current premium is well below Ontario regional averages for ${targetName}. Keep this policy active!`;
     verdictColor = 'blue';
   }
 
@@ -174,27 +202,13 @@ export function evaluateInsurance(params) {
     verdictMessage,
     verdictColor,
     currentPremium: current,
-    fairMonthlyStandard: standardRate,
+    fairMonthlyStandard: targetRate,
+    selectedCoverage: selectedLevel,
+    selectedCoverageName: targetName,
     monthlySavings: Math.max(0, monthlyDifference),
     annualSavings: Math.max(0, annualDifference),
     overpayRatio: Math.round(ratio * 100) / 100,
-    coverageTiers: {
-      minimum: {
-        name: 'Basic Liability (1M)',
-        rate: minimumRate,
-        description: 'Mandatory Ontario minimum + DCPD. No collision or comprehensive.'
-      },
-      standard: {
-        name: 'Standard Package',
-        rate: standardRate,
-        description: 'Liability 1M + Collision & Comprehensive with $1,000 deductible.'
-      },
-      comprehensive: {
-        name: 'Full Protection',
-        rate: comprehensiveRate,
-        description: 'Liability 2M, $500 deductible, Loss of Use (rental car), and Roadside Assistance.'
-      }
-    },
+    coverageTiers,
     location: locationInfo,
     vehicle: {
       make: vehicleMake,

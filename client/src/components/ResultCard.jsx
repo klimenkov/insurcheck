@@ -67,7 +67,12 @@ export function ResultCard({ result, onConnectBroker, onOpenFsraExplainer }) {
         </div>
 
         <div className="bg-slate-900/80 border border-slate-800 rounded-2xl p-4">
-          <div className="text-xs text-slate-400 font-semibold">Fair Ontario Standard</div>
+          <div className="flex items-center justify-between">
+            <span className="text-xs text-slate-400 font-semibold">Fair Ontario Benchmark</span>
+            <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-300 border border-emerald-500/20">
+              {result.selectedCoverageName || 'Standard'}
+            </span>
+          </div>
           <div className="text-2xl sm:text-3xl font-black text-emerald-400 mt-1">
             ${fairMonthlyStandard} <span className="text-xs font-normal text-slate-400">/ mo</span>
           </div>
@@ -97,7 +102,7 @@ export function ResultCard({ result, onConnectBroker, onOpenFsraExplainer }) {
             {isOverpaying ? `-$${annualSavings.toLocaleString()}` : 'Protected Rate'}
           </div>
           <div className="text-[11px] text-slate-300 mt-1">
-            {isOverpaying ? `Save ~$${monthlySavings}/month` : 'No action required'}
+            {isOverpaying ? `Save ~$${monthlySavings}/month` : 'Fair market pricing'}
           </div>
         </div>
       </div>
@@ -109,21 +114,43 @@ export function ResultCard({ result, onConnectBroker, onOpenFsraExplainer }) {
           Ontario Price Ranges for Your Profile ({location.city} • {vehicle.year} {vehicle.make} {vehicle.model})
         </h4>
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-          {Object.entries(coverageTiers).map(([key, tier]) => (
-            <div key={key} className="bg-slate-950/70 border border-slate-800/80 rounded-2xl p-4 flex flex-col justify-between">
-              <div>
-                <div className="flex justify-between items-start">
-                  <span className="text-xs font-bold text-slate-200">{tier.name}</span>
-                  <span className="text-lg font-black text-white">${tier.rate}<span className="text-xs font-normal text-slate-400">/mo</span></span>
+          {Object.entries(coverageTiers).map(([key, tier]) => {
+            const isSelected = key === result.selectedCoverage;
+            return (
+              <div
+                key={key}
+                className={`rounded-2xl p-4 flex flex-col justify-between transition-all ${
+                  isSelected
+                    ? 'bg-emerald-950/40 border-2 border-emerald-500 shadow-lg shadow-emerald-500/10'
+                    : 'bg-slate-950/70 border border-slate-800/80 hover:border-slate-700'
+                }`}
+              >
+                <div>
+                  <div className="flex justify-between items-start">
+                    <div>
+                      <span className={`text-xs font-bold ${isSelected ? 'text-emerald-300' : 'text-slate-200'}`}>
+                        {tier.name}
+                      </span>
+                      {isSelected && (
+                        <span className="block text-[9px] font-extrabold uppercase text-emerald-400 tracking-wider">
+                          ✓ Your Selected Package
+                        </span>
+                      )}
+                    </div>
+                    <span className="text-lg font-black text-white">
+                      ${tier.rate}
+                      <span className="text-xs font-normal text-slate-400">/mo</span>
+                    </span>
+                  </div>
+                  <p className="text-[11px] text-slate-400 mt-2 leading-relaxed">{tier.description}</p>
                 </div>
-                <p className="text-[11px] text-slate-400 mt-2 leading-relaxed">{tier.description}</p>
+                <div className="mt-3 pt-3 border-t border-slate-900 text-[10px] text-slate-500 flex justify-between">
+                  <span>Annual:</span>
+                  <span className="font-semibold text-slate-300">${(tier.rate * 12).toLocaleString()}/yr</span>
+                </div>
               </div>
-              <div className="mt-3 pt-3 border-t border-slate-900 text-[10px] text-slate-500 flex justify-between">
-                <span>Annual:</span>
-                <span className="font-semibold text-slate-300">${(tier.rate * 12).toLocaleString()}/yr</span>
-              </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
       </div>
 

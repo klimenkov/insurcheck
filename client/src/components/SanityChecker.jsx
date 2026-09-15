@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Car, MapPin, User, Shield, DollarSign, ArrowRight, Loader2, Sparkles } from 'lucide-react';
+import { Car, MapPin, User, Shield, DollarSign, ArrowRight, Loader2, Sparkles, ShieldCheck } from 'lucide-react';
 import { VEHICLE_OPTIONS, POPULAR_FSAS } from '../data/vehicles.js';
 
 export function SanityChecker({ onCalculate, loading }) {
@@ -11,6 +11,7 @@ export function SanityChecker({ onCalculate, loading }) {
     driverAge: 28,
     yearsLicensed: 8,
     cleanRecord: true,
+    coverageLevel: 'comprehensive',
     currentPremium: 280
   });
 
@@ -208,11 +209,99 @@ export function SanityChecker({ onCalculate, loading }) {
           </div>
         </div>
 
-        {/* Step 5: Current Monthly Premium */}
+        {/* Step 5: Coverage Package (Клацалка по пакету защиты) */}
+        <div>
+          <div className="flex items-center justify-between mb-2">
+            <label className="text-xs font-bold uppercase tracking-wider text-slate-400 flex items-center gap-1.5">
+              <ShieldCheck className="w-4 h-4 text-emerald-400" />
+              5. Coverage Package Level
+            </label>
+            <span className="text-[11px] text-slate-500 font-medium">Matches your current policy</span>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
+            <button
+              type="button"
+              onClick={() => setFormData({ ...formData, coverageLevel: 'comprehensive' })}
+              className={`p-3.5 rounded-2xl border text-left transition flex flex-col justify-between ${
+                formData.coverageLevel === 'comprehensive'
+                  ? 'bg-emerald-950/40 border-emerald-500/80 shadow-md shadow-emerald-500/10 ring-1 ring-emerald-500/30'
+                  : 'bg-slate-950/80 border-slate-800 hover:border-slate-700 text-slate-400'
+              }`}
+            >
+              <div>
+                <div className="flex items-center justify-between">
+                  <span className={`text-xs font-bold ${formData.coverageLevel === 'comprehensive' ? 'text-emerald-300' : 'text-slate-200'}`}>
+                    Full Protection
+                  </span>
+                  <span className="px-1.5 py-0.2 text-[9px] font-extrabold uppercase rounded bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">
+                    Most Popular
+                  </span>
+                </div>
+                <p className="text-[10px] text-slate-400 mt-1 leading-snug">
+                  $2M Liability, Collision + Comp ($500 ded), Rental & Roadside.
+                </p>
+              </div>
+              <div className="mt-2.5 text-[10px] font-semibold text-emerald-400">
+                1.30x Pure Risk Baseline
+              </div>
+            </button>
+
+            <button
+              type="button"
+              onClick={() => setFormData({ ...formData, coverageLevel: 'standard' })}
+              className={`p-3.5 rounded-2xl border text-left transition flex flex-col justify-between ${
+                formData.coverageLevel === 'standard'
+                  ? 'bg-emerald-950/40 border-emerald-500/80 shadow-md shadow-emerald-500/10 ring-1 ring-emerald-500/30'
+                  : 'bg-slate-950/80 border-slate-800 hover:border-slate-700 text-slate-400'
+              }`}
+            >
+              <div>
+                <div className="flex items-center justify-between">
+                  <span className={`text-xs font-bold ${formData.coverageLevel === 'standard' ? 'text-emerald-300' : 'text-slate-200'}`}>
+                    Standard Package
+                  </span>
+                </div>
+                <p className="text-[10px] text-slate-400 mt-1 leading-snug">
+                  $1M Liability, Collision + Comp ($1,000 ded), DCPD.
+                </p>
+              </div>
+              <div className="mt-2.5 text-[10px] font-semibold text-slate-400">
+                1.00x Pure Risk Baseline
+              </div>
+            </button>
+
+            <button
+              type="button"
+              onClick={() => setFormData({ ...formData, coverageLevel: 'minimum' })}
+              className={`p-3.5 rounded-2xl border text-left transition flex flex-col justify-between ${
+                formData.coverageLevel === 'minimum'
+                  ? 'bg-emerald-950/40 border-emerald-500/80 shadow-md shadow-emerald-500/10 ring-1 ring-emerald-500/30'
+                  : 'bg-slate-950/80 border-slate-800 hover:border-slate-700 text-slate-400'
+              }`}
+            >
+              <div>
+                <div className="flex items-center justify-between">
+                  <span className={`text-xs font-bold ${formData.coverageLevel === 'minimum' ? 'text-emerald-300' : 'text-slate-200'}`}>
+                    Basic Liability Only
+                  </span>
+                </div>
+                <p className="text-[10px] text-slate-400 mt-1 leading-snug">
+                  $1M Liability + DCPD only (no collision or theft coverage).
+                </p>
+              </div>
+              <div className="mt-2.5 text-[10px] font-semibold text-cyan-400">
+                0.70x Pure Risk Baseline
+              </div>
+            </button>
+          </div>
+        </div>
+
+        {/* Step 6: Current Monthly Premium */}
         <div className="p-4 bg-slate-950/60 rounded-2xl border border-slate-800">
           <label className="block text-xs font-bold uppercase tracking-wider text-emerald-400 mb-1 flex items-center gap-1.5">
             <DollarSign className="w-4 h-4" />
-            5. What do you pay per month right now?
+            6. What do you pay per month right now?
           </label>
           <div className="flex items-center gap-4 mt-2">
             <div className="relative flex-1">
