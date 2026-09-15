@@ -59,7 +59,8 @@ export function ResultCard({ result, onConnectBroker, onOpenFsraExplainer }) {
         </div>
       </div>
 
-      {/* Main Savings Comparison Banner */}
+      {/* Main Savings Comparison Banner (hidden in shopping mode — verdict + tier matrix already cover it) */}
+      {!isEstimating && (
       <div className="my-6 grid grid-cols-1 sm:grid-cols-3 gap-4">
         <div className="bg-slate-900/80 border border-slate-800 rounded-2xl p-4">
           <div className="text-xs text-slate-400 font-semibold">
@@ -127,13 +128,25 @@ export function ResultCard({ result, onConnectBroker, onOpenFsraExplainer }) {
           </div>
         </div>
       </div>
+      )}
 
       {/* Coverage Tiers Matrix */}
-      <div className="mb-6">
-        <h4 className="text-xs font-bold uppercase tracking-wider text-slate-400 mb-3 flex items-center gap-1.5">
-          <ShieldCheck className="w-4 h-4 text-emerald-400" />
-          Ontario Price Ranges for Your Profile ({location.city} • {vehicle.year} {vehicle.make} {vehicle.model})
-        </h4>
+      <div className={isEstimating ? 'mt-6 mb-6' : 'mb-6'}>
+        <div className="flex items-start justify-between gap-3 mb-3">
+          <h4 className="text-xs font-bold uppercase tracking-wider text-slate-400 flex items-center gap-1.5">
+            <ShieldCheck className="w-4 h-4 text-emerald-400 shrink-0" />
+            Ontario Price Ranges for Your Profile ({location.city} • {vehicle.year} {vehicle.make} {vehicle.model})
+          </h4>
+          {isEstimating && onOpenFsraExplainer && (
+            <button
+              type="button"
+              onClick={onOpenFsraExplainer}
+              className="text-[11px] text-emerald-400 hover:text-emerald-300 underline font-semibold transition cursor-pointer whitespace-nowrap shrink-0"
+            >
+              Actuarial Model ℹ️
+            </button>
+          )}
+        </div>
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
           {Object.entries(coverageTiers).map(([key, tier]) => {
             const isSelected = key === result.selectedCoverage;
