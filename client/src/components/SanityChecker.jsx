@@ -1,18 +1,20 @@
 import React, { useState } from 'react';
-import { Car, MapPin, User, Shield, DollarSign, ArrowRight, Loader2, Sparkles, ShieldCheck } from 'lucide-react';
+import { Car, MapPin, User, Shield, DollarSign, ArrowRight, Loader2, Sparkles, ShieldCheck, CheckCircle2, Building2 } from 'lucide-react';
 import { VEHICLE_OPTIONS, POPULAR_FSAS } from '../data/vehicles.js';
 
 export function SanityChecker({ onCalculate, loading }) {
   const [formData, setFormData] = useState({
+    coverageLevel: 'standard',
+    postalCode: 'L6P',
     vehicleMake: 'Honda',
     vehicleModel: 'CR-V',
     vehicleYear: 2022,
-    postalCode: 'L6P',
+    isEstimating: false,
+    currentPremium: 280,
+    insuranceCompany: '',
     driverAge: 28,
     yearsLicensed: 8,
-    cleanRecord: true,
-    coverageLevel: 'comprehensive',
-    currentPremium: 280
+    cleanRecord: true
   });
 
   const currentModels = (VEHICLE_OPTIONS.find(v => v.make === formData.vehicleMake)?.models) || ['Standard Model'];
@@ -39,75 +41,130 @@ export function SanityChecker({ onCalculate, loading }) {
         <div>
           <h2 className="text-xl sm:text-2xl font-black text-white flex items-center gap-2.5">
             <Sparkles className="w-5 h-5 text-emerald-400" />
-            60-Second Sanity Check
+            Tell us about your insurance
           </h2>
           <p className="text-xs sm:text-sm text-slate-400 mt-0.5">
-            Just 5 quick inputs to check if your rate makes sense.
+            We'll use this to compare your rate with similar Ontario drivers. Nothing is shared publicly.
           </p>
         </div>
-        <span className="text-xs font-semibold px-2.5 py-1 bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 rounded-lg">
+        <span className="hidden sm:inline-flex text-xs font-semibold px-2.5 py-1 bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 rounded-lg">
           Zero Personal Info
         </span>
       </div>
 
       <form onSubmit={handleSubmit} className="space-y-6">
-        {/* Step 1: Vehicle */}
+        {/* Step 1: Choose Coverage Level (Top category selector) */}
         <div>
-          <label className="block text-xs font-bold uppercase tracking-wider text-slate-400 mb-2 flex items-center gap-1.5">
-            <Car className="w-4 h-4 text-emerald-400" />
-            1. Your Vehicle
-          </label>
+          <div className="flex items-center justify-between mb-2">
+            <label className="text-xs font-bold uppercase tracking-wider text-slate-300 flex items-center gap-1.5">
+              <ShieldCheck className="w-4 h-4 text-emerald-400" />
+              Choose coverage level
+            </label>
+            <span className="text-[11px] text-slate-500 font-medium">Click to select</span>
+          </div>
+
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-            <div>
-              <span className="text-[11px] text-slate-500 font-medium block mb-1">Make</span>
-              <select
-                value={formData.vehicleMake}
-                onChange={(e) => handleMakeChange(e.target.value)}
-                className="w-full bg-slate-950 border border-slate-700/80 rounded-xl px-3 py-2.5 text-sm text-white focus:outline-none focus:border-emerald-500"
-              >
-                {VEHICLE_OPTIONS.map((v) => (
-                  <option key={v.make} value={v.make}>{v.make}</option>
-                ))}
-              </select>
-            </div>
-            <div>
-              <span className="text-[11px] text-slate-500 font-medium block mb-1">Model</span>
-              <select
-                value={formData.vehicleModel}
-                onChange={(e) => setFormData({ ...formData, vehicleModel: e.target.value })}
-                className="w-full bg-slate-950 border border-slate-700/80 rounded-xl px-3 py-2.5 text-sm text-white focus:outline-none focus:border-emerald-500"
-              >
-                {currentModels.map((m) => (
-                  <option key={m} value={m}>{m}</option>
-                ))}
-              </select>
-            </div>
-            <div>
-              <span className="text-[11px] text-slate-500 font-medium block mb-1">Model Year</span>
-              <input
-                type="number"
-                min="2000"
-                max="2026"
-                value={formData.vehicleYear}
-                onChange={(e) => setFormData({ ...formData, vehicleYear: e.target.value })}
-                className="w-full bg-slate-950 border border-slate-700/80 rounded-xl px-3 py-2.5 text-sm text-white focus:outline-none focus:border-emerald-500"
-              />
-            </div>
+            {/* Basic */}
+            <button
+              type="button"
+              onClick={() => setFormData({ ...formData, coverageLevel: 'minimum' })}
+              className={`p-4 rounded-2xl border text-center transition flex flex-col items-center justify-between cursor-pointer ${
+                formData.coverageLevel === 'minimum'
+                  ? 'bg-emerald-950/50 border-emerald-500 ring-2 ring-emerald-500/30 shadow-lg shadow-emerald-500/10'
+                  : 'bg-slate-950/80 border-slate-800 hover:border-slate-700 text-slate-400'
+              }`}
+            >
+              <div className="flex flex-col items-center">
+                <div className={`w-8 h-8 rounded-full flex items-center justify-center mb-2 ${
+                  formData.coverageLevel === 'minimum' ? 'bg-emerald-500/20 text-emerald-400' : 'bg-slate-800 text-slate-400'
+                }`}>
+                  <Shield className="w-4 h-4" />
+                </div>
+                <div className={`text-sm font-bold ${formData.coverageLevel === 'minimum' ? 'text-white' : 'text-slate-300'}`}>
+                  Basic
+                </div>
+                <p className="text-[11px] text-slate-400 mt-1 leading-snug">
+                  Lowest price, minimal coverage
+                </p>
+              </div>
+              <div className="mt-3 text-[10px] font-semibold text-slate-500">
+                0.70x Baseline • DCPD
+              </div>
+            </button>
+
+            {/* Standard */}
+            <button
+              type="button"
+              onClick={() => setFormData({ ...formData, coverageLevel: 'standard' })}
+              className={`p-4 rounded-2xl border text-center transition flex flex-col items-center justify-between cursor-pointer ${
+                formData.coverageLevel === 'standard'
+                  ? 'bg-emerald-950/50 border-emerald-500 ring-2 ring-emerald-500/30 shadow-lg shadow-emerald-500/10'
+                  : 'bg-slate-950/80 border-slate-800 hover:border-slate-700 text-slate-400'
+              }`}
+            >
+              <div className="flex flex-col items-center">
+                <div className={`w-8 h-8 rounded-full flex items-center justify-center mb-2 ${
+                  formData.coverageLevel === 'standard' ? 'bg-emerald-500/20 text-emerald-400' : 'bg-slate-800 text-slate-400'
+                }`}>
+                  <CheckCircle2 className="w-4 h-4" />
+                </div>
+                <div className={`text-sm font-bold ${formData.coverageLevel === 'standard' ? 'text-emerald-300' : 'text-slate-200'}`}>
+                  Standard
+                </div>
+                <p className="text-[11px] text-slate-400 mt-1 leading-snug">
+                  Most common choice
+                </p>
+              </div>
+              <div className="mt-3 text-[10px] font-semibold text-emerald-400">
+                1.00x Pure Risk Baseline
+              </div>
+            </button>
+
+            {/* Full */}
+            <button
+              type="button"
+              onClick={() => setFormData({ ...formData, coverageLevel: 'comprehensive' })}
+              className={`p-4 rounded-2xl border text-center transition flex flex-col items-center justify-between cursor-pointer ${
+                formData.coverageLevel === 'comprehensive'
+                  ? 'bg-emerald-950/50 border-emerald-500 ring-2 ring-emerald-500/30 shadow-lg shadow-emerald-500/10'
+                  : 'bg-slate-950/80 border-slate-800 hover:border-slate-700 text-slate-400'
+              }`}
+            >
+              <div className="flex flex-col items-center">
+                <div className={`w-8 h-8 rounded-full flex items-center justify-center mb-2 ${
+                  formData.coverageLevel === 'comprehensive' ? 'bg-emerald-500/20 text-emerald-400' : 'bg-slate-800 text-slate-400'
+                }`}>
+                  <Sparkles className="w-4 h-4" />
+                </div>
+                <div className={`text-sm font-bold ${formData.coverageLevel === 'comprehensive' ? 'text-white' : 'text-slate-300'}`}>
+                  Full
+                </div>
+                <p className="text-[11px] text-slate-400 mt-1 leading-snug">
+                  Maximum protection (includes comprehensive)
+                </p>
+              </div>
+              <div className="mt-3 text-[10px] font-semibold text-emerald-400">
+                1.30x Baseline • $500 ded
+              </div>
+            </button>
           </div>
         </div>
 
-        {/* Step 2: Location (Postal Code FSA) */}
+        {/* Step 2: Location (Postal code prefix FSA) */}
         <div>
-          <label className="block text-xs font-bold uppercase tracking-wider text-slate-400 mb-2 flex items-center gap-1.5">
+          <label className="block text-xs font-bold uppercase tracking-wider text-slate-400 mb-1 flex items-center gap-1.5">
             <MapPin className="w-4 h-4 text-emerald-400" />
-            2. Location (First 3 characters of Ontario Postal Code)
+            Postal code prefix (FSA)
           </label>
+          <span className="text-[11px] text-slate-500 block mb-2">
+            The first 3 characters of your postal code (e.g. M4N, L6P)
+          </span>
           <div className="flex flex-col sm:flex-row gap-3 items-start sm:items-center">
             <div className="w-full sm:w-48">
               <input
                 type="text"
                 maxLength={3}
-                placeholder="e.g. L6P, M5V"
+                placeholder="e.g. M4N"
                 value={formData.postalCode}
                 onChange={(e) => setFormData({ ...formData, postalCode: e.target.value.toUpperCase() })}
                 className="w-full bg-slate-950 border border-slate-700/80 rounded-xl px-4 py-2.5 text-base font-mono uppercase text-white tracking-widest text-center focus:outline-none focus:border-emerald-500"
@@ -121,7 +178,7 @@ export function SanityChecker({ onCalculate, loading }) {
                   type="button"
                   key={item.fsa}
                   onClick={() => setFormData({ ...formData, postalCode: item.fsa })}
-                  className={`px-2 py-1 rounded-lg border text-xs font-medium transition ${
+                  className={`px-2 py-1 rounded-lg border text-xs font-medium transition cursor-pointer ${
                     formData.postalCode === item.fsa
                       ? 'bg-emerald-500/20 text-emerald-300 border-emerald-500/40'
                       : 'bg-slate-950/60 text-slate-400 border-slate-800 hover:border-slate-700'
@@ -134,11 +191,132 @@ export function SanityChecker({ onCalculate, loading }) {
           </div>
         </div>
 
-        {/* Step 3: Driver Age & Experience */}
+        {/* Step 3: Vehicle Information */}
+        <div>
+          <label className="block text-xs font-bold uppercase tracking-wider text-slate-400 mb-2 flex items-center gap-1.5">
+            <Car className="w-4 h-4 text-emerald-400" />
+            Vehicle Details
+          </label>
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+            <div>
+              <span className="text-[11px] text-slate-500 font-medium block mb-1">Car make</span>
+              <select
+                value={formData.vehicleMake}
+                onChange={(e) => handleMakeChange(e.target.value)}
+                className="w-full bg-slate-950 border border-slate-700/80 rounded-xl px-3 py-2.5 text-sm text-white focus:outline-none focus:border-emerald-500"
+              >
+                {VEHICLE_OPTIONS.map((v) => (
+                  <option key={v.make} value={v.make}>{v.make}</option>
+                ))}
+              </select>
+            </div>
+            <div>
+              <span className="text-[11px] text-slate-500 font-medium block mb-1">Car model</span>
+              <select
+                value={formData.vehicleModel}
+                onChange={(e) => setFormData({ ...formData, vehicleModel: e.target.value })}
+                className="w-full bg-slate-950 border border-slate-700/80 rounded-xl px-3 py-2.5 text-sm text-white focus:outline-none focus:border-emerald-500"
+              >
+                {currentModels.map((m) => (
+                  <option key={m} value={m}>{m}</option>
+                ))}
+              </select>
+            </div>
+            <div>
+              <span className="text-[11px] text-slate-500 font-medium block mb-1">Car year</span>
+              <input
+                type="number"
+                min="2000"
+                max="2026"
+                value={formData.vehicleYear}
+                onChange={(e) => setFormData({ ...formData, vehicleYear: parseInt(e.target.value, 10) || 2022 })}
+                className="w-full bg-slate-950 border border-slate-700/80 rounded-xl px-3 py-2.5 text-sm text-white focus:outline-none focus:border-emerald-500"
+              />
+            </div>
+          </div>
+        </div>
+
+        {/* Step 4: Monthly Premium & Estimating Checkbox */}
+        <div className="p-4 bg-slate-950/70 rounded-2xl border border-slate-800">
+          {/* Checkmark: I'm estimating insurance */}
+          <div className="mb-3">
+            <label className="flex items-center gap-2.5 cursor-pointer group">
+              <input
+                type="checkbox"
+                checked={formData.isEstimating}
+                onChange={(e) => setFormData({ ...formData, isEstimating: e.target.checked })}
+                className="w-4 h-4 rounded border-slate-700 text-emerald-500 focus:ring-emerald-500 focus:ring-offset-slate-900 accent-emerald-500 cursor-pointer"
+              />
+              <span className="text-xs sm:text-sm font-semibold text-slate-300 group-hover:text-emerald-300 transition">
+                I'm estimating insurance (I don't have a current premium)
+              </span>
+            </label>
+          </div>
+
+          {formData.isEstimating ? (
+            <div className="p-3.5 bg-emerald-950/30 border border-emerald-500/30 rounded-xl flex items-start gap-2.5 text-xs text-emerald-300 leading-relaxed">
+              <Sparkles className="w-4 h-4 text-emerald-400 shrink-0 mt-0.5" />
+              <div>
+                <strong>Estimating Mode Active:</strong> We'll compute the official Ontario actuarial benchmark for this vehicle and postal code, so you know exactly what quotes to target from insurers without getting overcharged.
+              </div>
+            </div>
+          ) : (
+            <div className="space-y-3">
+              <div>
+                <label className="block text-xs font-bold uppercase tracking-wider text-emerald-400 mb-1 flex items-center gap-1.5">
+                  <DollarSign className="w-4 h-4" />
+                  What do you pay per month? (CAD)
+                </label>
+                <div className="flex items-center gap-4 mt-1.5">
+                  <div className="relative flex-1">
+                    <span className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 font-bold">$</span>
+                    <input
+                      type="number"
+                      min="40"
+                      max="1500"
+                      value={formData.currentPremium}
+                      onChange={(e) => setFormData({ ...formData, currentPremium: e.target.value })}
+                      className="w-full bg-slate-900 border border-slate-700 rounded-xl pl-8 pr-4 py-2.5 text-lg font-extrabold text-white focus:outline-none focus:border-emerald-500"
+                      placeholder="e.g. 250"
+                      required={!formData.isEstimating}
+                    />
+                    <span className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-500 text-xs font-semibold">/ month</span>
+                  </div>
+                  <div className="text-xs text-slate-400">
+                    ≈ ${((parseFloat(formData.currentPremium) || 0) * 12).toLocaleString()} / year
+                  </div>
+                </div>
+                <span className="text-[11px] text-slate-500 mt-1 block">
+                  Your current monthly car insurance cost before tax
+                </span>
+              </div>
+
+              {/* Optional Insurance Company */}
+              <div className="pt-2 border-t border-slate-900">
+                <label className="block text-xs font-semibold text-slate-400 mb-1 flex items-center gap-1.5">
+                  <Building2 className="w-3.5 h-3.5 text-slate-400" />
+                  Insurance company (optional)
+                </label>
+                <input
+                  type="text"
+                  value={formData.insuranceCompany}
+                  onChange={(e) => setFormData({ ...formData, insuranceCompany: e.target.value })}
+                  placeholder="e.g. TD Insurance, Intact, Desjardins, Aviva"
+                  className="w-full bg-slate-900/80 border border-slate-800 rounded-xl px-3.5 py-2 text-xs text-white focus:outline-none focus:border-emerald-500"
+                />
+                <span className="text-[10px] text-slate-500 mt-1 block">
+                  This helps us give a more accurate comparison against specific carrier rate filings
+                </span>
+              </div>
+            </div>
+          )}
+        </div>
+
+        {/* Step 5: Driver Age & Experience */}
         <div>
           <label className="block text-xs font-bold uppercase tracking-wider text-slate-400 mb-2 flex items-center gap-1.5">
             <User className="w-4 h-4 text-emerald-400" />
-            3. Driver Age & Experience
+            Driver Age & License Experience
           </label>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div>
@@ -177,28 +355,28 @@ export function SanityChecker({ onCalculate, loading }) {
           </div>
         </div>
 
-        {/* Step 4: Driving History */}
+        {/* Step 6: Driving History */}
         <div>
           <label className="block text-xs font-bold uppercase tracking-wider text-slate-400 mb-2 flex items-center gap-1.5">
             <Shield className="w-4 h-4 text-emerald-400" />
-            4. Record in last 3 years
+            Claims or tickets in past 3 years?
           </label>
           <div className="grid grid-cols-2 gap-3">
             <button
               type="button"
               onClick={() => setFormData({ ...formData, cleanRecord: true })}
-              className={`p-3 rounded-xl border text-sm font-semibold text-center transition ${
+              className={`p-3 rounded-xl border text-sm font-semibold text-center transition cursor-pointer ${
                 formData.cleanRecord
                   ? 'bg-emerald-500/20 text-emerald-300 border-emerald-500/40 shadow-sm'
                   : 'bg-slate-950 text-slate-400 border-slate-800 hover:border-slate-700'
               }`}
             >
-              ✅ Clean (0 tickets, 0 at-fault)
+              ✅ Clean (0 tickets, 0 claims)
             </button>
             <button
               type="button"
               onClick={() => setFormData({ ...formData, cleanRecord: false })}
-              className={`p-3 rounded-xl border text-sm font-semibold text-center transition ${
+              className={`p-3 rounded-xl border text-sm font-semibold text-center transition cursor-pointer ${
                 !formData.cleanRecord
                   ? 'bg-amber-500/20 text-amber-300 border-amber-500/40 shadow-sm'
                   : 'bg-slate-950 text-slate-400 border-slate-800 hover:border-slate-700'
@@ -206,120 +384,6 @@ export function SanityChecker({ onCalculate, loading }) {
             >
               ⚠️ Tickets or At-Fault Claim
             </button>
-          </div>
-        </div>
-
-        {/* Step 5: Coverage Package (Клацалка по пакету защиты) */}
-        <div>
-          <div className="flex items-center justify-between mb-2">
-            <label className="text-xs font-bold uppercase tracking-wider text-slate-400 flex items-center gap-1.5">
-              <ShieldCheck className="w-4 h-4 text-emerald-400" />
-              5. Coverage Package Level
-            </label>
-            <span className="text-[11px] text-slate-500 font-medium">Matches your current policy</span>
-          </div>
-
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
-            <button
-              type="button"
-              onClick={() => setFormData({ ...formData, coverageLevel: 'comprehensive' })}
-              className={`p-3.5 rounded-2xl border text-left transition flex flex-col justify-between ${
-                formData.coverageLevel === 'comprehensive'
-                  ? 'bg-emerald-950/40 border-emerald-500/80 shadow-md shadow-emerald-500/10 ring-1 ring-emerald-500/30'
-                  : 'bg-slate-950/80 border-slate-800 hover:border-slate-700 text-slate-400'
-              }`}
-            >
-              <div>
-                <div className="flex items-center justify-between">
-                  <span className={`text-xs font-bold ${formData.coverageLevel === 'comprehensive' ? 'text-emerald-300' : 'text-slate-200'}`}>
-                    Full Protection
-                  </span>
-                  <span className="px-1.5 py-0.2 text-[9px] font-extrabold uppercase rounded bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">
-                    Most Popular
-                  </span>
-                </div>
-                <p className="text-[10px] text-slate-400 mt-1 leading-snug">
-                  $2M Liability, Collision + Comp ($500 ded), Rental & Roadside.
-                </p>
-              </div>
-              <div className="mt-2.5 text-[10px] font-semibold text-emerald-400">
-                1.30x Pure Risk Baseline
-              </div>
-            </button>
-
-            <button
-              type="button"
-              onClick={() => setFormData({ ...formData, coverageLevel: 'standard' })}
-              className={`p-3.5 rounded-2xl border text-left transition flex flex-col justify-between ${
-                formData.coverageLevel === 'standard'
-                  ? 'bg-emerald-950/40 border-emerald-500/80 shadow-md shadow-emerald-500/10 ring-1 ring-emerald-500/30'
-                  : 'bg-slate-950/80 border-slate-800 hover:border-slate-700 text-slate-400'
-              }`}
-            >
-              <div>
-                <div className="flex items-center justify-between">
-                  <span className={`text-xs font-bold ${formData.coverageLevel === 'standard' ? 'text-emerald-300' : 'text-slate-200'}`}>
-                    Standard Package
-                  </span>
-                </div>
-                <p className="text-[10px] text-slate-400 mt-1 leading-snug">
-                  $1M Liability, Collision + Comp ($1,000 ded), DCPD.
-                </p>
-              </div>
-              <div className="mt-2.5 text-[10px] font-semibold text-slate-400">
-                1.00x Pure Risk Baseline
-              </div>
-            </button>
-
-            <button
-              type="button"
-              onClick={() => setFormData({ ...formData, coverageLevel: 'minimum' })}
-              className={`p-3.5 rounded-2xl border text-left transition flex flex-col justify-between ${
-                formData.coverageLevel === 'minimum'
-                  ? 'bg-emerald-950/40 border-emerald-500/80 shadow-md shadow-emerald-500/10 ring-1 ring-emerald-500/30'
-                  : 'bg-slate-950/80 border-slate-800 hover:border-slate-700 text-slate-400'
-              }`}
-            >
-              <div>
-                <div className="flex items-center justify-between">
-                  <span className={`text-xs font-bold ${formData.coverageLevel === 'minimum' ? 'text-emerald-300' : 'text-slate-200'}`}>
-                    Basic Liability Only
-                  </span>
-                </div>
-                <p className="text-[10px] text-slate-400 mt-1 leading-snug">
-                  $1M Liability + DCPD only (no collision or theft coverage).
-                </p>
-              </div>
-              <div className="mt-2.5 text-[10px] font-semibold text-cyan-400">
-                0.70x Pure Risk Baseline
-              </div>
-            </button>
-          </div>
-        </div>
-
-        {/* Step 6: Current Monthly Premium */}
-        <div className="p-4 bg-slate-950/60 rounded-2xl border border-slate-800">
-          <label className="block text-xs font-bold uppercase tracking-wider text-emerald-400 mb-1 flex items-center gap-1.5">
-            <DollarSign className="w-4 h-4" />
-            6. What do you pay per month right now?
-          </label>
-          <div className="flex items-center gap-4 mt-2">
-            <div className="relative flex-1">
-              <span className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 font-bold">$</span>
-              <input
-                type="number"
-                min="40"
-                max="1200"
-                value={formData.currentPremium}
-                onChange={(e) => setFormData({ ...formData, currentPremium: e.target.value })}
-                className="w-full bg-slate-900 border border-slate-700 rounded-xl pl-8 pr-4 py-3 text-xl font-extrabold text-white focus:outline-none focus:border-emerald-500"
-                required
-              />
-              <span className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-500 text-xs font-semibold">/ month</span>
-            </div>
-            <div className="text-xs text-slate-400">
-              ≈ ${(formData.currentPremium * 12).toLocaleString()} / year
-            </div>
           </div>
         </div>
 
@@ -336,7 +400,7 @@ export function SanityChecker({ onCalculate, loading }) {
             </>
           ) : (
             <>
-              <span>Run 60-Second Sanity Check</span>
+              <span>{formData.isEstimating ? 'Calculate Fair Market Quote' : 'See how I compare'}</span>
               <ArrowRight className="w-5 h-5" />
             </>
           )}

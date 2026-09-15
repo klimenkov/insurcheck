@@ -5,6 +5,7 @@ export function ResultCard({ result, onConnectBroker, onOpenFsraExplainer }) {
   if (!result) return null;
 
   const {
+    isEstimating,
     verdict,
     verdictTitle,
     verdictMessage,
@@ -20,11 +21,13 @@ export function ResultCard({ result, onConnectBroker, onOpenFsraExplainer }) {
     riskHighlights
   } = result;
 
-  const isOverpaying = verdict === 'SEVERE_OVERPAY' || verdict === 'OVERPAYING';
+  const isOverpaying = !isEstimating && (verdict === 'SEVERE_OVERPAY' || verdict === 'OVERPAYING');
 
   return (
     <div className={`rounded-3xl p-6 sm:p-8 backdrop-blur-xl border transition-all duration-300 shadow-2xl relative overflow-hidden ${
-      verdictColor === 'red'
+      isEstimating
+        ? 'bg-emerald-950/20 border-emerald-500/40 glow-emerald'
+        : verdictColor === 'red'
         ? 'bg-red-950/20 border-red-500/40 glow-red'
         : verdictColor === 'amber'
         ? 'bg-amber-950/20 border-amber-500/40'
@@ -59,11 +62,19 @@ export function ResultCard({ result, onConnectBroker, onOpenFsraExplainer }) {
       {/* Main Savings Comparison Banner */}
       <div className="my-6 grid grid-cols-1 sm:grid-cols-3 gap-4">
         <div className="bg-slate-900/80 border border-slate-800 rounded-2xl p-4">
-          <div className="text-xs text-slate-400 font-semibold">Your Current Rate</div>
-          <div className="text-2xl sm:text-3xl font-black text-white mt-1">
-            ${currentPremium} <span className="text-xs font-normal text-slate-400">/ mo</span>
+          <div className="text-xs text-slate-400 font-semibold">
+            {isEstimating ? 'Estimated Market Quote' : 'Your Current Rate'}
           </div>
-          <div className="text-[11px] text-slate-500 mt-1">${(currentPremium * 12).toLocaleString()} / year</div>
+          <div className="text-2xl sm:text-3xl font-black text-white mt-1">
+            {isEstimating ? (
+              <span className="text-emerald-400">${fairMonthlyStandard} <span className="text-xs font-normal text-slate-400">/ mo</span></span>
+            ) : (
+              <span>${currentPremium} <span className="text-xs font-normal text-slate-400">/ mo</span></span>
+            )}
+          </div>
+          <div className="text-[11px] text-slate-500 mt-1">
+            {isEstimating ? 'No current policy • Shopping mode' : `$${(currentPremium * 12).toLocaleString()} / year`}
+          </div>
         </div>
 
         <div className="bg-slate-900/80 border border-slate-800 rounded-2xl p-4">
@@ -82,7 +93,7 @@ export function ResultCard({ result, onConnectBroker, onOpenFsraExplainer }) {
               <button
                 type="button"
                 onClick={onOpenFsraExplainer}
-                className="text-emerald-400 hover:text-emerald-300 underline font-semibold transition"
+                className="text-emerald-400 hover:text-emerald-300 underline font-semibold transition cursor-pointer"
               >
                 Actuarial Model ℹ️
               </button>
@@ -91,18 +102,28 @@ export function ResultCard({ result, onConnectBroker, onOpenFsraExplainer }) {
         </div>
 
         <div className={`rounded-2xl p-4 border ${
-          isOverpaying
+          isEstimating
+            ? 'bg-emerald-500/10 border-emerald-500/30'
+            : isOverpaying
             ? 'bg-red-500/10 border-red-500/30'
             : 'bg-emerald-500/10 border-emerald-500/30'
         }`}>
           <div className="text-xs font-semibold text-slate-300">
-            {isOverpaying ? 'Potential Annual Savings' : 'Status'}
+            {isEstimating ? 'Ontario Market Range' : isOverpaying ? 'Potential Annual Savings' : 'Status'}
           </div>
           <div className={`text-2xl sm:text-3xl font-black mt-1 ${isOverpaying ? 'text-red-400' : 'text-emerald-400'}`}>
-            {isOverpaying ? `-$${annualSavings.toLocaleString()}` : 'Protected Rate'}
+            {isEstimating
+              ? `$${coverageTiers.minimum.rate} - $${coverageTiers.comprehensive.rate}`
+              : isOverpaying
+              ? `-$${annualSavings.toLocaleString()}`
+              : 'Protected Rate'}
           </div>
           <div className="text-[11px] text-slate-300 mt-1">
-            {isOverpaying ? `Save ~$${monthlySavings}/month` : 'Fair market pricing'}
+            {isEstimating
+              ? 'Basic Liability to Full Protection'
+              : isOverpaying
+              ? `Save ~$${monthlySavings}/month`
+              : 'Fair market pricing'}
           </div>
         </div>
       </div>
@@ -172,7 +193,26 @@ export function ResultCard({ result, onConnectBroker, onOpenFsraExplainer }) {
       )}
 
       {/* Broker CTA */}
-      {isOverpaying ? (
+      {isEstimating ? (
+        <div className="p-5 bg-gradient-to-r from-emerald-950/80 to-slate-900 border border-emerald-500/30 rounded-2xl flex flex-col sm:flex-row items-center justify-between gap-4">
+          <div>
+            <h4 className="text-base font-extrabold text-white flex items-center gap-2">
+              <Sparkles className="w-5 h-5 text-emerald-400" />
+              Target Benchmark: ${fairMonthlyStandard}/month
+            </h4>
+            <p className="text-xs text-slate-300 mt-0.5">
+              Connect with a licensed Ontario independent broker who searches 30+ insurers (Intact, Aviva, Desjardins, TD) to lock in this rate before buying.
+            </p>
+          </div>
+          <button
+            onClick={onConnectBroker}
+            className="w-full sm:w-auto px-6 py-3 rounded-xl bg-emerald-400 hover:bg-emerald-300 text-slate-950 font-black text-sm transition shadow-lg shadow-emerald-500/20 whitespace-nowrap cursor-pointer flex items-center justify-center gap-2"
+          >
+            <span>Get Official Quotes</span>
+            <ArrowRight className="w-4 h-4" />
+          </button>
+        </div>
+      ) : isOverpaying ? (
         <div className="p-5 bg-gradient-to-r from-emerald-950/80 to-slate-900 border border-emerald-500/30 rounded-2xl flex flex-col sm:flex-row items-center justify-between gap-4">
           <div>
             <h4 className="text-base font-extrabold text-white flex items-center gap-2">

@@ -137,9 +137,12 @@ export function evaluateInsurance(params) {
   const targetRate = coverageTiers[selectedLevel].rate;
   const targetName = coverageTiers[selectedLevel].name;
 
+  const isEstimating = Boolean(params.isEstimating || params.noCurrentInsurance);
+  const insuranceCompany = params.insuranceCompany ? String(params.insuranceCompany).trim() : null;
+
   // Sanity check comparison with user's current payment
-  const current = parseFloat(currentPremium) || targetRate;
-  const monthlyDifference = Math.round(current - targetRate);
+  const current = isEstimating ? null : (parseFloat(currentPremium) || targetRate);
+  const monthlyDifference = isEstimating ? 0 : Math.round(current - targetRate);
   const annualDifference = monthlyDifference * 12;
 
   let verdict = 'FAIR_RATE';
@@ -147,9 +150,14 @@ export function evaluateInsurance(params) {
   let verdictMessage = `Your rate of $${current}/mo is closely aligned with Ontario benchmarks for ${targetName} ($${targetRate}/mo actuarial baseline).`;
   let verdictColor = 'emerald';
 
-  const ratio = current / targetRate;
+  const ratio = isEstimating ? 1.0 : (current / targetRate);
 
-  if (ratio >= 1.35) {
+  if (isEstimating) {
+    verdict = 'ESTIMATE';
+    verdictTitle = 'Ontario Market Benchmark';
+    verdictMessage = `Expected monthly insurance benchmark for ${targetName} is ~$${targetRate}/mo based on your postal area (${locationInfo.city}) and vehicle risk profile.`;
+    verdictColor = 'emerald';
+  } else if (ratio >= 1.35) {
     verdict = 'SEVERE_OVERPAY';
     verdictTitle = 'Significant Overpayment!';
     verdictMessage = `You are paying ~${Math.round((ratio - 1) * 100)}% more than standard market benchmarks for ${targetName}.`;
@@ -197,6 +205,8 @@ export function evaluateInsurance(params) {
   }
 
   return {
+    isEstimating,
+    insuranceCompany,
     verdict,
     verdictTitle,
     verdictMessage,
@@ -207,7 +217,7 @@ export function evaluateInsurance(params) {
     selectedCoverageName: targetName,
     monthlySavings: Math.max(0, monthlyDifference),
     annualSavings: Math.max(0, annualDifference),
-    overpayRatio: Math.round(ratio * 100) / 100,
+    overpayRatio: isEstimating ? null : Math.round(ratio * 100) / 100,
     coverageTiers,
     location: locationInfo,
     vehicle: {
