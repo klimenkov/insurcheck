@@ -5,8 +5,10 @@ import { SanityChecker } from './components/SanityChecker.jsx';
 import { ResultCard } from './components/ResultCard.jsx';
 import { CommunityQuotes } from './components/CommunityQuotes.jsx';
 import { InsurerReviews } from './components/InsurerReviews.jsx';
+import { TerritoryHeatMap } from './components/TerritoryHeatMap.jsx';
 import { LeadModal } from './components/LeadModal.jsx';
 import { ContributeModal } from './components/ContributeModal.jsx';
+import { FsraExplainerModal } from './components/FsraExplainerModal.jsx';
 
 export default function App() {
   const [activeTab, setActiveTab] = useState('checker');
@@ -15,10 +17,7 @@ export default function App() {
   const [loading, setLoading] = useState(false);
   const [leadModalOpen, setLeadModalOpen] = useState(false);
   const [contributeModalOpen, setContributeModalOpen] = useState(false);
-
-  useEffect(() => {
-    fetchStats();
-  }, []);
+  const [fsraModalOpen, setFsraModalOpen] = useState(false);
 
   const fetchStats = async () => {
     try {
@@ -29,6 +28,17 @@ export default function App() {
       console.error(err);
     }
   };
+
+  useEffect(() => {
+    let ignore = false;
+    fetch('/api/stats')
+      .then(res => res.json())
+      .then(json => {
+        if (!ignore && json.success) setStats(json.data);
+      })
+      .catch(console.error);
+    return () => { ignore = true; };
+  }, []);
 
   const handleCalculate = async (formData) => {
     setLoading(true);
@@ -72,6 +82,7 @@ export default function App() {
                   <ResultCard
                     result={checkResult}
                     onConnectBroker={() => setLeadModalOpen(true)}
+                    onOpenFsraExplainer={() => setFsraModalOpen(true)}
                   />
                 ) : (
                   <div className="border border-dashed border-slate-800 rounded-3xl p-8 text-center text-slate-500 bg-slate-900/30">
@@ -90,7 +101,14 @@ export default function App() {
         )}
 
         {activeTab === 'quotes' && (
-          <CommunityQuotes onOpenContribute={() => setContributeModalOpen(true)} />
+          <CommunityQuotes
+            onOpenContribute={() => setContributeModalOpen(true)}
+            onOpenFsraExplainer={() => setFsraModalOpen(true)}
+          />
+        )}
+
+        {activeTab === 'heatmap' && (
+          <TerritoryHeatMap onOpenContribute={() => setContributeModalOpen(true)} />
         )}
 
         {activeTab === 'insurers' && (
@@ -113,6 +131,10 @@ export default function App() {
       <ContributeModal
         isOpen={contributeModalOpen}
         onClose={() => setContributeModalOpen(false)}
+      />
+      <FsraExplainerModal
+        isOpen={fsraModalOpen}
+        onClose={() => setFsraModalOpen(false)}
       />
     </div>
   );

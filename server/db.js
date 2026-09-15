@@ -81,6 +81,25 @@ CREATE TABLE IF NOT EXISTS platform_stats (
   key TEXT PRIMARY KEY,
   value REAL NOT NULL
 );
+
+CREATE TABLE IF NOT EXISTS scraped_quotes (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  created_at TEXT NOT NULL,
+  source_platform TEXT NOT NULL,
+  persona_id TEXT NOT NULL,
+  persona_label TEXT NOT NULL,
+  fsa TEXT NOT NULL,
+  city TEXT NOT NULL,
+  vehicle_year INTEGER NOT NULL,
+  vehicle_make TEXT NOT NULL,
+  vehicle_model TEXT NOT NULL,
+  driver_age INTEGER NOT NULL,
+  license_class TEXT NOT NULL,
+  clean_record INTEGER DEFAULT 1,
+  monthly_premium INTEGER NOT NULL,
+  coverage_type TEXT NOT NULL,
+  raw_payload TEXT
+);
 `);
 
 console.log('Database initialized at:', dbPath);

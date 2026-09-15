@@ -14,7 +14,16 @@ In Ontario (especially the Greater Toronto Area), auto insurance is notorious fo
 - 👥 **Crowdsourced Rate Database**: See what real Ontario drivers with your car are paying right now.
 - ⭐ **Claims & Support Reviews**: Honest community ratings on claims payouts (ДТП experience), adjuster turnaround, and customer support for Intact, Belairdirect, Desjardins, Aviva, TD Insurance, Sonnet, CAA, and Onlia.
 - 💰 **Savings Tracker & Broker Connect**: Live counter of estimated user savings and lead capture for licensed insurance brokers.
-- 🔬 **Reverse-Engineering & Scraper Module**: Tools in `scrapers/` for parametric rate sensitivity modeling and automated quote harvesting.
+- 🔬 **Automated Market Watch & Rate Telemetry**: Multi-step Playwright quote harvesting engine in `scrapers/` querying live carrier actuarial funnels (Square One, etc.) for standardized Ontario driver archetypes.
+- ⚖️ **FSRA Actuarial Fair Rate Benchmark**: Independent baseline computed using Ontario Financial Services Regulatory Authority (FSRA) territorial rating matrices, graduated licensing curves, and Équité vehicle theft factors to detect overpayment.
+- 📈 **Price Dynamics & Timestamped Snapshots**: Periodic rate snapshots (`created_at`) to track monthly carrier pricing trends, inflation adjustments, and rate filings over time.
+
+---
+
+## Actuarial Methodology & Regulatory Benchmark
+
+For a detailed breakdown of how FSRA Fair Rate is computed, quote capture frequencies, and the upcoming Ontario Territorial Heat Map, see:
+👉 **[docs/METHODOLOGY_AND_ROADMAP.md](docs/METHODOLOGY_AND_ROADMAP.md)**
 
 ---
 
@@ -48,6 +57,8 @@ npm run dev
 ---
 
 ## Architecture
-- **Backend**: Node.js + Express + native `node:sqlite` database.
+- **Backend**: Node.js + Express + native `node:sqlite` database (`server/insurcheck.db`).
 - **Frontend**: React 19 + Vite + Tailwind CSS + Lucide Icons.
-- **Parametric Rate Engine**: Ontario FSA regional risk factors + Vehicle theft/loss index + Driver experience curves.
+- **Parametric Rate Engine**: Ontario FSA regional risk factors + Vehicle theft/loss index + Driver experience curves (`server/engine/model.js`).
+- **Scraper Pipeline**: Isolated `scraped_quotes` table strictly separated from crowdsourced submissions (`submissions`).
+

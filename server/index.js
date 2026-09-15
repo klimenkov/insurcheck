@@ -1,3 +1,4 @@
+// InsurCheck API Server
 import express from 'express';
 import cors from 'cors';
 import path from 'node:path';
@@ -8,6 +9,8 @@ import { submissionsRouter } from './routes/submissions.js';
 import { insurersRouter } from './routes/insurers.js';
 import { leadsRouter } from './routes/leads.js';
 import { statsRouter } from './routes/stats.js';
+import { scrapedQuotesRouter } from './routes/scrapedQuotes.js';
+import { territoriesRouter } from './routes/territories.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -21,6 +24,8 @@ app.use(express.json());
 // API routes
 app.use('/api/check', checkRouter);
 app.use('/api/submissions', submissionsRouter);
+app.use('/api/scraped-quotes', scrapedQuotesRouter);
+app.use('/api/territories', territoriesRouter);
 app.use('/api/insurers', insurersRouter);
 app.use('/api/leads', leadsRouter);
 app.use('/api/stats', statsRouter);

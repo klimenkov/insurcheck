@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Car, MapPin, User, Calendar, Shield, DollarSign, ArrowRight, Loader2, Sparkles } from 'lucide-react';
+import { Car, MapPin, User, Shield, DollarSign, ArrowRight, Loader2, Sparkles } from 'lucide-react';
 import { VEHICLE_OPTIONS, POPULAR_FSAS } from '../data/vehicles.js';
 
 export function SanityChecker({ onCalculate, loading }) {

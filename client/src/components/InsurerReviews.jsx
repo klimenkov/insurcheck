@@ -1,24 +1,11 @@
 import React, { useState, useEffect } from 'react';
-import { Star, ShieldAlert, PhoneCall, Check, X, ExternalLink, ThumbsUp } from 'lucide-react';
+import { Star, Check, X, ExternalLink } from 'lucide-react';
 
 export function InsurerReviews() {
   const [insurers, setInsurers] = useState([]);
   const [selectedInsurer, setSelectedInsurer] = useState(null);
   const [reviews, setReviews] = useState([]);
   const [loadingReviews, setLoadingReviews] = useState(false);
-
-  useEffect(() => {
-    fetch('/api/insurers')
-      .then((res) => res.json())
-      .then((json) => {
-        if (json.success) {
-          setInsurers(json.data);
-          if (json.data.length > 0) {
-            handleSelectInsurer(json.data[0]);
-          }
-        }
-      });
-  }, []);
 
   const handleSelectInsurer = async (insurer) => {
     setSelectedInsurer(insurer);
@@ -33,6 +20,19 @@ export function InsurerReviews() {
       setLoadingReviews(false);
     }
   };
+
+  useEffect(() => {
+    fetch('/api/insurers')
+      .then((res) => res.json())
+      .then((json) => {
+        if (json.success) {
+          setInsurers(json.data);
+          if (json.data.length > 0) {
+            handleSelectInsurer(json.data[0]);
+          }
+        }
+      });
+  }, []);
 
   return (
     <div className="max-w-6xl mx-auto px-4 py-8">

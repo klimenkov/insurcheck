@@ -1,0 +1,94 @@
+{
+  "persona": {
+    "id": "suburban_mississauga_theft",
+    "label": "Suburban Family - Mississauga (High-Theft SUV Profile)",
+    "postal_code": "L5M 4T3",
+    "city": "Mississauga",
+    "first_name": "David",
+    "last_name": "Kowalski",
+    "gender": "male",
+    "birthdate": "1980-03-11",
+    "age": 46,
+    "marital_status": "married",
+    "license_class": "G",
+    "years_licensed": 28,
+    "driver_training": true,
+    "vehicle": {
+      "year": 2022,
+      "make": "Lexus",
+      "model": "RX 350",
+      "trim": "AWD",
+      "ownership": "financed",
+      "annual_km": 20000,
+      "commute_km": 25,
+      "winter_tires": true
+    },
+    "history": {
+      "clean_record": true,
+      "at_fault_claims": 0,
+      "convictions": 0,
+      "cancellations": 0
+    }
+  },
+  "scrape_result": {
+    "success": true,
+    "target": "squareone",
+    "effective_rate": 348,
+    "monthly_premium": 348,
+    "annual_premium": 4176,
+    "extracted_base_rates": [
+      "348"
+    ],
+    "quote_source": "Square One Ontario Auto Actuarial Engine (High Theft Surcharge Included)",
+    "policy_id": "PA107259114",
+    "policy_version_id": 11181452,
+    "coverage_breakdown": [
+      {
+        "code": "ZS1_TPL_COV",
+        "heading": "Third-Party Liability Coverage ($2,000,000)",
+        "annual": 1104.0,
+        "monthly": 92.0
+      },
+      {
+        "code": "ZS1_FAMILYPROT_ENDT",
+        "heading": "Family Protection Endorsement (OPCF 44R)",
+        "annual": 24.0,
+        "monthly": 2.0
+      },
+      {
+        "code": "ZS1_DIRECTCOMP_COV",
+        "heading": "Direct Compensation - Property Damage Coverage",
+        "annual": 1008.0,
+        "monthly": 84.0
+      },
+      {
+        "code": "ZS1_THEFT_COLL_COV",
+        "heading": "Comprehensive & Collision (Lexus RX \u00c9quit\u00e9 Theft Risk Tier 1)",
+        "annual": 1752.0,
+        "monthly": 146.0
+      },
+      {
+        "code": "ZS1_ACCBENEFITS_ON26_COV",
+        "heading": "Accident Benefits Coverage",
+        "annual": 288.0,
+        "monthly": 24.0
+      }
+    ],
+    "funnel_steps_completed": 3,
+    "timestamp": "2026-09-15T02:58:18.508529"
+  },
+  "funnel_steps": [
+    {
+      "step": "step1_drivers",
+      "status": "completed"
+    },
+    {
+      "step": "step2_vehicles",
+      "status": "completed"
+    },
+    {
+      "step": "step3_coverages",
+      "status": "completed"
+    }
+  ]
+}

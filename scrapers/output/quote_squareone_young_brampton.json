@@ -1,0 +1,88 @@
+{
+  "persona": {
+    "id": "young_brampton",
+    "label": "Young Driver - Brampton (High Risk Territory)",
+    "postal_code": "L6P 1A1",
+    "city": "Brampton",
+    "first_name": "Marcus",
+    "last_name": "Singh",
+    "gender": "male",
+    "birthdate": "2004-05-14",
+    "age": 22,
+    "marital_status": "single",
+    "license_class": "G2",
+    "years_licensed": 2,
+    "driver_training": true,
+    "vehicle": {
+      "year": 2021,
+      "make": "Honda",
+      "model": "Civic",
+      "trim": "EX",
+      "ownership": "financed",
+      "annual_km": 18000,
+      "commute_km": 15,
+      "winter_tires": true
+    },
+    "history": {
+      "clean_record": true,
+      "at_fault_claims": 0,
+      "convictions": 0,
+      "cancellations": 0
+    }
+  },
+  "scrape_result": {
+    "success": true,
+    "target": "squareone",
+    "effective_rate": 1174,
+    "monthly_premium": 1174,
+    "annual_premium": 14083,
+    "extracted_base_rates": [
+      "1174"
+    ],
+    "quote_source": "Square One Ontario Auto Actuarial Engine (Live Scraped Funnel)",
+    "policy_id": "PA107256647",
+    "policy_version_id": 11180394,
+    "coverage_breakdown": [
+      {
+        "code": "ZS1_TPL_COV",
+        "heading": "Third-Party Liability Coverage ($2,000,000)",
+        "annual": 4436.0,
+        "monthly": 369.67
+      },
+      {
+        "code": "ZS1_FAMILYPROT_ENDT",
+        "heading": "Family Protection Endorsement (OPCF 44R)",
+        "annual": 24.0,
+        "monthly": 2.0
+      },
+      {
+        "code": "ZS1_DIRECTCOMP_COV",
+        "heading": "Direct Compensation - Property Damage Coverage",
+        "annual": 5834.0,
+        "monthly": 486.17
+      },
+      {
+        "code": "ZS1_ACCBENEFITS_ON26_COV",
+        "heading": "Medical, Rehabilitation & Attendant Care (Accident Benefits)",
+        "annual": 3789.0,
+        "monthly": 315.75
+      }
+    ],
+    "funnel_steps_completed": 3,
+    "timestamp": "2026-09-15T02:58:18.508529"
+  },
+  "funnel_steps": [
+    {
+      "step": "step1_drivers",
+      "status": "completed"
+    },
+    {
+      "step": "step2_vehicles",
+      "status": "completed"
+    },
+    {
+      "step": "step3_coverages",
+      "status": "completed"
+    }
+  ]
+}

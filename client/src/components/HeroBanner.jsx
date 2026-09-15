@@ -1,5 +1,5 @@
 import React from 'react';
-import { DollarSign, ShieldCheck, Zap, AlertTriangle } from 'lucide-react';
+import { AlertTriangle } from 'lucide-react';
 
 export function HeroBanner({ stats }) {
   const totalSaved = stats?.total_money_saved

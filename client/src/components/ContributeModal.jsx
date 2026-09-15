@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { X, CheckCircle2, Loader2, DollarSign } from 'lucide-react';
+import { X, CheckCircle2, Loader2 } from 'lucide-react';
 import { VEHICLE_OPTIONS } from '../data/vehicles.js';
 
 export function ContributeModal({ isOpen, onClose }) {

@@ -1,7 +1,7 @@
 import React from 'react';
-import { AlertCircle, CheckCircle2, TrendingDown, ArrowRight, ShieldCheck, Info, Sparkles, ExternalLink } from 'lucide-react';
+import { AlertCircle, CheckCircle2, ArrowRight, ShieldCheck, Sparkles } from 'lucide-react';
 
-export function ResultCard({ result, onConnectBroker }) {
+export function ResultCard({ result, onConnectBroker, onOpenFsraExplainer }) {
   if (!result) return null;
 
   const {
@@ -71,7 +71,18 @@ export function ResultCard({ result, onConnectBroker }) {
           <div className="text-2xl sm:text-3xl font-black text-emerald-400 mt-1">
             ${fairMonthlyStandard} <span className="text-xs font-normal text-slate-400">/ mo</span>
           </div>
-          <div className="text-[11px] text-slate-500 mt-1">${(fairMonthlyStandard * 12).toLocaleString()} / year</div>
+          <div className="flex items-center justify-between text-[11px] text-slate-500 mt-1">
+            <span>${(fairMonthlyStandard * 12).toLocaleString()} / year</span>
+            {onOpenFsraExplainer && (
+              <button
+                type="button"
+                onClick={onOpenFsraExplainer}
+                className="text-emerald-400 hover:text-emerald-300 underline font-semibold transition"
+              >
+                Actuarial Model ℹ️
+              </button>
+            )}
+          </div>
         </div>
 
         <div className={`rounded-2xl p-4 border ${

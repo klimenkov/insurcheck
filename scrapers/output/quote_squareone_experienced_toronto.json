@@ -1,0 +1,94 @@
+{
+  "persona": {
+    "id": "experienced_toronto",
+    "label": "Experienced Professional - Downtown Toronto",
+    "postal_code": "M5V 2T6",
+    "city": "Toronto",
+    "first_name": "Elena",
+    "last_name": "Chen",
+    "gender": "female",
+    "birthdate": "1988-10-22",
+    "age": 38,
+    "marital_status": "married",
+    "license_class": "G",
+    "years_licensed": 20,
+    "driver_training": true,
+    "vehicle": {
+      "year": 2023,
+      "make": "Toyota",
+      "model": "RAV4",
+      "trim": "XLE",
+      "ownership": "owned",
+      "annual_km": 12000,
+      "commute_km": 8,
+      "winter_tires": true
+    },
+    "history": {
+      "clean_record": true,
+      "at_fault_claims": 0,
+      "convictions": 0,
+      "cancellations": 0
+    }
+  },
+  "scrape_result": {
+    "success": true,
+    "target": "squareone",
+    "effective_rate": 192,
+    "monthly_premium": 192,
+    "annual_premium": 2304,
+    "extracted_base_rates": [
+      "192"
+    ],
+    "quote_source": "Square One Ontario Auto Actuarial Engine",
+    "policy_id": "PA107258902",
+    "policy_version_id": 11181204,
+    "coverage_breakdown": [
+      {
+        "code": "ZS1_TPL_COV",
+        "heading": "Third-Party Liability Coverage ($2,000,000)",
+        "annual": 936.0,
+        "monthly": 78.0
+      },
+      {
+        "code": "ZS1_FAMILYPROT_ENDT",
+        "heading": "Family Protection Endorsement (OPCF 44R)",
+        "annual": 24.0,
+        "monthly": 2.0
+      },
+      {
+        "code": "ZS1_DIRECTCOMP_COV",
+        "heading": "Direct Compensation - Property Damage Coverage",
+        "annual": 744.0,
+        "monthly": 62.0
+      },
+      {
+        "code": "ZS1_COLL_COMP_COV",
+        "heading": "Collision & Comprehensive ($1,000 Deductible)",
+        "annual": 408.0,
+        "monthly": 34.0
+      },
+      {
+        "code": "ZS1_ACCBENEFITS_ON26_COV",
+        "heading": "Accident Benefits Coverage",
+        "annual": 192.0,
+        "monthly": 16.0
+      }
+    ],
+    "funnel_steps_completed": 3,
+    "timestamp": "2026-09-15T02:58:18.508529"
+  },
+  "funnel_steps": [
+    {
+      "step": "step1_drivers",
+      "status": "completed"
+    },
+    {
+      "step": "step2_vehicles",
+      "status": "completed"
+    },
+    {
+      "step": "step3_coverages",
+      "status": "completed"
+    }
+  ]
+}

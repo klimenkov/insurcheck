@@ -1,5 +1,5 @@
 import React from 'react';
-import { ShieldAlert, TrendingDown, Users, Star, PlusCircle, CheckCircle2 } from 'lucide-react';
+import { ShieldAlert, PlusCircle } from 'lucide-react';
 
 export function Navbar({ activeTab, setActiveTab, onOpenContribute, totalSaved }) {
   const formattedSaved = totalSaved
@@ -48,6 +48,19 @@ export function Navbar({ activeTab, setActiveTab, onOpenContribute, totalSaved }
               Community Rates
             </button>
             <button
+              onClick={() => setActiveTab('heatmap')}
+              className={`px-3.5 py-1.5 rounded-lg text-sm font-medium transition-all flex items-center gap-1.5 ${
+                activeTab === 'heatmap'
+                  ? 'bg-emerald-500 text-slate-950 shadow-md font-semibold'
+                  : 'text-slate-400 hover:text-white hover:bg-slate-800/50'
+              }`}
+            >
+              <span>Territory Heat Map</span>
+              <span className="px-1.5 py-0.2 text-[9px] font-extrabold uppercase rounded bg-rose-500/20 text-rose-300 border border-rose-500/30">
+                142 FSAs
+              </span>
+            </button>
+            <button
               onClick={() => setActiveTab('insurers')}
               className={`px-3.5 py-1.5 rounded-lg text-sm font-medium transition-all ${
                 activeTab === 'insurers'
@@ -55,7 +68,7 @@ export function Navbar({ activeTab, setActiveTab, onOpenContribute, totalSaved }
                   : 'text-slate-400 hover:text-white hover:bg-slate-800/50'
               }`}
             >
-              Claims & Support Reviews
+              Claims & Support
             </button>
           </nav>
 
