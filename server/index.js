@@ -11,9 +11,13 @@ import { leadsRouter } from './routes/leads.js';
 import { statsRouter } from './routes/stats.js';
 import { scrapedQuotesRouter } from './routes/scrapedQuotes.js';
 import { territoriesRouter } from './routes/territories.js';
+import { ensureQuotesPopulated } from './seedQuotes.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
+
+// Ensure quotes and rate dynamics are populated in SQLite
+ensureQuotesPopulated();
 
 const app = express();
 const PORT = process.env.PORT || 5000;
