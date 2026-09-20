@@ -9,6 +9,7 @@ import { TerritoryHeatMap } from './components/TerritoryHeatMap.jsx';
 import { LeadModal } from './components/LeadModal.jsx';
 import { ContributeModal } from './components/ContributeModal.jsx';
 import { FsraExplainerModal } from './components/FsraExplainerModal.jsx';
+import { ContactUs } from './components/ContactUs.jsx';
 
 export default function App() {
   const [activeTab, setActiveTab] = useState('checker');
@@ -114,12 +115,23 @@ export default function App() {
         {activeTab === 'insurers' && (
           <InsurerReviews />
         )}
+
+        {activeTab === 'contact' && (
+          <ContactUs />
+        )}
       </div>
 
       {/* Footer */}
       <footer className="border-t border-slate-900 bg-slate-950 py-8 text-center text-xs text-slate-500">
         <p>InsurCheck Ontario • Open benchmark project designed for driver rate transparency.</p>
         <p className="mt-1">Not affiliated with FSRA or insurance providers. Estimates are for informational sanity-checks.</p>
+        <p className="mt-3 flex items-center justify-center gap-2">
+          <a href="#" className="hover:text-slate-300 transition">Terms of Use</a>
+          <span>·</span>
+          <a href="#" className="hover:text-slate-300 transition">Privacy Policy</a>
+          <span>·</span>
+          <a href="#" className="hover:text-slate-300 transition">Cookie Preferences</a>
+        </p>
       </footer>
 
       {/* Modals */}

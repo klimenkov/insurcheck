@@ -68,7 +68,17 @@ export function Navbar({ activeTab, setActiveTab, onOpenContribute, totalSaved }
                   : 'text-slate-400 hover:text-white hover:bg-slate-800/50'
               }`}
             >
-              Claims & Support
+              Insurance Reviews
+            </button>
+            <button
+              onClick={() => setActiveTab('contact')}
+              className={`px-3.5 py-1.5 rounded-lg text-sm font-medium transition-all ${
+                activeTab === 'contact'
+                  ? 'bg-emerald-500 text-slate-950 shadow-md font-semibold'
+                  : 'text-slate-400 hover:text-white hover:bg-slate-800/50'
+              }`}
+            >
+              Contact Us
             </button>
           </nav>
 

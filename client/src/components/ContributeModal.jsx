@@ -13,10 +13,11 @@ export function ContributeModal({ isOpen, onClose }) {
     driverAge: 32,
     yearsLicensed: 10,
     cleanRecord: true,
-    providerName: 'Belairdirect',
+    providerName: '',
     monthlyPremium: 210,
     coverageType: 'Standard',
-    comment: ''
+    comment: '',
+    shareAnonymously: true
   });
 
   if (!isOpen) return null;
@@ -121,15 +122,31 @@ export function ContributeModal({ isOpen, onClose }) {
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-xs font-medium text-slate-400 mb-1">Insurer Name</label>
-                  <input
-                    type="text"
-                    placeholder="e.g. Belair, TD, Intact"
+                  <label className="block text-xs font-medium text-slate-400 mb-1">Current Insurance Company</label>
+                  <select
                     value={formData.providerName}
                     onChange={(e) => setFormData({ ...formData, providerName: e.target.value })}
                     className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs text-white"
                     required
-                  />
+                  >
+                    <option value="">Select insurer</option>
+                    <option value="Intact">Intact</option>
+                    <option value="TD Insurance">TD Insurance</option>
+                    <option value="Aviva">Aviva</option>
+                    <option value="Belairdirect">Belairdirect</option>
+                    <option value="CAA Insurance">CAA Insurance</option>
+                    <option value="Economical">Economical</option>
+                    <option value="Desjardins">Desjardins</option>
+                    <option value="Co-operators">Co-operators</option>
+                    <option value="Sonnet">Sonnet</option>
+                    <option value="Wawanesa">Wawanesa</option>
+                    <option value="Travelers">Travelers</option>
+                    <option value="Allstate">Allstate</option>
+                    <option value="Gore Mutual">Gore Mutual</option>
+                    <option value="Northbridge">Northbridge</option>
+                    <option value="Facility">Facility</option>
+                    <option value="Other">Other</option>
+                  </select>
                 </div>
                 <div>
                   <label className="block text-xs font-medium text-slate-400 mb-1">Monthly Premium ($)</label>
@@ -153,6 +170,18 @@ export function ContributeModal({ isOpen, onClose }) {
                   className="w-full bg-slate-950 border border-slate-800 rounded-xl p-2.5 text-xs text-white"
                 />
               </div>
+
+              <label className="flex items-start gap-2.5 cursor-pointer group py-1">
+                <input
+                  type="checkbox"
+                  checked={formData.shareAnonymously}
+                  onChange={(e) => setFormData({ ...formData, shareAnonymously: e.target.checked })}
+                  className="w-4 h-4 mt-0.5 rounded border-slate-700 text-emerald-500 focus:ring-emerald-500 focus:ring-offset-slate-900 accent-emerald-500 cursor-pointer"
+                />
+                <span className="text-xs text-slate-300 group-hover:text-emerald-300 transition leading-relaxed">
+                  Share my rate anonymously to help improve the InsurCheck benchmark
+                </span>
+              </label>
 
               <button
                 type="submit"

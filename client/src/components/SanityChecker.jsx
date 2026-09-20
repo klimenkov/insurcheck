@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Car, MapPin, User, Shield, DollarSign, ArrowRight, Loader2, Sparkles, ShieldCheck, CheckCircle2, Building2 } from 'lucide-react';
+import { Car, MapPin, User, Shield, DollarSign, ArrowRight, Loader2, Sparkles, ShieldCheck, CheckCircle2, Building2, Users, ChevronDown, Minus, Plus } from 'lucide-react';
 import { VEHICLE_OPTIONS, POPULAR_FSAS } from '../data/vehicles.js';
 
 export function SanityChecker({ onCalculate, loading }) {
@@ -14,8 +14,12 @@ export function SanityChecker({ onCalculate, loading }) {
     insuranceCompany: '',
     driverAge: 28,
     yearsLicensed: 8,
-    cleanRecord: true
+    cleanRecord: true,
+    numberOfDrivers: 1,
+    numberOfVehicles: 1
   });
+
+  const [householdOpen, setHouseholdOpen] = useState(false);
 
   const currentModels = (VEHICLE_OPTIONS.find(v => v.make === formData.vehicleMake)?.models) || ['Standard Model'];
 
@@ -53,6 +57,71 @@ export function SanityChecker({ onCalculate, loading }) {
       </div>
 
       <form onSubmit={handleSubmit} className="space-y-6">
+        {/* Household / Multi-driver Toggle */}
+        <div className="bg-slate-950/70 rounded-2xl border border-slate-800 overflow-hidden">
+          <button
+            type="button"
+            onClick={() => setHouseholdOpen(!householdOpen)}
+            className="w-full flex items-center justify-between px-4 py-3 text-sm font-semibold text-slate-300 hover:text-emerald-300 transition cursor-pointer"
+          >
+            <span className="flex items-center gap-2">
+              <Users className="w-4 h-4 text-emerald-400" />
+              🏠 Multiple drivers or vehicles?
+              {(formData.numberOfDrivers > 1 || formData.numberOfVehicles > 1) && (
+                <span className="px-2 py-0.5 text-[10px] font-bold bg-emerald-500/15 text-emerald-400 border border-emerald-500/20 rounded-full">
+                  {formData.numberOfDrivers}D / {formData.numberOfVehicles}V
+                </span>
+              )}
+            </span>
+            <ChevronDown className={`w-4 h-4 text-slate-500 transition-transform ${householdOpen ? 'rotate-180' : ''}`} />
+          </button>
+
+          {householdOpen && (
+            <div className="px-4 pb-4 pt-1 border-t border-slate-800/50 grid grid-cols-2 gap-4">
+              <div>
+                <span className="text-[11px] text-slate-500 font-medium block mb-2">Number of drivers</span>
+                <div className="flex items-center gap-3">
+                  <button
+                    type="button"
+                    onClick={() => setFormData({ ...formData, numberOfDrivers: Math.max(1, formData.numberOfDrivers - 1) })}
+                    className="w-8 h-8 rounded-lg bg-slate-900 border border-slate-700 flex items-center justify-center text-slate-300 hover:border-emerald-500 transition cursor-pointer"
+                  >
+                    <Minus className="w-3.5 h-3.5" />
+                  </button>
+                  <span className="text-lg font-extrabold text-white w-6 text-center">{formData.numberOfDrivers}</span>
+                  <button
+                    type="button"
+                    onClick={() => setFormData({ ...formData, numberOfDrivers: Math.min(4, formData.numberOfDrivers + 1) })}
+                    className="w-8 h-8 rounded-lg bg-slate-900 border border-slate-700 flex items-center justify-center text-slate-300 hover:border-emerald-500 transition cursor-pointer"
+                  >
+                    <Plus className="w-3.5 h-3.5" />
+                  </button>
+                </div>
+              </div>
+              <div>
+                <span className="text-[11px] text-slate-500 font-medium block mb-2">Number of vehicles</span>
+                <div className="flex items-center gap-3">
+                  <button
+                    type="button"
+                    onClick={() => setFormData({ ...formData, numberOfVehicles: Math.max(1, formData.numberOfVehicles - 1) })}
+                    className="w-8 h-8 rounded-lg bg-slate-900 border border-slate-700 flex items-center justify-center text-slate-300 hover:border-emerald-500 transition cursor-pointer"
+                  >
+                    <Minus className="w-3.5 h-3.5" />
+                  </button>
+                  <span className="text-lg font-extrabold text-white w-6 text-center">{formData.numberOfVehicles}</span>
+                  <button
+                    type="button"
+                    onClick={() => setFormData({ ...formData, numberOfVehicles: Math.min(4, formData.numberOfVehicles + 1) })}
+                    className="w-8 h-8 rounded-lg bg-slate-900 border border-slate-700 flex items-center justify-center text-slate-300 hover:border-emerald-500 transition cursor-pointer"
+                  >
+                    <Plus className="w-3.5 h-3.5" />
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
+        </div>
+
         {/* Step 1: Choose Coverage Level (Top category selector) */}
         <div>
           <div className="flex items-center justify-between mb-2">

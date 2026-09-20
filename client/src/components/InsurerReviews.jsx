@@ -42,7 +42,7 @@ export function InsurerReviews() {
           Ontario Insurer Reviews & Claims Reputation
         </h2>
         <p className="text-sm text-slate-400 mt-1">
-          Honest feedback on claims payouts (ДТП / аварии), customer support responsiveness, and renewal hikes.
+          Honest feedback on claims payouts (accidents / collisions), customer support responsiveness, and renewal hikes.
         </p>
       </div>
 

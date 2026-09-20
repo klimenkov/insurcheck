@@ -11,6 +11,7 @@ import { leadsRouter } from './routes/leads.js';
 import { statsRouter } from './routes/stats.js';
 import { scrapedQuotesRouter } from './routes/scrapedQuotes.js';
 import { territoriesRouter } from './routes/territories.js';
+import { contactRouter } from './routes/contact.js';
 import { ensureQuotesPopulated } from './seedQuotes.js';
 
 const __filename = fileURLToPath(import.meta.url);
@@ -33,6 +34,7 @@ app.use('/api/territories', territoriesRouter);
 app.use('/api/insurers', insurersRouter);
 app.use('/api/leads', leadsRouter);
 app.use('/api/stats', statsRouter);
+app.use('/api/contact', contactRouter);
 
 // Health check
 app.get('/api/health', (req, res) => {
