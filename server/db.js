@@ -4,7 +4,7 @@ import { fileURLToPath } from 'node:url';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
-const dbPath = path.join(__dirname, 'insurcheck.db');
+const dbPath = process.env.DB_PATH || path.join(__dirname, 'insurcheck.db');
 
 export const db = new DatabaseSync(dbPath);
 

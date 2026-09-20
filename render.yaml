@@ -2,8 +2,12 @@ services:
   - type: web
     name: insurcheck
     env: node
-    plan: free
+    plan: starter
     region: oregon
+    disk:
+      name: insurcheck-data
+      mountPath: /data
+      sizeGB: 1
     buildCommand: npm install --include=dev && npm install --include=dev --prefix client && npm run build --prefix client
     startCommand: node server/index.js
     envVars:
@@ -13,3 +17,5 @@ services:
         value: production
       - key: PORT
         value: 10000
+      - key: DB_PATH
+        value: /data/insurcheck.db
