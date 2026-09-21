@@ -113,6 +113,21 @@ def update_issue(issue_id, title=None, description=None, priority=None, state_id
     res = query_linear(q, {"id": issue_id, "input": inp})
     return res.get("issueUpdate", {}).get("issue")
 
+def create_comment(issue_id, body):
+    q = """
+    mutation CommentCreate($input: CommentCreateInput!) {
+      commentCreate(input: $input) {
+        success
+        comment {
+          id
+          body
+        }
+      }
+    }
+    """
+    res = query_linear(q, {"input": {"issueId": issue_id, "body": body}})
+    return res.get("commentCreate", {}).get("comment")
+
 if __name__ == "__main__":
     import sys
     if len(sys.argv) > 1:

@@ -19,3 +19,6 @@ services:
         value: 10000
       - key: DB_PATH
         value: /data/insurcheck.db
+    domains:
+      - insurcheck.ca
+      - www.insurcheck.ca
