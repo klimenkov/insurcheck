@@ -10,3 +10,6 @@ client/dist
 *.pyc
 __pycache__
 scratch/
+*.session
+*.session-journal
+scripts/tg_*.json

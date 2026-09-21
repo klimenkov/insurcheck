@@ -10,6 +10,22 @@ const PARAMETERS_INFO = [
   { key: 'rating_ease', title: 'Ease of Service', desc: 'Changing coverage, adding/removing a vehicle, getting documents' }
 ];
 
+function formatReviewDate(dateStr) {
+  if (!dateStr) return '';
+  try {
+    const date = new Date(dateStr);
+    if (isNaN(date.getTime())) return dateStr;
+    const now = new Date();
+    const diffDays = Math.floor((now - date) / (1000 * 60 * 60 * 24));
+    if (diffDays === 0) return 'Today';
+    if (diffDays === 1) return 'Yesterday';
+    if (diffDays < 30) return `${diffDays}d ago`;
+    return date.toLocaleDateString('en-US', { month: 'short', year: 'numeric' });
+  } catch {
+    return dateStr;
+  }
+}
+
 export function InsurerReviews() {
   const [insurers, setInsurers] = useState([]);
   const [selectedInsurer, setSelectedInsurer] = useState(null);
@@ -107,7 +123,7 @@ export function InsurerReviews() {
               type="text"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="Search 15 Ontario insurers..."
+              placeholder="Search Ontario insurers..."
               className="w-full bg-slate-900 border border-slate-800 rounded-xl pl-9 pr-3.5 py-2 text-xs text-white focus:outline-none focus:border-emerald-500 transition"
             />
           </div>
@@ -138,7 +154,7 @@ export function InsurerReviews() {
                       <div>
                         <h4 className="text-sm font-bold text-white leading-tight">{ins.name}</h4>
                         <span className="text-[10px] text-slate-400">
-                          {ins.direct_online ? 'Direct Online' : 'Via Brokers'} • ~${ins.avg_monthly}/mo
+                          {ins.direct_online ? 'Direct Online Carrier' : 'Broker Intermediary'}
                         </span>
                       </div>
                     </div>
@@ -297,7 +313,7 @@ export function InsurerReviews() {
                             <span className="text-xs font-bold text-white">
                               {rev.title || 'Ontario Driver Rating'}
                             </span>
-                            <div className="flex items-center gap-2 text-[11px] text-slate-400 mt-0.5">
+                            <div className="flex items-center gap-2 text-[11px] text-slate-400 mt-0.5 flex-wrap">
                               <span>{rev.vehicle || 'Passenger Vehicle'}</span>
                               <span>•</span>
                               <span>{rev.author_city || 'Ontario'}</span>
@@ -305,6 +321,12 @@ export function InsurerReviews() {
                                 <>
                                   <span>•</span>
                                   <span className="text-emerald-400 font-semibold">${rev.monthly_premium}/mo</span>
+                                </>
+                              )}
+                              {rev.created_at && (
+                                <>
+                                  <span>•</span>
+                                  <span className="text-slate-500 font-medium">{formatReviewDate(rev.created_at)}</span>
                                 </>
                               )}
                             </div>

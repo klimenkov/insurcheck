@@ -10,6 +10,7 @@
     "dev": "concurrently \"npm run dev:server\" \"npm run dev:client\"",
     "seed": "node server/seed.js",
     "linear:import": "node scripts/importLinear.js",
+    "test": "node scripts/testInsurersApi.js",
     "build": "npm install --include=dev --prefix client && npm run build --prefix client"
   },
   "dependencies": {

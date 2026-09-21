@@ -17,6 +17,7 @@ export const CANONICAL_INSURERS = [
   'Allstate',
   'Gore Mutual',
   'Northbridge',
+  'Square One Insurance',
   'Facility',
   'Other'
 ];
@@ -106,7 +107,16 @@ const ALIAS_MAP = {
   // Facility
   'facility': 'Facility',
   'facility association': 'Facility',
-  'фасилити': 'Facility'
+  'фасилити': 'Facility',
+
+  // Square One
+  'square one': 'Square One Insurance',
+  'squareone': 'Square One Insurance',
+  'square 1': 'Square One Insurance',
+  'square-one': 'Square One Insurance',
+  'square one insurance': 'Square One Insurance',
+  'сквер ван': 'Square One Insurance',
+  'скверван': 'Square One Insurance'
 };
 
 /**

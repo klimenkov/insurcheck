@@ -404,6 +404,7 @@ export function SanityChecker({ onCalculate, loading }) {
                   <option value="Desjardins">Desjardins</option>
                   <option value="Co-operators">Co-operators</option>
                   <option value="Sonnet">Sonnet</option>
+                  <option value="Square One">Square One Insurance</option>
                   <option value="Wawanesa">Wawanesa</option>
                   <option value="Travelers">Travelers</option>
                   <option value="Allstate">Allstate</option>

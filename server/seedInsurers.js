@@ -165,6 +165,24 @@ export function ensureInsurersPopulated() {
       website: 'https://www.sonnet.ca'
     },
     {
+      id: 'squareone',
+      name: 'Square One Insurance',
+      logo_color: '#005596',
+      avg_monthly: 195,
+      rating_value: 4.5,
+      rating_claims: 4.3,
+      rating_support: 4.6,
+      rating_renewal: 4.2,
+      rating_ease: 4.8,
+      overall_rating: 4.5,
+      total_reviews: 42,
+      pros: '100% online customizable coverage, transparent digital policy management, no broker fees, high customer satisfaction.',
+      cons: 'Auto coverage in Ontario is newer compared to their home insurance; underwriting restrictions on some commercial or specialty vehicles.',
+      direct_online: 1,
+      broker_only: 0,
+      website: 'https://www.squareone.ca'
+    },
+    {
       id: 'wawanesa',
       name: 'Wawanesa Insurance',
       logo_color: '#0369a1',
@@ -325,16 +343,13 @@ export function ensureInsurersPopulated() {
     );
   }
 
-  // Check if sample reviews exist
-  const revCount = db.prepare('SELECT count(*) as count FROM reviews').get()?.count || 0;
-  if (revCount < 10) {
-    console.log('Seeding initial multidimensional reviews for Ontario insurers...');
-    const insertReview = db.prepare(`
-      INSERT INTO reviews (
-        insurer_id, created_at, rating, rating_value, rating_claims, rating_support, rating_renewal, rating_ease,
-        title, body, had_accident, claims_experience, payout_speed, author_city, vehicle, monthly_premium
-      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-    `);
+  // Seed sample reviews for insurers that have no reviews
+  const insertReview = db.prepare(`
+    INSERT INTO reviews (
+      insurer_id, created_at, rating, rating_value, rating_claims, rating_support, rating_renewal, rating_ease,
+      title, body, had_accident, claims_experience, payout_speed, author_city, vehicle, monthly_premium
+    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+  `);
 
     const sampleReviews = [
       {
@@ -472,11 +487,30 @@ export function ensureInsurersPopulated() {
         author_city: 'Guelph',
         vehicle: '2020 Toyota Highlander',
         monthly_premium: 228
+      },
+      {
+        insurer_id: 'squareone',
+        rating: 4.6,
+        rating_value: 5,
+        rating_claims: 4,
+        rating_support: 5,
+        rating_renewal: 4,
+        rating_ease: 5,
+        title: 'Completely customized online quote in 5 minutes',
+        body: 'Love being able to pick individual coverages and deductibles myself without pushy phone agents. Saved around $40/mo compared to my old renewal bill.',
+        had_accident: 0,
+        claims_experience: null,
+        payout_speed: null,
+        author_city: 'Toronto (North York)',
+        vehicle: '2023 Hyundai Elantra',
+        monthly_premium: 185
       }
     ];
 
-    const today = new Date().toISOString();
-    for (const rev of sampleReviews) {
+  const today = new Date().toISOString();
+  for (const rev of sampleReviews) {
+    const existing = db.prepare('SELECT id FROM reviews WHERE insurer_id = ?').get(rev.insurer_id);
+    if (!existing) {
       insertReview.run(
         rev.insurer_id,
         today,
@@ -498,5 +532,5 @@ export function ensureInsurersPopulated() {
     }
   }
 
-  console.log('15 Ontario insurers populated with 5-dimension rating metrics.');
+  console.log('16 Ontario insurers populated with 5-dimension rating metrics.');
 }

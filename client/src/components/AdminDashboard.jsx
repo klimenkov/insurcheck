@@ -511,7 +511,9 @@ export function AdminDashboard({ onExit }) {
                     <tr key={rev.id} className="hover:bg-slate-800/30 transition">
                       <td className="px-4 py-3">
                         <span className="font-bold text-white">{rev.insurer_name || rev.insurer_id}</span> <br />
-                        <span className="font-mono text-[10px] text-slate-500">#{rev.id} • {rev.created_at?.slice(0, 10)}</span>
+                        <span className="font-mono text-[10px] text-slate-500">
+                          #{rev.id} • {rev.created_at ? new Date(rev.created_at).toLocaleString('en-US', { dateStyle: 'medium', timeStyle: 'short' }) : 'N/A'}
+                        </span>
                       </td>
                       <td className="px-4 py-3">
                         <span className="font-extrabold text-amber-400 text-sm">★ {Number(rev.rating).toFixed(1)}</span>
