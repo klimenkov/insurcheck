@@ -13,118 +13,118 @@ import { stdin as input, stdout as output } from 'node:process';
 
 const TASKS = [
   {
-    title: 'Автоматическая фильтрация и отсечение аномалий ($10 / $9999)',
+    title: 'Automated Anomaly Detection & Rate Clamping ($50–$1,200/mo)',
     description: `## Context
-Внедрить строгую валидацию входных премий на фронтенде и бэкенде, чтобы исключить попадание спама и шуток ($10 или $9999) в расчеты актуарных средних.
+Implement strict input validation on both client and server to filter out spam, test entries, and jokes (e.g. $10 or $9,999/mo) from corrupting actuarial benchmark statistics.
 
 ## Acceptance Criteria
-- [ ] Ограничить допустимый диапазон ежемесячной премии: $50 – $1,200/мес.
-- [ ] Выводить информативное предупреждение при вводе нереалистичных значений.
-- [ ] Подозрительные сабмиты помечать статусом flagged_for_review.`,
+- [ ] Clamp allowable monthly premium range between $50 and $1,200/mo.
+- [ ] Display clear inline warning / guidance when unrealistic rates are entered.
+- [ ] Flag borderline / outlier submissions as \`flagged_for_review\` instead of instantly publishing to community benchmarks.`,
     priority: 1, // Urgent
     status: 'Todo'
   },
   {
-    title: 'Защищенная панель модератора /admin',
+    title: 'Protected Admin Moderation Dashboard (/admin)',
     description: `## Context
-Интерфейс для просмотра всех сабмитов водителей (submissions), отзывов (reviews) и контактных сообщений (contact_messages).
+Build a secure interface to review and moderate all incoming driver submissions, carrier reviews, and contact messages.
 
 ## Acceptance Criteria
-- [ ] Доступ по защищенному PIN/паролю администратора.
-- [ ] Таблица сабмитов с пагинацией и поиском по городу/страховщику.
-- [ ] Кнопки: Одобрить, Скрыть, Удалить.
-- [ ] Возможность быстро исправить опечатки в названии страховщика или тексте отзыва.`,
+- [ ] Secure admin authentication via PIN / password protection.
+- [ ] Submissions and reviews table with pagination and search by city/carrier.
+- [ ] Moderation actions: Approve, Hide, Delete.
+- [ ] Inline editing to quickly fix typos in insurer names or review body text.`,
     priority: 2, // High
     status: 'Todo'
   },
   {
-    title: 'Fuzzy Matching и авто-нормализация названий страховых компаний',
+    title: 'Fuzzy Matching & Auto-Normalization for Insurer Names',
     description: `## Context
-Пользователи при ручном вводе пишут названия страховых с ошибками ('td', 'meloche', 'belair', 'белэйр'). Нужно нормализовать их к 15 каноническим страховщикам.
+When drivers type carrier names manually, they often introduce typos ('td', 'meloche', 'belair', 'сонет'). We need an automated alias resolver mapping inputs to the 15 canonical Ontario insurers.
 
 ## Acceptance Criteria
-- [ ] Словарь синонимов и нечеткий поиск (Fuzzy Match).
-- [ ] Авто-привязка к ID канонического страховщика.
-- [ ] Неопознанные варианты сохранять как Other с оригинальным текстом для модерации.`,
+- [ ] Alias mapping table and fuzzy matcher (\`td\`, \`meloche\` -> \`TD Insurance\`; \`belair\` -> \`Belairdirect\`).
+- [ ] Automatic binding to the canonical insurer ID in the database.
+- [ ] Unmatched entries saved under \`Other\` with original text preserved for admin review.`,
     priority: 2, // High
     status: 'Todo'
   },
   {
-    title: 'Подключение кастомного домена (insurcheck.ca / insurcheck.com)',
+    title: 'Connect Custom Domain (insurcheck.ca / insurcheck.com)',
     description: `## Context
-Запустить проект на собственном канадском домене для повышения доверия водителей (onrender.com снижает конверсию сабмитов).
+Launch the platform on a dedicated Canadian domain to establish user trust and maximize conversion (onrender.com subdomains reduce submission confidence).
 
 ## Acceptance Criteria
-- [ ] Зарегистрировать домен insurcheck.ca / .com.
-- [ ] Настроить DNS в Cloudflare и привязать к Render Web Service.
-- [ ] Проверить работу бесплатного SSL и авторедиректа с HTTP на HTTPS.`,
+- [ ] Register insurcheck.ca / .com domain.
+- [ ] Configure Cloudflare DNS and bind to Render Web Service.
+- [ ] Ensure automatic SSL provisioning and HTTP -> HTTPS redirection.`,
     priority: 1, // Urgent
     status: 'Todo'
   },
   {
-    title: 'OpenGraph мета-теги и превью для соцсетей',
+    title: 'OpenGraph Meta Tags & Social Share Previews',
     description: `## Context
-Настроить привлекательные превью при шеринге ссылки в Telegram, WhatsApp, Reddit и LinkedIn.
+Configure compelling rich social preview cards when sharing InsurCheck links across Telegram, WhatsApp, Reddit, and LinkedIn.
 
 ## Acceptance Criteria
-- [ ] Добавить мета-теги og:title, og:description, og:image в index.html.
-- [ ] Создать превью-баннер с логотипом InsurCheck и бенчмарком Онтарио.`,
+- [ ] Add \`og:title\`, \`og:description\`, \`og:image\`, and Twitter card tags to \`index.html\`.
+- [ ] Create an branded preview banner featuring Ontario rate benchmarks and InsurCheck branding.`,
     priority: 3, // Medium
     status: 'Todo'
   },
   {
-    title: 'Актуарная когортная сегментация (Smart Match Engine)',
+    title: 'Actuarial Cohort Segmentation (Smart Recommendation Engine)',
     description: `## Context
-По мере накопления 300–500+ записей краудсорсинга вычислять, какие страховщики исторически дают лучшие ставки для конкретных групп водителей.
+As crowd data reaches 300–500+ submissions, cluster historical rates to identify which carriers consistently offer the best value for specific driver personas.
 
 ## Acceptance Criteria
-- [ ] Когорты: Молодой G2 / Прайм-семья / High-theft SUV / Safe Rural.
-- [ ] Расчет медианной ставки и индекса Value for Money для каждого сегмента.`,
+- [ ] Define actuarial cohorts: Young G2 Novice / Suburban Prime Family / High-Theft Vehicle / Safe Rural Region.
+- [ ] Calculate median premium and Value for Money index for each carrier within each cohort.`,
     priority: 2, // High
     status: 'Backlog'
   },
   {
-    title: 'Персонализированный блок рекомендаций в ResultCard',
+    title: 'Personalized Carrier Recommendation Card in Sanity Check',
     description: `## Context
-После прохождения Sanity Check показывать рекомендацию самого выгодного и надежного страховщика под профиль пользователя.
+After calculating rate fairness, display an actionable recommendation card highlighting the most cost-effective, high-satisfaction carrier for the driver's exact profile.
 
 ## Acceptance Criteria
-- [ ] Динамическая карточка: 'Для водителей вашего возраста в Ottawa лучшим соотношением цена/качество обладает Desjardins (~$172/mo).'
-- [ ] Прямая ссылка на отзывы и официальный сайт страховщика.`,
+- [ ] Dynamic insight: 'For drivers your age in Ottawa, Desjardins offers the highest Value for Money rating (~$172/mo average).'
+- [ ] Direct link to carrier review page and official Ontario quote portal.`,
     priority: 3, // Medium
     status: 'Backlog'
   },
   {
-    title: 'Расширение Playwright-парсера на Sonnet и Belairdirect',
+    title: 'Expand Playwright Scraper Pipeline to Sonnet & Belairdirect',
     description: `## Context
-Сейчас автоматический сбор котировок настроен для Square One. Нужно собирать публичные котировки с сайтов Sonnet и Belairdirect.
+Currently, automated monthly rate harvesting only runs against Square One. Extend the pipeline to harvest public quote engines for Sonnet and Belairdirect.
 
 ## Acceptance Criteria
-- [ ] Headless Playwright сценарии для Sonnet и Belairdirect.
-- [ ] Сохранение котировок в таблицу scraped_quotes с датой и persona_id.
-- [ ] Ежемесячный запуск по расписанию для отслеживания инфляции.`,
+- [ ] Headless Playwright automation scripts for Sonnet and Belairdirect.
+- [ ] Store harvested snapshots in \`scraped_quotes\` with timestamps and persona IDs.
+- [ ] Run automated monthly ingestion schedule to track carrier rate inflation.`,
     priority: 3, // Medium
     status: 'Backlog'
   },
   {
-    title: 'Интеграция ежеквартальных отчетов FSRA Rate Approvals',
+    title: 'Integrate Quarterly FSRA Rate Filing Approvals',
     description: `## Context
-Использовать официальные ежеквартальные отчеты регулятора FSRA по одобренным изменениям тарифов для калибровки актуарной модели.
+Incorporate official quarterly rate change filings approved by Ontario regulator FSRA to calibrate our actuarial risk model.
 
 ## Acceptance Criteria
-- [ ] Таблица индексаций (FSRA approved % rate changes) по топ-15 страховщикам.
-- [ ] Отображение бейджа динамики цен регулятора в профиле страховой.`,
+- [ ] Maintain regulator adjustment table with latest approved percentage changes across top 15 carriers.
+- [ ] Display carrier rate trend badges (e.g. 'FSRA Q2 Approved: +3.4%') in review profiles.`,
     priority: 3, // Medium
     status: 'Backlog'
   },
   {
-    title: 'Интеграция легковесной веб-аналитики (PostHog / Umami)',
+    title: 'Lightweight Privacy-First Web Analytics (PostHog / Umami)',
     description: `## Context
-Подключить анонимную аналитику воронки без тяжелых куки.
+Integrate cookieless, privacy-respecting analytics to track funnel drop-off and conversion.
 
 ## Acceptance Criteria
-- [ ] Трекинг шагов: Открытие чекера -> Расчет -> Шеринг ставки -> Переход к брокеру.
-- [ ] Дашборд конверсий для оценки вовлеченности водителей.`,
+- [ ] Track funnel milestones: Calculator Started -> Rate Calculated -> Rate Contributed -> Broker Connected.
+- [ ] Conversion dashboard to measure user engagement and drop-off points.`,
     priority: 4, // Low
     status: 'Backlog'
   }
@@ -156,18 +156,18 @@ async function main() {
 
   if (!apiKey) {
     const rl = readline.createInterface({ input, output });
-    apiKey = await rl.question('🔑 Введите ваш Linear API Key (получить в linear.app/settings/api):\n> ');
+    apiKey = await rl.question('🔑 Enter your Linear API Key (get from linear.app/settings/api):\n> ');
     rl.close();
     apiKey = apiKey.trim();
   }
 
   if (!apiKey) {
-    console.error('❌ Ошибка: API Key не указан.');
+    console.error('❌ Error: API Key not provided.');
     process.exitCode = 1;
     return;
   }
 
-  console.log('\n📡 Подключение к Linear API...');
+  console.log('\n📡 Connecting to Linear API...');
 
   let data;
   try {
@@ -196,8 +196,8 @@ async function main() {
       }`
     );
   } catch (err) {
-    console.error(`❌ Ошибка авторизации: ${err.message}`);
-    console.log('\n💡 Совет: Проверьте API Key в https://linear.app/settings/api (Personal API Keys).');
+    console.error(`❌ Authentication error: ${err.message}`);
+    console.log('\n💡 Tip: Check your API Key at https://linear.app/settings/api (Personal API Keys).');
     process.exitCode = 1;
     return;
   }
@@ -206,7 +206,7 @@ async function main() {
   const teams = data.teams.nodes;
 
   if (!teams || teams.length === 0) {
-    console.error('❌ Ошибка: В вашем аккаунте Linear не найдено ни одной команды. Создайте команду в Linear и повторите.');
+    console.error('❌ Error: No team found in your Linear workspace. Please create a team first.');
     process.exitCode = 1;
     return;
   }
@@ -214,15 +214,15 @@ async function main() {
   // Pick team (prefer InsurCheck, or first team)
   const team = teams.find(t => t.name.toLowerCase().includes('insur') || t.key === 'INS') || teams[0];
 
-  console.log(`✅ Авторизован как: ${user.name || user.email}`);
-  console.log(`🎯 Целевая команда: "${team.name}" [${team.key}]\n`);
+  console.log(`✅ Authenticated as: ${user.name || user.email}`);
+  console.log(`🎯 Target team: "${team.name}" [${team.key}]\n`);
 
   // Find states
   const states = team.states.nodes;
   const todoState = states.find(s => s.type === 'unstarted' || s.name.toLowerCase() === 'todo') || states[0];
   const backlogState = states.find(s => s.type === 'backlog' || s.name.toLowerCase() === 'backlog') || states[0];
 
-  console.log(`📦 Загрузка ${TASKS.length} задач в Linear...\n`);
+  console.log(`📦 Uploading ${TASKS.length} issues to Linear...\n`);
 
   let createdCount = 0;
 
@@ -261,17 +261,17 @@ async function main() {
         createdCount++;
       }
     } catch (err) {
-      console.error(`✖ Ошибка при создании "${task.title}": ${err.message}`);
+      console.error(`✖ Error creating "${task.title}": ${err.message}`);
     }
   }
 
   console.log('\n======================================================');
-  console.log(`🎉 Успешно создано задач: ${createdCount} из ${TASKS.length}!`);
-  console.log(`🔗 Откройте доску Linear: https://linear.app`);
+  console.log(`🎉 Successfully created issues: ${createdCount} of ${TASKS.length}!`);
+  console.log(`🔗 Open Linear board: https://linear.app`);
   console.log('======================================================\n');
 }
 
 main().catch((err) => {
-  console.error('Непредвиденная ошибка:', err);
-  process.exit(1);
+  console.error('Unexpected error:', err);
+  process.exitCode = 1;
 });
