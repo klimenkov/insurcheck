@@ -10,9 +10,14 @@ import { LeadModal } from './components/LeadModal.jsx';
 import { ContributeModal } from './components/ContributeModal.jsx';
 import { FsraExplainerModal } from './components/FsraExplainerModal.jsx';
 import { ContactUs } from './components/ContactUs.jsx';
+import { AdminDashboard } from './components/AdminDashboard.jsx';
 
 export default function App() {
-  const [activeTab, setActiveTab] = useState('checker');
+  const [activeTab, setActiveTab] = useState(() => {
+    return typeof window !== 'undefined' && window.location.pathname.startsWith('/admin')
+      ? 'admin'
+      : 'checker';
+  });
   const [stats, setStats] = useState(null);
   const [checkResult, setCheckResult] = useState(null);
   const [loading, setLoading] = useState(false);
@@ -119,6 +124,17 @@ export default function App() {
         {activeTab === 'contact' && (
           <ContactUs />
         )}
+
+        {activeTab === 'admin' && (
+          <AdminDashboard
+            onExit={() => {
+              setActiveTab('checker');
+              if (typeof window !== 'undefined') {
+                window.history.pushState({}, '', '/');
+              }
+            }}
+          />
+        )}
       </div>
 
       {/* Footer */}
@@ -131,6 +147,19 @@ export default function App() {
           <a href="#" className="hover:text-slate-300 transition">Privacy Policy</a>
           <span>·</span>
           <a href="#" className="hover:text-slate-300 transition">Cookie Preferences</a>
+          <span>·</span>
+          <button
+            type="button"
+            onClick={() => {
+              setActiveTab('admin');
+              if (typeof window !== 'undefined') {
+                window.history.pushState({}, '', '/admin');
+              }
+            }}
+            className="hover:text-slate-300 transition cursor-pointer"
+          >
+            Admin Portal
+          </button>
         </p>
       </footer>
 
