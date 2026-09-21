@@ -1,6 +1,7 @@
 import express from 'express';
 import { db } from '../db.js';
 import { FSA_RISK_MAP } from '../engine/ontarioData.js';
+import { normalizeInsurerName, validateMonthlyPremium } from '../engine/normalizer.js';
 
 export const submissionsRouter = express.Router();
 
@@ -45,6 +46,14 @@ submissionsRouter.post('/', (req, res) => {
       comment
     } = req.body;
 
+    const premiumCheck = validateMonthlyPremium(monthlyPremium);
+    if (!premiumCheck.valid) {
+      return res.status(400).json({ success: false, error: premiumCheck.error });
+    }
+
+    const normalizedProvider = normalizeInsurerName(providerName);
+    const validPremium = premiumCheck.sanitized;
+
     const fsa = (postalCode || '').trim().toUpperCase().slice(0, 3);
     const location = FSA_RISK_MAP[fsa] || { city: 'Ontario' };
 
@@ -63,7 +72,7 @@ submissionsRouter.post('/', (req, res) => {
     stmt.run(
       dateStr, fsa, location.city, vehicleMake, vehicleModel, parseInt(vehicleYear, 10) || 2022,
       age, profile, parseInt(yearsLicensed, 10) || 5, cleanRecord ? 1 : 0,
-      providerName, parseInt(monthlyPremium, 10), coverageType || 'Standard', comment || ''
+      normalizedProvider, validPremium, coverageType || 'Standard', comment || ''
     );
 
     res.json({ success: true, message: 'Rate submitted successfully!' });

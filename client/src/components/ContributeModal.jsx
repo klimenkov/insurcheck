@@ -1,10 +1,11 @@
 import React, { useState } from 'react';
-import { X, CheckCircle2, Loader2 } from 'lucide-react';
+import { X, CheckCircle2, Loader2, AlertCircle } from 'lucide-react';
 import { VEHICLE_OPTIONS } from '../data/vehicles.js';
 
 export function ContributeModal({ isOpen, onClose }) {
   const [submitted, setSubmitted] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
   const [formData, setFormData] = useState({
     postalCode: 'M5V',
     vehicleMake: 'Toyota',
@@ -22,9 +23,16 @@ export function ContributeModal({ isOpen, onClose }) {
 
   if (!isOpen) return null;
 
+  const premiumVal = parseFloat(formData.monthlyPremium);
+  const isTooLow = !isNaN(premiumVal) && premiumVal < 50;
+  const isTooHigh = !isNaN(premiumVal) && premiumVal > 1200;
+  const isPremiumInvalid = isNaN(premiumVal) || isTooLow || isTooHigh;
+
   const handleSubmit = async (e) => {
     e.preventDefault();
+    if (isPremiumInvalid) return;
     setLoading(true);
+    setError(null);
     try {
       const res = await fetch('/api/submissions', {
         method: 'POST',
@@ -32,9 +40,14 @@ export function ContributeModal({ isOpen, onClose }) {
         body: JSON.stringify(formData)
       });
       const json = await res.json();
-      if (json.success) setSubmitted(true);
+      if (json.success) {
+        setSubmitted(true);
+      } else {
+        setError(json.error || 'Failed to submit rate');
+      }
     } catch (err) {
       console.error(err);
+      setError('Network error submitting rate');
     } finally {
       setLoading(false);
     }
@@ -144,7 +157,7 @@ export function ContributeModal({ isOpen, onClose }) {
                     <option value="Allstate">Allstate</option>
                     <option value="Gore Mutual">Gore Mutual</option>
                     <option value="Northbridge">Northbridge</option>
-                    <option value="Facility">Facility</option>
+                    <option value="Facility">Facility (High Risk)</option>
                     <option value="Other">Other</option>
                   </select>
                 </div>
@@ -152,13 +165,38 @@ export function ContributeModal({ isOpen, onClose }) {
                   <label className="block text-xs font-medium text-slate-400 mb-1">Monthly Premium ($)</label>
                   <input
                     type="number"
+                    min="50"
+                    max="1200"
                     value={formData.monthlyPremium}
                     onChange={(e) => setFormData({ ...formData, monthlyPremium: e.target.value })}
-                    className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs font-bold text-emerald-400"
+                    className={`w-full bg-slate-950 border rounded-xl px-3 py-2 text-xs font-bold text-emerald-400 focus:outline-none transition ${
+                      isPremiumInvalid ? 'border-amber-500' : 'border-slate-800'
+                    }`}
                     required
                   />
                 </div>
               </div>
+
+              {isTooLow && (
+                <div className="p-2.5 rounded-xl bg-amber-500/10 border border-amber-500/30 text-amber-300 text-xs flex items-center gap-2">
+                  <AlertCircle className="w-4 h-4 shrink-0" />
+                  <span>Ontario auto policies start at $50/mo. Please check your monthly amount.</span>
+                </div>
+              )}
+
+              {isTooHigh && (
+                <div className="p-2.5 rounded-xl bg-amber-500/10 border border-amber-500/30 text-amber-300 text-xs flex items-center gap-2">
+                  <AlertCircle className="w-4 h-4 shrink-0" />
+                  <span>Maximum supported monthly rate is $1,200/mo. If this is annual, divide by 12.</span>
+                </div>
+              )}
+
+              {error && (
+                <div className="p-2.5 rounded-xl bg-red-500/10 border border-red-500/20 text-red-400 text-xs flex items-center gap-2">
+                  <AlertCircle className="w-4 h-4 shrink-0" />
+                  <span>{error}</span>
+                </div>
+              )}
 
               <div>
                 <label className="block text-xs font-medium text-slate-400 mb-1">Optional Comment / Tips</label>
@@ -185,8 +223,8 @@ export function ContributeModal({ isOpen, onClose }) {
 
               <button
                 type="submit"
-                disabled={loading}
-                className="w-full py-3 bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold rounded-xl text-sm transition cursor-pointer"
+                disabled={loading || isPremiumInvalid}
+                className="w-full py-3 bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold rounded-xl text-sm transition cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed"
               >
                 {loading ? <Loader2 className="w-5 h-5 animate-spin mx-auto" /> : 'Submit Rate Anonymously'}
               </button>

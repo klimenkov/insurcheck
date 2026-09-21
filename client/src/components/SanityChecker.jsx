@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Car, MapPin, User, Shield, DollarSign, ArrowRight, Loader2, Sparkles, ShieldCheck, CheckCircle2, Building2, Users, ChevronDown, Minus, Plus } from 'lucide-react';
+import { Car, MapPin, User, Shield, DollarSign, ArrowRight, Loader2, Sparkles, ShieldCheck, CheckCircle2, Building2, Users, ChevronDown, Minus, Plus, AlertCircle } from 'lucide-react';
 import { VEHICLE_OPTIONS, POPULAR_FSAS } from '../data/vehicles.js';
 
 export function SanityChecker({ onCalculate, loading }) {
@@ -16,10 +16,16 @@ export function SanityChecker({ onCalculate, loading }) {
     yearsLicensed: 8,
     cleanRecord: true,
     numberOfDrivers: 1,
-    numberOfVehicles: 1
+    numberOfVehicles: 1,
+    shareAnonymously: true
   });
 
   const [householdOpen, setHouseholdOpen] = useState(false);
+
+  const premiumNum = parseFloat(formData.currentPremium);
+  const isPremiumTooLow = !formData.isEstimating && formData.currentPremium !== '' && !isNaN(premiumNum) && premiumNum < 50;
+  const isPremiumTooHigh = !formData.isEstimating && formData.currentPremium !== '' && !isNaN(premiumNum) && premiumNum > 1200;
+  const isPremiumInvalid = isPremiumTooLow || isPremiumTooHigh;
 
   const currentModels = (VEHICLE_OPTIONS.find(v => v.make === formData.vehicleMake)?.models) || ['Standard Model'];
 
@@ -341,11 +347,13 @@ export function SanityChecker({ onCalculate, loading }) {
                     <span className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 font-bold">$</span>
                     <input
                       type="number"
-                      min="40"
-                      max="1500"
+                      min="50"
+                      max="1200"
                       value={formData.currentPremium}
                       onChange={(e) => setFormData({ ...formData, currentPremium: e.target.value })}
-                      className="w-full bg-slate-900 border border-slate-700 rounded-xl pl-8 pr-4 py-2.5 text-lg font-extrabold text-white focus:outline-none focus:border-emerald-500"
+                      className={`w-full bg-slate-900 border rounded-xl pl-8 pr-4 py-2.5 text-lg font-extrabold text-white focus:outline-none transition ${
+                        isPremiumInvalid ? 'border-amber-500/80 focus:border-amber-400' : 'border-slate-700 focus:border-emerald-500'
+                      }`}
                       placeholder="e.g. 250"
                       required={!formData.isEstimating}
                     />
@@ -355,26 +363,57 @@ export function SanityChecker({ onCalculate, loading }) {
                     ≈ ${((parseFloat(formData.currentPremium) || 0) * 12).toLocaleString()} / year
                   </div>
                 </div>
+
+                {isPremiumTooLow && (
+                  <div className="mt-2 p-2.5 rounded-xl bg-amber-500/10 border border-amber-500/30 text-amber-300 text-xs flex items-center gap-2">
+                    <AlertCircle className="w-4 h-4 shrink-0" />
+                    <span>In Ontario, mandatory auto insurance begins at $50/mo. Please check your monthly figure.</span>
+                  </div>
+                )}
+
+                {isPremiumTooHigh && (
+                  <div className="mt-2 p-2.5 rounded-xl bg-amber-500/10 border border-amber-500/30 text-amber-300 text-xs flex items-center gap-2">
+                    <AlertCircle className="w-4 h-4 shrink-0" />
+                    <span>Monthly rate exceeds expected limits ($1,200/mo). If this is an annual payment, divide by 12.</span>
+                  </div>
+                )}
+
                 <span className="text-[11px] text-slate-500 mt-1 block">
-                  Your current monthly car insurance cost before tax
+                  Your current monthly car insurance cost before tax ($50 – $1,200/mo)
                 </span>
               </div>
 
-              {/* Optional Insurance Company */}
+              {/* Standardized 15 Ontario Insurers Dropdown */}
               <div className="pt-2 border-t border-slate-900">
                 <label className="block text-xs font-semibold text-slate-400 mb-1 flex items-center gap-1.5">
                   <Building2 className="w-3.5 h-3.5 text-slate-400" />
                   Insurance company (optional)
                 </label>
-                <input
-                  type="text"
+                <select
                   value={formData.insuranceCompany}
                   onChange={(e) => setFormData({ ...formData, insuranceCompany: e.target.value })}
-                  placeholder="e.g. TD Insurance, Intact, Desjardins, Aviva"
-                  className="w-full bg-slate-900/80 border border-slate-800 rounded-xl px-3.5 py-2 text-xs text-white focus:outline-none focus:border-emerald-500"
-                />
+                  className="w-full bg-slate-900/80 border border-slate-800 rounded-xl px-3.5 py-2.5 text-xs text-white focus:outline-none focus:border-emerald-500 cursor-pointer"
+                >
+                  <option value="">Select your insurer (optional)</option>
+                  <option value="Intact">Intact</option>
+                  <option value="TD Insurance">TD Insurance</option>
+                  <option value="Aviva">Aviva</option>
+                  <option value="Belairdirect">Belairdirect</option>
+                  <option value="CAA Insurance">CAA Insurance</option>
+                  <option value="Economical">Economical</option>
+                  <option value="Desjardins">Desjardins</option>
+                  <option value="Co-operators">Co-operators</option>
+                  <option value="Sonnet">Sonnet</option>
+                  <option value="Wawanesa">Wawanesa</option>
+                  <option value="Travelers">Travelers</option>
+                  <option value="Allstate">Allstate</option>
+                  <option value="Gore Mutual">Gore Mutual</option>
+                  <option value="Northbridge">Northbridge</option>
+                  <option value="Facility">Facility (High Risk)</option>
+                  <option value="Other">Other / Not Listed</option>
+                </select>
                 <span className="text-[10px] text-slate-500 mt-1 block">
-                  This helps us give a more accurate comparison against specific carrier rate filings
+                  Enables benchmark comparison against specific carrier rate filings approved by FSRA
                 </span>
               </div>
             </div>
@@ -456,11 +495,24 @@ export function SanityChecker({ onCalculate, loading }) {
           </div>
         </div>
 
+        {/* Anonymous Contribution Opt-in */}
+        <label className="flex items-start gap-2.5 cursor-pointer group py-1">
+          <input
+            type="checkbox"
+            checked={formData.shareAnonymously}
+            onChange={(e) => setFormData({ ...formData, shareAnonymously: e.target.checked })}
+            className="w-4 h-4 mt-0.5 rounded border-slate-700 text-emerald-500 focus:ring-emerald-500 focus:ring-offset-slate-900 accent-emerald-500 cursor-pointer"
+          />
+          <span className="text-xs text-slate-400 group-hover:text-emerald-300 transition leading-relaxed">
+            Share my anonymous rate parameters to help build Ontario's open driver benchmark (zero personal data saved)
+          </span>
+        </label>
+
         {/* Submit CTA */}
         <button
           type="submit"
-          disabled={loading}
-          className="w-full py-4 px-6 rounded-2xl font-extrabold text-base text-slate-950 bg-gradient-to-r from-emerald-400 via-teal-300 to-emerald-400 hover:opacity-95 transition shadow-lg shadow-emerald-500/25 flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50"
+          disabled={loading || isPremiumInvalid}
+          className="w-full py-4 px-6 rounded-2xl font-extrabold text-base text-slate-950 bg-gradient-to-r from-emerald-400 via-teal-300 to-emerald-400 hover:opacity-95 transition shadow-lg shadow-emerald-500/25 flex items-center justify-center gap-2 cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed"
         >
           {loading ? (
             <>
