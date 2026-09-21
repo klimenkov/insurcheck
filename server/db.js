@@ -102,4 +102,26 @@ CREATE TABLE IF NOT EXISTS scraped_quotes (
 );
 `);
 
+// Migration helper for new rating dimensions
+const addCol = (table, col, typeDef) => {
+  try {
+    db.exec(`ALTER TABLE ${table} ADD COLUMN ${col} ${typeDef};`);
+  } catch (err) {
+    // Column already exists
+  }
+};
+
+addCol('insurers', 'overall_rating', 'REAL DEFAULT 4.0');
+addCol('insurers', 'rating_value', 'REAL DEFAULT 4.0');
+addCol('insurers', 'rating_claims', 'REAL DEFAULT 4.0');
+addCol('insurers', 'rating_support', 'REAL DEFAULT 4.0');
+addCol('insurers', 'rating_renewal', 'REAL DEFAULT 4.0');
+addCol('insurers', 'rating_ease', 'REAL DEFAULT 4.0');
+
+addCol('reviews', 'rating_value', 'REAL DEFAULT 4.0');
+addCol('reviews', 'rating_claims', 'REAL DEFAULT 4.0');
+addCol('reviews', 'rating_support', 'REAL DEFAULT 4.0');
+addCol('reviews', 'rating_renewal', 'REAL DEFAULT 4.0');
+addCol('reviews', 'rating_ease', 'REAL DEFAULT 4.0');
+
 console.log('Database initialized at:', dbPath);

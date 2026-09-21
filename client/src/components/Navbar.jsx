@@ -6,7 +6,7 @@ export function Navbar({ activeTab, setActiveTab, onOpenContribute, totalSaved }
 
   const formattedSaved = totalSaved
     ? `$${Math.round(totalSaved).toLocaleString()}`
-    : '$32,450,800';
+    : 'TBD';
 
   const handleNavClick = (tab) => {
     setActiveTab(tab);

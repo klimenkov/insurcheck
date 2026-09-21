@@ -13,11 +13,13 @@ import { scrapedQuotesRouter } from './routes/scrapedQuotes.js';
 import { territoriesRouter } from './routes/territories.js';
 import { contactRouter } from './routes/contact.js';
 import { ensureQuotesPopulated } from './seedQuotes.js';
+import { ensureInsurersPopulated } from './seedInsurers.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-// Ensure quotes and rate dynamics are populated in SQLite
+// Ensure insurers, quotes and rate dynamics are populated in SQLite
+ensureInsurersPopulated();
 ensureQuotesPopulated();
 
 const app = express();

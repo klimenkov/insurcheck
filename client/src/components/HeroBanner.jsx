@@ -4,7 +4,7 @@ import { AlertTriangle } from 'lucide-react';
 export function HeroBanner({ stats }) {
   const totalSaved = stats?.total_money_saved
     ? `$${Math.round(stats.total_money_saved).toLocaleString()}`
-    : '$32,450,800';
+    : 'TBD';
 
   const checksRun = stats?.total_checks_run
     ? stats.total_checks_run.toLocaleString()
