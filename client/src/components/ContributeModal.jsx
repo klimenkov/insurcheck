@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { X, CheckCircle2, Loader2, AlertCircle } from 'lucide-react';
+import { X, CheckCircle2, Loader2, AlertCircle, User, Shield, Sparkles } from 'lucide-react';
 import { VEHICLE_OPTIONS } from '../data/vehicles.js';
 
 export function ContributeModal({ isOpen, onClose }) {
@@ -42,6 +42,9 @@ export function ContributeModal({ isOpen, onClose }) {
       const json = await res.json();
       if (json.success) {
         setSubmitted(true);
+        if (typeof window !== 'undefined') {
+          window.dispatchEvent(new CustomEvent('insurcheck:submission-created'));
+        }
       } else {
         setError(json.error || 'Failed to submit rate');
       }
@@ -175,6 +178,113 @@ export function ContributeModal({ isOpen, onClose }) {
                     }`}
                     required
                   />
+                </div>
+              </div>
+
+              {/* Coverage Level */}
+              <div>
+                <label className="block text-xs font-medium text-slate-400 mb-1.5 flex items-center gap-1.5">
+                  <Shield className="w-3.5 h-3.5 text-emerald-400" />
+                  Coverage Level
+                </label>
+                <div className="grid grid-cols-3 gap-2">
+                  {[
+                    { id: 'Liability', label: 'Liability Only' },
+                    { id: 'Standard', label: 'Standard' },
+                    { id: 'Full', label: 'Comprehensive / Full' }
+                  ].map((cov) => (
+                    <button
+                      key={cov.id}
+                      type="button"
+                      onClick={() => setFormData({ ...formData, coverageType: cov.id })}
+                      className={`py-2 px-1 rounded-xl text-xs font-semibold border transition cursor-pointer text-center ${
+                        formData.coverageType === cov.id
+                          ? 'bg-emerald-500/20 text-emerald-300 border-emerald-500/50 shadow-sm'
+                          : 'bg-slate-950 text-slate-400 border-slate-800 hover:border-slate-700'
+                      }`}
+                    >
+                      {cov.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Driver Age & License Experience */}
+              <div className="pt-2 border-t border-slate-800/80">
+                <label className="block text-xs font-bold uppercase tracking-wider text-slate-400 mb-2 flex items-center gap-1.5">
+                  <User className="w-3.5 h-3.5 text-emerald-400" />
+                  Driver Age & License Experience
+                </label>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 bg-slate-950/60 p-3 rounded-2xl border border-slate-800/80">
+                  <div>
+                    <span className="text-[11px] text-slate-400 font-medium block mb-1">
+                      Driver Age: <strong className="text-white">{formData.driverAge} yrs</strong>
+                    </span>
+                    <input
+                      type="range"
+                      min="16"
+                      max="80"
+                      value={formData.driverAge}
+                      onChange={(e) => setFormData({ ...formData, driverAge: parseInt(e.target.value, 10) })}
+                      className="w-full accent-emerald-500 cursor-pointer"
+                    />
+                    <div className="flex justify-between text-[10px] text-slate-500 mt-0.5">
+                      <span>16</span>
+                      <span>35</span>
+                      <span>70+</span>
+                    </div>
+                  </div>
+
+                  <div>
+                    <span className="text-[11px] text-slate-400 font-medium block mb-1">
+                      Years with Full G: <strong className="text-white">{formData.yearsLicensed} yrs</strong>
+                    </span>
+                    <input
+                      type="range"
+                      min="0"
+                      max="40"
+                      value={formData.yearsLicensed}
+                      onChange={(e) => setFormData({ ...formData, yearsLicensed: parseInt(e.target.value, 10) })}
+                      className="w-full accent-emerald-500 cursor-pointer"
+                    />
+                    <div className="flex justify-between text-[10px] text-slate-500 mt-0.5">
+                      <span>0 (New)</span>
+                      <span>10 yrs</span>
+                      <span>30+</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Claims & Tickets History */}
+              <div>
+                <label className="block text-xs font-bold uppercase tracking-wider text-slate-400 mb-2 flex items-center gap-1.5">
+                  <Shield className="w-3.5 h-3.5 text-emerald-400" />
+                  Claims or tickets in past 3 years?
+                </label>
+                <div className="grid grid-cols-2 gap-3">
+                  <button
+                    type="button"
+                    onClick={() => setFormData({ ...formData, cleanRecord: true })}
+                    className={`p-2.5 rounded-xl border text-xs font-semibold text-center transition cursor-pointer ${
+                      formData.cleanRecord
+                        ? 'bg-emerald-500/20 text-emerald-300 border-emerald-500/50 shadow-sm'
+                        : 'bg-slate-950 text-slate-400 border-slate-800 hover:border-slate-700'
+                    }`}
+                  >
+                    ✅ Clean (0 tickets / claims)
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setFormData({ ...formData, cleanRecord: false })}
+                    className={`p-2.5 rounded-xl border text-xs font-semibold text-center transition cursor-pointer ${
+                      !formData.cleanRecord
+                        ? 'bg-amber-500/20 text-amber-300 border-amber-500/50 shadow-sm'
+                        : 'bg-slate-950 text-slate-400 border-slate-800 hover:border-slate-700'
+                    }`}
+                  >
+                    ⚠️ Has Tickets / Claims
+                  </button>
                 </div>
               </div>
 

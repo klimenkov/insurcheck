@@ -60,8 +60,18 @@ export function CommunityQuotes({ onOpenContribute, onOpenFsraExplainer }) {
     if (activeMode === 'crowdsourced') {
       loadQuotes();
     }
+
+    const handleSubmissionCreated = () => {
+      if (activeMode === 'crowdsourced') {
+        loadQuotes();
+      }
+    };
+
+    window.addEventListener('insurcheck:submission-created', handleSubmissionCreated);
+
     return () => {
       isCancelled = true;
+      window.removeEventListener('insurcheck:submission-created', handleSubmissionCreated);
     };
   }, [activeMode, filterCity, filterMake]);
 

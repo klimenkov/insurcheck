@@ -58,6 +58,9 @@ export default function App() {
       if (json.success) {
         setCheckResult(json.data);
         fetchStats(); // update live counter
+        if (typeof window !== 'undefined') {
+          window.dispatchEvent(new CustomEvent('insurcheck:submission-created'));
+        }
       }
     } catch (err) {
       console.error(err);
