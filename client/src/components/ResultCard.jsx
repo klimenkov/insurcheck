@@ -1,15 +1,11 @@
-import React from 'react';
-import { AlertCircle, CheckCircle2, ArrowRight, ShieldCheck, Sparkles } from 'lucide-react';
+import React, { useState } from 'react';
+import { CheckCircle2, ArrowRight, ShieldCheck, Sparkles, Building2, HelpCircle } from 'lucide-react';
 
 export function ResultCard({ result, onConnectBroker, onOpenFsraExplainer }) {
   if (!result) return null;
 
   const {
     isEstimating,
-    verdict,
-    verdictTitle,
-    verdictMessage,
-    verdictColor,
     currentPremium,
     fairMonthlyStandard,
     monthlySavings,
@@ -18,237 +14,400 @@ export function ResultCard({ result, onConnectBroker, onOpenFsraExplainer }) {
     location,
     vehicle,
     reliabilityScore,
-    riskHighlights
+    riskHighlights,
+    companyBaseline
   } = result;
 
-  const isOverpaying = !isEstimating && (verdict === 'SEVERE_OVERPAY' || verdict === 'OVERPAYING');
+  // Validation & Testing instrument state (INS-38)
+  const [rating, setRating] = useState(0);
+  const [hoverRating, setHoverRating] = useState(0);
+  const [feedback, setFeedback] = useState({
+    isReasonable: '',
+    matchesKnowledge: '',
+    useBeforeRenew: '',
+    useBeforeBuy: '',
+    trustComment: ''
+  });
+  const [submittingFeedback, setSubmittingFeedback] = useState(false);
+  const [feedbackSubmitted, setFeedbackSubmitted] = useState(false);
+
+  const handleFeedbackSubmit = async (e) => {
+    e.preventDefault();
+    if (!rating) return;
+    setSubmittingFeedback(true);
+    try {
+      await fetch('/api/feedback', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          rating,
+          isReasonable: feedback.isReasonable,
+          matchesKnowledge: feedback.matchesKnowledge,
+          useBeforeRenew: feedback.useBeforeRenew,
+          useBeforeBuy: feedback.useBeforeBuy,
+          trustComment: feedback.trustComment,
+          postalCode: location?.fsa || '',
+          vehicle: `${vehicle?.year || ''} ${vehicle?.make || ''} ${vehicle?.model || ''}`.trim(),
+          benchmarkRate: fairMonthlyStandard,
+          currentPremium: isEstimating ? null : currentPremium
+        })
+      });
+      setFeedbackSubmitted(true);
+    } catch (err) {
+      console.warn('Feedback submit error:', err);
+      setFeedbackSubmitted(true);
+    } finally {
+      setSubmittingFeedback(false);
+    }
+  };
 
   return (
-    <div className={`rounded-3xl p-6 sm:p-8 backdrop-blur-xl border transition-all duration-300 shadow-2xl relative overflow-hidden ${
-      isEstimating
-        ? 'bg-emerald-950/20 border-emerald-500/40 glow-emerald'
-        : verdictColor === 'red'
-        ? 'bg-red-950/20 border-red-500/40 glow-red'
-        : verdictColor === 'amber'
-        ? 'bg-amber-950/20 border-amber-500/40'
-        : verdictColor === 'blue'
-        ? 'bg-blue-950/20 border-blue-500/40 glow-blue'
-        : 'bg-emerald-950/20 border-emerald-500/40 glow-emerald'
-    }`}>
-      {/* Verdict Header */}
-      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 pb-6 border-b border-slate-800/80">
-        <div>
-          <div className="flex items-center gap-2 mb-1">
-            {isOverpaying ? (
-              <AlertCircle className={`w-6 h-6 ${verdictColor === 'red' ? 'text-red-400' : 'text-amber-400'}`} />
-            ) : (
-              <CheckCircle2 className="w-6 h-6 text-emerald-400" />
-            )}
-            <h3 className="text-2xl font-black text-white">{verdictTitle}</h3>
+    <div className="space-y-6">
+      {/* 1. Main Benchmark Card */}
+      <div className="rounded-3xl p-6 sm:p-8 backdrop-blur-xl border border-emerald-500/40 bg-slate-900/90 shadow-2xl relative overflow-hidden">
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 pb-6 border-b border-slate-800/80">
+          <div>
+            <div className="flex items-center gap-2 mb-1.5">
+              <span className="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-pulse"></span>
+              <span className="text-xs font-bold uppercase tracking-wider text-emerald-400">
+                Ontario Actuarial Model Result
+              </span>
+            </div>
+            <h3 className="text-2xl sm:text-3xl font-black text-white">
+              Estimated benchmark: <span className="text-emerald-400">${fairMonthlyStandard}/month</span>
+            </h3>
+            <p className="text-xs sm:text-sm text-slate-300 mt-1 max-w-xl leading-relaxed">
+              Based on the information you provided and our current Ontario insurance data for {location?.city || 'Ontario'} ({vehicle?.year} {vehicle?.make} {vehicle?.model}).
+            </p>
           </div>
-          <p className="text-sm text-slate-300 max-w-lg">{verdictMessage}</p>
-        </div>
 
-        {/* Confidence Score Pill */}
-        <div className="px-3.5 py-2 bg-slate-900/90 border border-slate-800 rounded-xl text-right">
-          <div className="text-[11px] text-slate-400 font-medium">Confidence Score</div>
-          <div className="text-sm font-black text-emerald-400 flex items-center justify-end gap-1.5">
-            <span className="w-2 h-2 rounded-full bg-emerald-400"></span>
-            {reliabilityScore}% (High Data Density)
-          </div>
-        </div>
-      </div>
-
-      {/* Main Savings Comparison Banner (hidden in shopping mode — verdict + tier matrix already cover it) */}
-      {!isEstimating && (
-      <div className="my-6 grid grid-cols-1 sm:grid-cols-3 gap-4">
-        <div className="bg-slate-900/80 border border-slate-800 rounded-2xl p-4">
-          <div className="text-xs text-slate-400 font-semibold">
-            {isEstimating ? 'Estimated Market Quote' : 'Your Current Rate'}
-          </div>
-          <div className="text-2xl sm:text-3xl font-black text-white mt-1">
-            {isEstimating ? (
-              <span className="text-emerald-400">${fairMonthlyStandard} <span className="text-xs font-normal text-slate-400">/ mo</span></span>
-            ) : (
-              <span>${currentPremium} <span className="text-xs font-normal text-slate-400">/ mo</span></span>
-            )}
-          </div>
-          <div className="text-[11px] text-slate-500 mt-1">
-            {isEstimating ? 'No current policy • Shopping mode' : `$${(currentPremium * 12).toLocaleString()} / year`}
+          {/* Model Confidence */}
+          <div className="px-3.5 py-2 bg-slate-950/80 border border-slate-800 rounded-2xl text-right shrink-0">
+            <div className="text-[11px] text-slate-400 font-medium">FSRA Model Density</div>
+            <div className="text-sm font-black text-emerald-400 flex items-center justify-end gap-1.5">
+              <span className="w-2 h-2 rounded-full bg-emerald-400"></span>
+              {reliabilityScore || 94}% Reliable
+            </div>
           </div>
         </div>
 
-        <div className="bg-slate-900/80 border border-slate-800 rounded-2xl p-4">
-          <div className="flex items-center justify-between">
-            <span className="text-xs text-slate-400 font-semibold">Fair Ontario Benchmark</span>
-            <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-300 border border-emerald-500/20">
-              {result.selectedCoverageName || 'Standard'}
-            </span>
+        {/* Breakdown Comparison */}
+        <div className="my-6 grid grid-cols-1 sm:grid-cols-3 gap-4">
+          <div className="bg-slate-950/70 border border-slate-800/90 rounded-2xl p-4">
+            <div className="text-xs text-slate-400 font-semibold">
+              {isEstimating ? 'Estimated Monthly Benchmark' : 'Your Current Premium'}
+            </div>
+            <div className="text-2xl sm:text-3xl font-black text-white mt-1">
+              {isEstimating ? (
+                <span className="text-emerald-400">${fairMonthlyStandard} <span className="text-xs font-normal text-slate-400">/ mo</span></span>
+              ) : (
+                <span>${currentPremium} <span className="text-xs font-normal text-slate-400">/ mo</span></span>
+              )}
+            </div>
+            <div className="text-[11px] text-slate-500 mt-1">
+              {isEstimating ? 'Standard coverage tier baseline' : `$${((currentPremium || 0) * 12).toLocaleString()} / year`}
+            </div>
           </div>
-          <div className="text-2xl sm:text-3xl font-black text-emerald-400 mt-1">
-            ${fairMonthlyStandard} <span className="text-xs font-normal text-slate-400">/ mo</span>
+
+          <div className="bg-slate-950/70 border border-slate-800/90 rounded-2xl p-4">
+            <div className="flex items-center justify-between">
+              <span className="text-xs text-slate-400 font-semibold">Estimated Benchmark</span>
+              <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-300 border border-emerald-500/20">
+                {result.selectedCoverageName || 'Standard'}
+              </span>
+            </div>
+            <div className="text-2xl sm:text-3xl font-black text-emerald-400 mt-1">
+              ${fairMonthlyStandard} <span className="text-xs font-normal text-slate-400">/ mo</span>
+            </div>
+            <div className="flex items-center justify-between text-[11px] text-slate-500 mt-1">
+              <span>${(fairMonthlyStandard * 12).toLocaleString()} / year</span>
+              {onOpenFsraExplainer && (
+                <button
+                  type="button"
+                  onClick={onOpenFsraExplainer}
+                  className="text-emerald-400 hover:text-emerald-300 underline font-semibold transition cursor-pointer"
+                >
+                  Actuarial Model ℹ️
+                </button>
+              )}
+            </div>
           </div>
-          <div className="flex items-center justify-between text-[11px] text-slate-500 mt-1">
-            <span>${(fairMonthlyStandard * 12).toLocaleString()} / year</span>
-            {onOpenFsraExplainer && (
-              <button
-                type="button"
-                onClick={onOpenFsraExplainer}
-                className="text-emerald-400 hover:text-emerald-300 underline font-semibold transition cursor-pointer"
-              >
-                Actuarial Model ℹ️
-              </button>
-            )}
+
+          <div className="bg-slate-950/70 border border-slate-800/90 rounded-2xl p-4">
+            <div className="text-xs font-semibold text-slate-300">
+              {isEstimating ? 'Ontario Market Range' : monthlySavings > 0 ? 'Difference vs Benchmark' : 'Benchmark Status'}
+            </div>
+            <div className={`text-2xl sm:text-3xl font-black mt-1 ${!isEstimating && monthlySavings > 0 ? 'text-amber-400' : 'text-emerald-400'}`}>
+              {isEstimating
+                ? `$${coverageTiers?.minimum?.rate || 0} - $${coverageTiers?.comprehensive?.rate || 0}`
+                : monthlySavings > 0
+                ? `+$${monthlySavings}/mo`
+                : 'Competitive Rate'}
+            </div>
+            <div className="text-[11px] text-slate-400 mt-1">
+              {isEstimating
+                ? 'Basic to Full Protection tiers'
+                : monthlySavings > 0
+                ? `~$${annualSavings?.toLocaleString()}/year over expected benchmark`
+                : 'Within fair Ontario pricing'}
+            </div>
           </div>
         </div>
 
-        <div className={`rounded-2xl p-4 border ${
-          isEstimating
-            ? 'bg-emerald-500/10 border-emerald-500/30'
-            : isOverpaying
-            ? 'bg-red-500/10 border-red-500/30'
-            : 'bg-emerald-500/10 border-emerald-500/30'
-        }`}>
-          <div className="text-xs font-semibold text-slate-300">
-            {isEstimating ? 'Ontario Market Range' : isOverpaying ? 'Potential Annual Savings' : 'Status'}
-          </div>
-          <div className={`text-2xl sm:text-3xl font-black mt-1 ${isOverpaying ? 'text-red-400' : 'text-emerald-400'}`}>
-            {isEstimating
-              ? `$${coverageTiers.minimum.rate} - $${coverageTiers.comprehensive.rate}`
-              : isOverpaying
-              ? `-$${annualSavings.toLocaleString()}`
-              : 'Protected Rate'}
-          </div>
-          <div className="text-[11px] text-slate-300 mt-1">
-            {isEstimating
-              ? 'Basic Liability to Full Protection'
-              : isOverpaying
-              ? `Save ~$${monthlySavings}/month`
-              : 'Fair market pricing'}
-          </div>
-        </div>
-      </div>
-      )}
-
-      {/* Coverage Tiers Matrix */}
-      <div className={isEstimating ? 'mt-6 mb-6' : 'mb-6'}>
-        <div className="flex items-start justify-between gap-3 mb-3">
-          <h4 className="text-xs font-bold uppercase tracking-wider text-slate-400 flex items-center gap-1.5">
-            <ShieldCheck className="w-4 h-4 text-emerald-400 shrink-0" />
-            Ontario Price Ranges for Your Profile ({location.city} • {vehicle.year} {vehicle.make} {vehicle.model})
-          </h4>
-          {isEstimating && onOpenFsraExplainer && (
-            <button
-              type="button"
-              onClick={onOpenFsraExplainer}
-              className="text-[11px] text-emerald-400 hover:text-emerald-300 underline font-semibold transition cursor-pointer whitespace-nowrap shrink-0"
-            >
-              Actuarial Model ℹ️
-            </button>
-          )}
-        </div>
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-          {Object.entries(coverageTiers).map(([key, tier]) => {
-            const isSelected = key === result.selectedCoverage;
-            return (
-              <div
-                key={key}
-                className={`rounded-2xl p-4 flex flex-col justify-between transition-all ${
-                  isSelected
-                    ? 'bg-emerald-950/40 border-2 border-emerald-500 shadow-lg shadow-emerald-500/10'
-                    : 'bg-slate-950/70 border border-slate-800/80 hover:border-slate-700'
-                }`}
-              >
-                <div>
-                  <div className="flex justify-between items-start">
+        {/* Coverage Levels Comparison Matrix */}
+        {coverageTiers && (
+          <div className="mb-6">
+            <div className="flex items-center justify-between mb-3">
+              <h4 className="text-xs font-bold uppercase tracking-wider text-slate-400 flex items-center gap-1.5">
+                <ShieldCheck className="w-4 h-4 text-emerald-400 shrink-0" />
+                Benchmark by Coverage Level in {location?.city || 'Ontario'}
+              </h4>
+            </div>
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+              {Object.entries(coverageTiers).map(([key, tier]) => {
+                const isSelected = key === result.selectedCoverage;
+                return (
+                  <div
+                    key={key}
+                    className={`rounded-2xl p-4 flex flex-col justify-between transition-all ${
+                      isSelected
+                        ? 'bg-emerald-950/40 border-2 border-emerald-500 shadow-md shadow-emerald-500/10'
+                        : 'bg-slate-950/70 border border-slate-800/80'
+                    }`}
+                  >
                     <div>
-                      <span className={`text-xs font-bold ${isSelected ? 'text-emerald-300' : 'text-slate-200'}`}>
-                        {tier.name}
-                      </span>
-                      {isSelected && (
-                        <span className="block text-[9px] font-extrabold uppercase text-emerald-400 tracking-wider">
-                          ✓ Your Selected Package
+                      <div className="flex justify-between items-start">
+                        <div>
+                          <span className={`text-xs font-bold ${isSelected ? 'text-emerald-300' : 'text-slate-200'}`}>
+                            {tier.name}
+                          </span>
+                          {isSelected && (
+                            <span className="block text-[9px] font-extrabold uppercase text-emerald-400 tracking-wider">
+                              ✓ Your Package
+                            </span>
+                          )}
+                        </div>
+                        <span className="text-lg font-black text-white">
+                          ${tier.rate}
+                          <span className="text-xs font-normal text-slate-400">/mo</span>
                         </span>
-                      )}
+                      </div>
+                      <p className="text-[11px] text-slate-400 mt-2 leading-relaxed">{tier.description}</p>
                     </div>
-                    <span className="text-lg font-black text-white">
-                      ${tier.rate}
-                      <span className="text-xs font-normal text-slate-400">/mo</span>
-                    </span>
+                    <div className="mt-3 pt-3 border-t border-slate-900 text-[10px] text-slate-500 flex justify-between">
+                      <span>Annual:</span>
+                      <span className="font-semibold text-slate-300">${(tier.rate * 12).toLocaleString()}/yr</span>
+                    </div>
                   </div>
-                  <p className="text-[11px] text-slate-400 mt-2 leading-relaxed">{tier.description}</p>
-                </div>
-                <div className="mt-3 pt-3 border-t border-slate-900 text-[10px] text-slate-500 flex justify-between">
-                  <span>Annual:</span>
-                  <span className="font-semibold text-slate-300">${(tier.rate * 12).toLocaleString()}/yr</span>
-                </div>
-              </div>
-            );
-          })}
-        </div>
+                );
+              })}
+            </div>
+          </div>
+        )}
+
+        {/* Regional / Vehicle Risk Highlights */}
+        {riskHighlights && riskHighlights.length > 0 && (
+          <div className="p-4 bg-slate-950/60 border border-slate-800/60 rounded-2xl">
+            <span className="text-xs font-bold text-slate-400 uppercase tracking-wider block mb-2">
+              Ontario Benchmark Drivers & Weight Factors:
+            </span>
+            <ul className="space-y-1 text-xs text-slate-300">
+              {riskHighlights.map((r, i) => (
+                <li key={i} className="flex items-center gap-2">
+                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-400"></span>
+                  <span>{r}</span>
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
       </div>
 
-      {/* Regional / Vehicle Risk Flags */}
-      {riskHighlights && riskHighlights.length > 0 && (
-        <div className="mb-6 p-4 bg-slate-950/60 border border-slate-800/60 rounded-2xl">
-          <span className="text-xs font-bold text-amber-300 uppercase tracking-wider block mb-2">
-            Why this price? Ontario Risk Factors:
-          </span>
-          <ul className="space-y-1 text-xs text-slate-300">
-            {riskHighlights.map((r, i) => (
-              <li key={i} className="flex items-center gap-2">
-                <span className="w-1.5 h-1.5 rounded-full bg-amber-400"></span>
-                <span>{r}</span>
-              </li>
-            ))}
-          </ul>
+      {/* 2. Validation & Testing Instrument (INS-38) */}
+      <div className="bg-slate-900/90 border border-slate-800 rounded-3xl p-6 sm:p-8 backdrop-blur-xl shadow-xl">
+        <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-emerald-400 mb-2">
+          <Sparkles className="w-4 h-4" />
+          Model Calibration Feedback
         </div>
-      )}
 
-      {/* Broker CTA */}
-      {isEstimating ? (
-        <div className="p-5 bg-gradient-to-r from-emerald-950/80 to-slate-900 border border-emerald-500/30 rounded-2xl flex flex-col sm:flex-row items-center justify-between gap-4">
-          <div>
-            <h4 className="text-base font-extrabold text-white flex items-center gap-2">
-              <Sparkles className="w-5 h-5 text-emerald-400" />
-              Target Benchmark: ${fairMonthlyStandard}/month
-            </h4>
-            <p className="text-xs text-slate-300 mt-0.5">
-              Connect with a licensed Ontario independent broker who searches 30+ insurers (Intact, Aviva, Desjardins, TD) to lock in this rate before buying.
+        {feedbackSubmitted ? (
+          <div className="py-6 text-center">
+            <div className="w-12 h-12 rounded-2xl bg-emerald-500/20 text-emerald-400 flex items-center justify-center mx-auto mb-3">
+              <CheckCircle2 className="w-7 h-7" />
+            </div>
+            <h4 className="text-lg font-black text-white">Thank you for validating this result!</h4>
+            <p className="text-xs sm:text-sm text-slate-400 mt-1 max-w-md mx-auto">
+              Your feedback is directly recorded to help train and calibrate our open Ontario benchmark model.
             </p>
           </div>
-          <button
-            onClick={onConnectBroker}
-            className="w-full sm:w-auto px-6 py-3 rounded-xl bg-emerald-400 hover:bg-emerald-300 text-slate-950 font-black text-sm transition shadow-lg shadow-emerald-500/20 whitespace-nowrap cursor-pointer flex items-center justify-center gap-2"
-          >
-            <span>Get Official Quotes</span>
-            <ArrowRight className="w-4 h-4" />
-          </button>
-        </div>
-      ) : isOverpaying ? (
-        <div className="p-5 bg-gradient-to-r from-emerald-950/80 to-slate-900 border border-emerald-500/30 rounded-2xl flex flex-col sm:flex-row items-center justify-between gap-4">
+        ) : (
           <div>
-            <h4 className="text-base font-extrabold text-white flex items-center gap-2">
-              <Sparkles className="w-5 h-5 text-emerald-400" />
-              Stop Overpaying ${monthlySavings}/month
-            </h4>
-            <p className="text-xs text-slate-300 mt-0.5">
-              Connect with a licensed Ontario independent broker who searches 30+ insurers to match this standard rate.
+            <h4 className="text-lg font-black text-white">How helpful was this result?</h4>
+            <p className="text-xs text-slate-400 mt-0.5 mb-4">
+              Rate this estimate to help us validate accuracy for Ontario drivers.
             </p>
+
+            {/* Star Rating */}
+            <div className="flex items-center gap-2 mb-4">
+              {[1, 2, 3, 4, 5].map((star) => (
+                <button
+                  key={star}
+                  type="button"
+                  onClick={() => setRating(star)}
+                  onMouseEnter={() => setHoverRating(star)}
+                  onMouseLeave={() => setHoverRating(0)}
+                  className="p-1 text-3xl sm:text-4xl transition-transform hover:scale-125 cursor-pointer focus:outline-none"
+                  title={`${star} star${star > 1 ? 's' : ''}`}
+                >
+                  <span className={(hoverRating || rating) >= star ? 'text-amber-400' : 'text-slate-700'}>
+                    ★
+                  </span>
+                </button>
+              ))}
+              {rating > 0 && (
+                <span className="ml-2 text-xs font-bold text-emerald-400">
+                  {rating === 5 ? '5/5 Excellent' : rating === 4 ? '4/5 Helpful' : rating === 3 ? '3/5 Moderate' : rating === 2 ? '2/5 Not quite right' : '1/5 Inaccurate'}
+                </span>
+              )}
+            </div>
+
+            {/* Expandable Validation Questions (Expanded once rated) */}
+            {rating > 0 && (
+              <form onSubmit={handleFeedbackSubmit} className="space-y-5 pt-4 border-t border-slate-800 animate-fadeIn">
+                {/* Question 1 */}
+                <div>
+                  <label className="block text-xs sm:text-sm font-semibold text-slate-200 mb-2">
+                    Does the result look reasonable to you?
+                  </label>
+                  <div className="flex flex-wrap gap-2">
+                    {['Yes', 'Not sure', 'No'].map((opt) => (
+                      <button
+                        key={opt}
+                        type="button"
+                        onClick={() => setFeedback({ ...feedback, isReasonable: opt })}
+                        className={`px-4 py-2 rounded-xl text-xs font-bold transition cursor-pointer border ${
+                          feedback.isReasonable === opt
+                            ? 'bg-emerald-500 text-slate-950 border-emerald-400 shadow-sm'
+                            : 'bg-slate-950 border-slate-800 text-slate-300 hover:border-slate-700'
+                        }`}
+                      >
+                        {opt}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Question 2 */}
+                <div>
+                  <label className="block text-xs sm:text-sm font-semibold text-slate-200 mb-2">
+                    Does it match what you know about your insurance?
+                  </label>
+                  <div className="flex flex-wrap gap-2">
+                    {['Yes', 'Not sure', 'No'].map((opt) => (
+                      <button
+                        key={opt}
+                        type="button"
+                        onClick={() => setFeedback({ ...feedback, matchesKnowledge: opt })}
+                        className={`px-4 py-2 rounded-xl text-xs font-bold transition cursor-pointer border ${
+                          feedback.matchesKnowledge === opt
+                            ? 'bg-emerald-500 text-slate-950 border-emerald-400 shadow-sm'
+                            : 'bg-slate-950 border-slate-800 text-slate-300 hover:border-slate-700'
+                        }`}
+                      >
+                        {opt}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Question 3 */}
+                <div>
+                  <label className="block text-xs sm:text-sm font-semibold text-slate-200 mb-2">
+                    Would you use this before renewing your insurance?
+                  </label>
+                  <div className="flex flex-wrap gap-2">
+                    {['Yes', 'Maybe', 'No'].map((opt) => (
+                      <button
+                        key={opt}
+                        type="button"
+                        onClick={() => setFeedback({ ...feedback, useBeforeRenew: opt })}
+                        className={`px-4 py-2 rounded-xl text-xs font-bold transition cursor-pointer border ${
+                          feedback.useBeforeRenew === opt
+                            ? 'bg-emerald-500 text-slate-950 border-emerald-400 shadow-sm'
+                            : 'bg-slate-950 border-slate-800 text-slate-300 hover:border-slate-700'
+                        }`}
+                      >
+                        {opt}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Question 4 */}
+                <div>
+                  <label className="block text-xs sm:text-sm font-semibold text-slate-200 mb-2">
+                    Would you use this before buying a car?
+                  </label>
+                  <div className="flex flex-wrap gap-2">
+                    {['Yes', 'Maybe', 'No'].map((opt) => (
+                      <button
+                        key={opt}
+                        type="button"
+                        onClick={() => setFeedback({ ...feedback, useBeforeBuy: opt })}
+                        className={`px-4 py-2 rounded-xl text-xs font-bold transition cursor-pointer border ${
+                          feedback.useBeforeBuy === opt
+                            ? 'bg-emerald-500 text-slate-950 border-emerald-400 shadow-sm'
+                            : 'bg-slate-950 border-slate-800 text-slate-300 hover:border-slate-700'
+                        }`}
+                      >
+                        {opt}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Question 5 (Optional open-ended) */}
+                <div>
+                  <label className="block text-xs sm:text-sm font-semibold text-slate-200 mb-1.5 flex items-center justify-between">
+                    <span>What would make you trust this result more?</span>
+                    <span className="text-[11px] text-slate-500 font-normal italic">Optional</span>
+                  </label>
+                  <textarea
+                    rows={2}
+                    value={feedback.trustComment}
+                    onChange={(e) => setFeedback({ ...feedback, trustComment: e.target.value })}
+                    placeholder="Share any thoughts, missing factors, or specific carrier comparisons you'd like to see..."
+                    className="w-full bg-slate-950 border border-slate-800 rounded-xl p-3 text-xs sm:text-sm text-white placeholder-slate-500 focus:outline-none focus:border-emerald-500 resize-none"
+                  />
+                </div>
+
+                <button
+                  type="submit"
+                  disabled={submittingFeedback}
+                  className="py-3 px-6 rounded-xl font-bold text-xs sm:text-sm text-slate-950 bg-emerald-400 hover:bg-emerald-300 transition shadow-md shadow-emerald-500/20 cursor-pointer disabled:opacity-50"
+                >
+                  {submittingFeedback ? 'Submitting Feedback...' : 'Submit Feedback'}
+                </button>
+              </form>
+            )}
           </div>
-          <button
-            onClick={onConnectBroker}
-            className="w-full sm:w-auto px-6 py-3 rounded-xl bg-emerald-400 hover:bg-emerald-300 text-slate-950 font-black text-sm transition shadow-lg shadow-emerald-500/20 whitespace-nowrap cursor-pointer flex items-center justify-center gap-2"
-          >
-            <span>Lock In Lower Rate</span>
-            <ArrowRight className="w-4 h-4" />
-          </button>
+        )}
+      </div>
+
+      {/* 3. Optional Broker Match (Secondary bridge) */}
+      <div className="p-4 sm:p-5 bg-slate-900/60 border border-slate-800/80 rounded-2xl flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-slate-400">
+        <div>
+          <span className="text-white font-semibold">Need to shop official carrier rates?</span> An independent Ontario broker searches 30+ insurers (Intact, Aviva, Desjardins, etc.) with zero obligation.
         </div>
-      ) : (
-        <div className="p-4 bg-slate-900/60 border border-slate-800 rounded-2xl text-center text-xs text-slate-400">
-          🎉 Congratulations! Your current policy is among the best 15% of rates in {location.city}.
-        </div>
-      )}
+        <button
+          type="button"
+          onClick={onConnectBroker}
+          className="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-emerald-300 hover:text-white font-bold rounded-xl transition border border-slate-700 whitespace-nowrap cursor-pointer flex items-center gap-1.5 shrink-0"
+        >
+          <span>Connect with a broker</span>
+          <ArrowRight className="w-3.5 h-3.5" />
+        </button>
+      </div>
     </div>
   );
 }

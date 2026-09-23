@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Car, MapPin, User, Shield, DollarSign, ArrowRight, Loader2, Sparkles, ShieldCheck, CheckCircle2, Building2, Users, ChevronDown, Minus, Plus, AlertCircle } from 'lucide-react';
+import { Car, MapPin, User, Shield, DollarSign, ArrowRight, Loader2, Sparkles, ShieldCheck, CheckCircle2, Building2, Users, ChevronDown, Minus, Plus, AlertCircle, Info, X } from 'lucide-react';
 import { VEHICLE_OPTIONS, POPULAR_FSAS } from '../data/vehicles.js';
 
 export function SanityChecker({ onCalculate, loading }) {
@@ -21,10 +21,11 @@ export function SanityChecker({ onCalculate, loading }) {
   });
 
   const [householdOpen, setHouseholdOpen] = useState(false);
+  const [coverageInfoOpen, setCoverageInfoOpen] = useState(false);
 
   const premiumNum = parseFloat(formData.currentPremium);
   const isPremiumTooLow = !formData.isEstimating && formData.currentPremium !== '' && !isNaN(premiumNum) && premiumNum < 50;
-  const isPremiumTooHigh = !formData.isEstimating && formData.currentPremium !== '' && !isNaN(premiumNum) && premiumNum > 1200;
+  const isPremiumTooHigh = !formData.isEstimating && formData.currentPremium !== '' && !isNaN(premiumNum) && premiumNum > 2500;
   const isPremiumInvalid = isPremiumTooLow || isPremiumTooHigh;
 
   const currentModels = (VEHICLE_OPTIONS.find(v => v.make === formData.vehicleMake)?.models) || ['Standard Model'];
@@ -40,6 +41,9 @@ export function SanityChecker({ onCalculate, loading }) {
 
   const handleSubmit = (e) => {
     e.preventDefault();
+    if (!formData.isEstimating && !formData.insuranceCompany) {
+      return;
+    }
     onCalculate(formData);
   };
 
@@ -135,7 +139,14 @@ export function SanityChecker({ onCalculate, loading }) {
               <ShieldCheck className="w-4 h-4 text-emerald-400" />
               Choose coverage level
             </label>
-            <span className="text-[11px] text-slate-500 font-medium">Click to select</span>
+            <button
+              type="button"
+              onClick={() => setCoverageInfoOpen(true)}
+              className="text-[11px] text-emerald-400 hover:text-emerald-300 font-semibold flex items-center gap-1 transition cursor-pointer"
+            >
+              <Info className="w-3.5 h-3.5" />
+              <span>Coverage details ⓘ</span>
+            </button>
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
@@ -143,7 +154,7 @@ export function SanityChecker({ onCalculate, loading }) {
             <button
               type="button"
               onClick={() => setFormData({ ...formData, coverageLevel: 'minimum' })}
-              className={`p-4 rounded-2xl border text-center transition flex flex-col items-center justify-between cursor-pointer ${
+              className={`p-4 rounded-2xl border text-center transition flex flex-col items-center justify-center cursor-pointer ${
                 formData.coverageLevel === 'minimum'
                   ? 'bg-emerald-950/50 border-emerald-500 ring-2 ring-emerald-500/30 shadow-lg shadow-emerald-500/10'
                   : 'bg-slate-950/80 border-slate-800 hover:border-slate-700 text-slate-400'
@@ -159,11 +170,8 @@ export function SanityChecker({ onCalculate, loading }) {
                   Basic
                 </div>
                 <p className="text-[11px] text-slate-400 mt-1 leading-snug">
-                  Lowest price, minimal coverage
+                  Lowest price · Minimum coverage
                 </p>
-              </div>
-              <div className="mt-3 text-[10px] font-semibold text-slate-500">
-                0.70x Baseline • DCPD
               </div>
             </button>
 
@@ -171,7 +179,7 @@ export function SanityChecker({ onCalculate, loading }) {
             <button
               type="button"
               onClick={() => setFormData({ ...formData, coverageLevel: 'standard' })}
-              className={`p-4 rounded-2xl border text-center transition flex flex-col items-center justify-between cursor-pointer ${
+              className={`p-4 rounded-2xl border text-center transition flex flex-col items-center justify-center cursor-pointer ${
                 formData.coverageLevel === 'standard'
                   ? 'bg-emerald-950/50 border-emerald-500 ring-2 ring-emerald-500/30 shadow-lg shadow-emerald-500/10'
                   : 'bg-slate-950/80 border-slate-800 hover:border-slate-700 text-slate-400'
@@ -187,11 +195,8 @@ export function SanityChecker({ onCalculate, loading }) {
                   Standard
                 </div>
                 <p className="text-[11px] text-slate-400 mt-1 leading-snug">
-                  Most common choice
+                  Typical coverage · Balanced protection
                 </p>
-              </div>
-              <div className="mt-3 text-[10px] font-semibold text-emerald-400">
-                1.00x Pure Risk Baseline
               </div>
             </button>
 
@@ -199,7 +204,7 @@ export function SanityChecker({ onCalculate, loading }) {
             <button
               type="button"
               onClick={() => setFormData({ ...formData, coverageLevel: 'comprehensive' })}
-              className={`p-4 rounded-2xl border text-center transition flex flex-col items-center justify-between cursor-pointer ${
+              className={`p-4 rounded-2xl border text-center transition flex flex-col items-center justify-center cursor-pointer ${
                 formData.coverageLevel === 'comprehensive'
                   ? 'bg-emerald-950/50 border-emerald-500 ring-2 ring-emerald-500/30 shadow-lg shadow-emerald-500/10'
                   : 'bg-slate-950/80 border-slate-800 hover:border-slate-700 text-slate-400'
@@ -215,15 +220,95 @@ export function SanityChecker({ onCalculate, loading }) {
                   Full
                 </div>
                 <p className="text-[11px] text-slate-400 mt-1 leading-snug">
-                  Maximum protection (includes comprehensive)
+                  More protection · Lower out-of-pocket costs
                 </p>
-              </div>
-              <div className="mt-3 text-[10px] font-semibold text-emerald-400">
-                1.30x Baseline • $500 ded
               </div>
             </button>
           </div>
         </div>
+
+        {/* Coverage Details Modal */}
+        {coverageInfoOpen && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-md">
+            <div className="bg-slate-900 border border-slate-800 rounded-3xl max-w-2xl w-full p-6 sm:p-8 shadow-2xl relative">
+              <button
+                type="button"
+                onClick={() => setCoverageInfoOpen(false)}
+                className="absolute top-6 right-6 p-2 rounded-xl text-slate-400 hover:text-white hover:bg-slate-800 transition cursor-pointer"
+                title="Close"
+              >
+                <X className="w-5 h-5" />
+              </button>
+
+              <div className="flex items-center gap-2 mb-2 text-emerald-400 text-xs font-bold uppercase tracking-wider">
+                <ShieldCheck className="w-4 h-4" />
+                Ontario Auto Insurance Tiers
+              </div>
+              <h3 className="text-xl sm:text-2xl font-black text-white mb-2">Coverage Level Breakdown</h3>
+              <p className="text-xs sm:text-sm text-slate-400 mb-6">
+                Understand what is covered under each package as mandated and regulated by FSRA in Ontario.
+              </p>
+
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                {/* Basic */}
+                <div className="bg-slate-950/70 border border-slate-800 rounded-2xl p-4 flex flex-col justify-between">
+                  <div>
+                    <div className="font-extrabold text-sm text-white mb-1">Basic</div>
+                    <div className="text-[11px] text-emerald-400 font-semibold mb-3">Lowest price · Minimum coverage</div>
+                    <ul className="space-y-1.5 text-xs text-slate-300">
+                      <li className="flex items-start gap-1.5"><span>•</span><span>Mandatory Ontario coverage</span></li>
+                      <li className="flex items-start gap-1.5"><span>•</span><span>$200,000 liability</span></li>
+                      <li className="flex items-start gap-1.5"><span>•</span><span>DCPD</span></li>
+                      <li className="flex items-start gap-1.5 text-slate-400"><span>•</span><span>No collision</span></li>
+                      <li className="flex items-start gap-1.5 text-slate-400"><span>•</span><span>No comprehensive</span></li>
+                      <li className="flex items-start gap-1.5 text-amber-400/90 font-medium"><span>•</span><span>Higher out-of-pocket risk</span></li>
+                    </ul>
+                  </div>
+                </div>
+
+                {/* Standard */}
+                <div className="bg-slate-950/70 border border-emerald-500/40 rounded-2xl p-4 ring-1 ring-emerald-500/20 flex flex-col justify-between">
+                  <div>
+                    <div className="font-extrabold text-sm text-emerald-300 mb-1">Standard</div>
+                    <div className="text-[11px] text-emerald-400 font-semibold mb-3">Typical coverage · Balanced protection</div>
+                    <ul className="space-y-1.5 text-xs text-slate-300">
+                      <li className="flex items-start gap-1.5"><span>•</span><span>$1M liability</span></li>
+                      <li className="flex items-start gap-1.5"><span>•</span><span>DCPD</span></li>
+                      <li className="flex items-start gap-1.5"><span>•</span><span>Comprehensive</span></li>
+                      <li className="flex items-start gap-1.5 text-slate-400"><span>•</span><span>$500 deductible</span></li>
+                      <li className="flex items-start gap-1.5"><span>•</span><span>Collision</span></li>
+                      <li className="flex items-start gap-1.5 text-slate-400"><span>•</span><span>$500 deductible</span></li>
+                    </ul>
+                  </div>
+                </div>
+
+                {/* Full */}
+                <div className="bg-slate-950/70 border border-slate-800 rounded-2xl p-4 flex flex-col justify-between">
+                  <div>
+                    <div className="font-extrabold text-sm text-white mb-1">Full</div>
+                    <div className="text-[11px] text-emerald-400 font-semibold mb-3">More protection · Lower out-of-pocket costs</div>
+                    <ul className="space-y-1.5 text-xs text-slate-300">
+                      <li className="flex items-start gap-1.5"><span>•</span><span>$2M liability</span></li>
+                      <li className="flex items-start gap-1.5"><span>•</span><span>DCPD</span></li>
+                      <li className="flex items-start gap-1.5"><span>•</span><span>Comprehensive</span></li>
+                      <li className="flex items-start gap-1.5 text-slate-400"><span>•</span><span>Lower deductibles</span></li>
+                      <li className="flex items-start gap-1.5"><span>•</span><span>Collision</span></li>
+                      <li className="flex items-start gap-1.5 text-emerald-400 font-medium"><span>•</span><span>Higher protection overall</span></li>
+                    </ul>
+                  </div>
+                </div>
+              </div>
+
+              <button
+                type="button"
+                onClick={() => setCoverageInfoOpen(false)}
+                className="mt-6 w-full py-3 bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold rounded-xl text-sm transition cursor-pointer"
+              >
+                Close
+              </button>
+            </div>
+          </div>
+        )}
 
         {/* Step 2: Location (Postal code prefix FSA) */}
         <div>
@@ -348,7 +433,7 @@ export function SanityChecker({ onCalculate, loading }) {
                     <input
                       type="number"
                       min="50"
-                      max="1200"
+                      max="2500"
                       value={formData.currentPremium}
                       onChange={(e) => setFormData({ ...formData, currentPremium: e.target.value })}
                       className={`w-full bg-slate-900 border rounded-xl pl-8 pr-4 py-2.5 text-lg font-extrabold text-white focus:outline-none transition ${
@@ -374,27 +459,28 @@ export function SanityChecker({ onCalculate, loading }) {
                 {isPremiumTooHigh && (
                   <div className="mt-2 p-2.5 rounded-xl bg-amber-500/10 border border-amber-500/30 text-amber-300 text-xs flex items-center gap-2">
                     <AlertCircle className="w-4 h-4 shrink-0" />
-                    <span>Monthly rate exceeds expected limits ($1,200/mo). If this is an annual payment, divide by 12.</span>
+                    <span>Monthly rate exceeds expected limits. If this is an annual payment, divide by 12.</span>
                   </div>
                 )}
 
                 <span className="text-[11px] text-slate-500 mt-1 block">
-                  Your current monthly car insurance cost before tax ($50 – $1,200/mo)
+                  Your current monthly car insurance cost before tax
                 </span>
               </div>
 
-              {/* Standardized 15 Ontario Insurers Dropdown */}
+              {/* Standardized 15 Ontario Insurers Dropdown - Mandatory */}
               <div className="pt-2 border-t border-slate-900">
-                <label className="block text-xs font-semibold text-slate-400 mb-1 flex items-center gap-1.5">
-                  <Building2 className="w-3.5 h-3.5 text-slate-400" />
-                  Insurance company (optional)
+                <label className="block text-xs font-semibold text-slate-300 mb-1 flex items-center gap-1.5">
+                  <Building2 className="w-3.5 h-3.5 text-emerald-400" />
+                  Insurance company <span className="text-emerald-400">*</span>
                 </label>
                 <select
+                  required={!formData.isEstimating}
                   value={formData.insuranceCompany}
                   onChange={(e) => setFormData({ ...formData, insuranceCompany: e.target.value })}
                   className="w-full bg-slate-900/80 border border-slate-800 rounded-xl px-3.5 py-2.5 text-xs text-white focus:outline-none focus:border-emerald-500 cursor-pointer"
                 >
-                  <option value="">Select your insurer (optional)</option>
+                  <option value="">Select your insurance company</option>
                   <option value="Intact">Intact</option>
                   <option value="TD Insurance">TD Insurance</option>
                   <option value="Aviva">Aviva</option>
@@ -496,23 +582,25 @@ export function SanityChecker({ onCalculate, loading }) {
           </div>
         </div>
 
-        {/* Anonymous Contribution Opt-in */}
-        <label className="flex items-start gap-2.5 cursor-pointer group py-1">
-          <input
-            type="checkbox"
-            checked={formData.shareAnonymously}
-            onChange={(e) => setFormData({ ...formData, shareAnonymously: e.target.checked })}
-            className="w-4 h-4 mt-0.5 rounded border-slate-700 text-emerald-500 focus:ring-emerald-500 focus:ring-offset-slate-900 accent-emerald-500 cursor-pointer"
-          />
-          <span className="text-xs text-slate-400 group-hover:text-emerald-300 transition leading-relaxed">
-            Share my anonymous rate parameters to help build Ontario's open driver benchmark (zero personal data saved)
-          </span>
-        </label>
+        {/* Anonymous Contribution Opt-in (Hidden when estimating) */}
+        {!formData.isEstimating && (
+          <label className="flex items-start gap-2.5 cursor-pointer group py-1">
+            <input
+              type="checkbox"
+              checked={formData.shareAnonymously}
+              onChange={(e) => setFormData({ ...formData, shareAnonymously: e.target.checked })}
+              className="w-4 h-4 mt-0.5 rounded border-slate-700 text-emerald-500 focus:ring-emerald-500 focus:ring-offset-slate-900 accent-emerald-500 cursor-pointer"
+            />
+            <span className="text-xs text-slate-400 group-hover:text-emerald-300 transition leading-relaxed">
+              Share my anonymous rate parameters to help build Ontario's open driver benchmark (zero personal data saved)
+            </span>
+          </label>
+        )}
 
         {/* Submit CTA */}
         <button
           type="submit"
-          disabled={loading || isPremiumInvalid}
+          disabled={loading || isPremiumInvalid || (!formData.isEstimating && !formData.insuranceCompany)}
           className="w-full py-4 px-6 rounded-2xl font-extrabold text-base text-slate-950 bg-gradient-to-r from-emerald-400 via-teal-300 to-emerald-400 hover:opacity-95 transition shadow-lg shadow-emerald-500/25 flex items-center justify-center gap-2 cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed"
         >
           {loading ? (

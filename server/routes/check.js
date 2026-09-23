@@ -28,10 +28,6 @@ checkRouter.post('/', (req, res) => {
     // Update check count stat
     db.prepare("UPDATE platform_stats SET value = value + 1 WHERE key = 'total_checks_run'").run();
 
-    if (result.monthlySavings > 0) {
-      db.prepare("UPDATE platform_stats SET value = value + ? WHERE key = 'total_money_saved'").run(result.annualSavings);
-    }
-
     // Automatically record rate in the public community database if user opted to share
     if (!isEstimating && req.body.shareAnonymously !== false && req.body.currentPremium) {
       try {

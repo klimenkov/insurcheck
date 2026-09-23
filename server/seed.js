@@ -281,8 +281,8 @@ for (const s of submissions) {
 
 // 4. Seed Platform Stats (Total Saved counter, etc.)
 const insertStat = db.prepare('INSERT INTO platform_stats (key, value) VALUES (?, ?)');
-insertStat.run('total_money_saved', 32450800);
-insertStat.run('total_checks_run', 14820);
-insertStat.run('avg_monthly_overpay', 86);
+insertStat.run('total_money_saved', 0);
+insertStat.run('total_checks_run', 0);
+insertStat.run('avg_monthly_overpay', 0);
 
 console.log('Database seeded successfully!');

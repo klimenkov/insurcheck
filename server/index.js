@@ -13,6 +13,7 @@ import { scrapedQuotesRouter } from './routes/scrapedQuotes.js';
 import { territoriesRouter } from './routes/territories.js';
 import { contactRouter } from './routes/contact.js';
 import { adminRouter } from './routes/admin.js';
+import { feedbackRouter } from './routes/feedback.js';
 import { ensureQuotesPopulated } from './seedQuotes.js';
 import { ensureInsurersPopulated } from './seedInsurers.js';
 
@@ -39,6 +40,7 @@ app.use('/api/leads', leadsRouter);
 app.use('/api/stats', statsRouter);
 app.use('/api/contact', contactRouter);
 app.use('/api/admin', adminRouter);
+app.use('/api/feedback', feedbackRouter);
 
 // Health check
 app.get('/api/health', (req, res) => {

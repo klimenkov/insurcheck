@@ -264,3 +264,55 @@ adminRouter.delete('/contact-messages/:id', requireAdmin, (req, res) => {
     res.status(500).json({ success: false, error: err.message });
   }
 });
+
+// Broker Leads (INS-30)
+adminRouter.get('/leads', requireAdmin, (req, res) => {
+  try {
+    const rows = db.prepare('SELECT * FROM leads ORDER BY id DESC LIMIT 100').all();
+    res.json({ success: true, data: rows });
+  } catch (err) {
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+adminRouter.patch('/leads/:id', requireAdmin, (req, res) => {
+  try {
+    const { id } = req.params;
+    const { status } = req.body;
+    db.prepare('UPDATE leads SET status = ? WHERE id = ?').run(status || 'contacted', id);
+    const updated = db.prepare('SELECT * FROM leads WHERE id = ?').get(id);
+    res.json({ success: true, data: updated });
+  } catch (err) {
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+adminRouter.delete('/leads/:id', requireAdmin, (req, res) => {
+  try {
+    const { id } = req.params;
+    db.prepare('DELETE FROM leads WHERE id = ?').run(id);
+    res.json({ success: true, message: `Lead #${id} deleted.` });
+  } catch (err) {
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+// Benchmark Validation Feedback (INS-38)
+adminRouter.get('/feedback', requireAdmin, (req, res) => {
+  try {
+    const rows = db.prepare('SELECT * FROM benchmark_feedback ORDER BY id DESC LIMIT 100').all();
+    res.json({ success: true, data: rows });
+  } catch (err) {
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+adminRouter.delete('/feedback/:id', requireAdmin, (req, res) => {
+  try {
+    const { id } = req.params;
+    db.prepare('DELETE FROM benchmark_feedback WHERE id = ?').run(id);
+    res.json({ success: true, message: `Feedback #${id} deleted.` });
+  } catch (err) {
+    res.status(500).json({ success: false, error: err.message });
+  }
+});

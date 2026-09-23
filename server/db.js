@@ -100,6 +100,21 @@ CREATE TABLE IF NOT EXISTS scraped_quotes (
   coverage_type TEXT NOT NULL,
   raw_payload TEXT
 );
+
+CREATE TABLE IF NOT EXISTS benchmark_feedback (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  created_at TEXT NOT NULL,
+  rating INTEGER NOT NULL,
+  is_reasonable TEXT,
+  matches_knowledge TEXT,
+  use_before_renew TEXT,
+  use_before_buy TEXT,
+  trust_comment TEXT,
+  postal_code TEXT,
+  vehicle TEXT,
+  benchmark_rate INTEGER,
+  current_premium INTEGER
+);
 `);
 
 // Migration helper for new rating dimensions

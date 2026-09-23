@@ -13,7 +13,12 @@ leadsRouter.post('/', (req, res) => {
     `);
 
     const dateStr = new Date().toISOString();
-    stmt.run(dateStr, name, email, phone, vehicle || '', postalCode || '', parseInt(currentPremium, 10) || 0, parseInt(estimatedSavings, 10) || 0);
+    const savings = parseInt(estimatedSavings, 10) || 0;
+    stmt.run(dateStr, name, email, phone, vehicle || '', postalCode || '', parseInt(currentPremium, 10) || 0, savings);
+
+    if (savings > 0) {
+      db.prepare("UPDATE platform_stats SET value = value + ? WHERE key = 'total_money_saved'").run(savings);
+    }
 
     res.json({ success: true, message: 'Request received. A licensed Ontario broker will contact you with matched quotes.' });
   } catch (err) {

@@ -11,11 +11,13 @@ export function AdminDashboard({ onExit }) {
   const [loginError, setLoginError] = useState('');
   const [loginLoading, setLoginLoading] = useState(false);
 
-  const [activeSubTab, setActiveSubTab] = useState('submissions'); // 'submissions' | 'reviews' | 'messages'
+  const [activeSubTab, setActiveSubTab] = useState('submissions'); // 'submissions' | 'reviews' | 'messages' | 'leads' | 'feedback'
   const [overview, setOverview] = useState(null);
   const [submissions, setSubmissions] = useState([]);
   const [reviews, setReviews] = useState([]);
   const [messages, setMessages] = useState([]);
+  const [leads, setLeads] = useState([]);
+  const [feedbacks, setFeedbacks] = useState([]);
   const [searchQuery, setSearchQuery] = useState('');
   const [loadingData, setLoadingData] = useState(false);
 
@@ -108,6 +110,20 @@ export function AdminDashboard({ onExit }) {
       });
       const mJson = await mRes.json();
       if (mJson.success) setMessages(mJson.data);
+
+      // 5. Broker Leads (INS-30)
+      const lRes = await fetch('/api/admin/leads', {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      const lJson = await lRes.json();
+      if (lJson.success) setLeads(lJson.data);
+
+      // 6. Benchmark Feedback (INS-38)
+      const fRes = await fetch('/api/admin/feedback', {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      const fJson = await fRes.json();
+      if (fJson.success) setFeedbacks(fJson.data);
     } catch (err) {
       console.error('Error fetching admin data:', err);
     } finally {
@@ -211,6 +227,58 @@ export function AdminDashboard({ onExit }) {
       }
     } catch (err) {
       alert('Failed to delete message');
+    }
+  };
+
+  const handleDeleteLead = async (id) => {
+    if (!confirm(`Delete lead #${id}?`)) return;
+    try {
+      const res = await fetch(`/api/admin/leads/${id}`, {
+        method: 'DELETE',
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      const json = await res.json();
+      if (json.success) {
+        setLeads(leads.filter((l) => l.id !== id));
+      }
+    } catch (err) {
+      alert('Failed to delete lead');
+    }
+  };
+
+  const handleToggleLeadStatus = async (id, currentStatus) => {
+    const nextStatus = currentStatus === 'contacted' ? 'closed' : currentStatus === 'closed' ? 'new' : 'contacted';
+    try {
+      const res = await fetch(`/api/admin/leads/${id}`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`
+        },
+        body: JSON.stringify({ status: nextStatus })
+      });
+      const json = await res.json();
+      if (json.success) {
+        setLeads(leads.map((l) => (l.id === id ? { ...l, status: nextStatus } : l)));
+      }
+    } catch (err) {
+      alert('Failed to update lead status');
+    }
+  };
+
+  const handleDeleteFeedback = async (id) => {
+    if (!confirm(`Delete feedback #${id}?`)) return;
+    try {
+      const res = await fetch(`/api/admin/feedback/${id}`, {
+        method: 'DELETE',
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      const json = await res.json();
+      if (json.success) {
+        setFeedbacks(feedbacks.filter((f) => f.id !== id));
+      }
+    } catch (err) {
+      alert('Failed to delete feedback');
     }
   };
 
@@ -321,50 +389,82 @@ export function AdminDashboard({ onExit }) {
         </div>
       </div>
 
-      {/* Metrics Row */}
+      {/* Metrics Row (Clickable Tabs per INS-30) */}
       {overview && (
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-          <div className="bg-slate-900/80 border border-slate-800/80 rounded-2xl p-4">
+          <button
+            type="button"
+            onClick={() => setActiveSubTab('submissions')}
+            className={`border rounded-2xl p-4 text-left transition cursor-pointer hover:border-emerald-500/50 hover:bg-slate-900 ${
+              activeSubTab === 'submissions'
+                ? 'bg-slate-900 border-emerald-500 ring-2 ring-emerald-500/20'
+                : 'bg-slate-900/80 border-slate-800/80'
+            }`}
+          >
             <div className="text-[11px] font-bold uppercase tracking-wider text-slate-400 flex items-center justify-between">
               <span>Driver Submissions</span>
               <FileText className="w-4 h-4 text-emerald-400" />
             </div>
             <div className="text-2xl font-black text-white mt-1.5">{overview.submissionsCount}</div>
-            <span className="text-[10px] text-slate-500">Crowdsourced benchmarks</span>
-          </div>
+            <span className="text-[10px] text-slate-500">Crowdsourced benchmarks • Click to view</span>
+          </button>
 
-          <div className="bg-slate-900/80 border border-slate-800/80 rounded-2xl p-4">
+          <button
+            type="button"
+            onClick={() => setActiveSubTab('reviews')}
+            className={`border rounded-2xl p-4 text-left transition cursor-pointer hover:border-amber-500/50 hover:bg-slate-900 ${
+              activeSubTab === 'reviews'
+                ? 'bg-slate-900 border-amber-500 ring-2 ring-amber-500/20'
+                : 'bg-slate-900/80 border-slate-800/80'
+            }`}
+          >
             <div className="text-[11px] font-bold uppercase tracking-wider text-slate-400 flex items-center justify-between">
               <span>Insurer Reviews</span>
               <MessageSquare className="w-4 h-4 text-amber-400" />
             </div>
             <div className="text-2xl font-black text-white mt-1.5">{overview.reviewsCount}</div>
-            <span className="text-[10px] text-slate-500">Across 15 Ontario carriers</span>
-          </div>
+            <span className="text-[10px] text-slate-500">Across 15 Ontario carriers • Click to view</span>
+          </button>
 
-          <div className="bg-slate-900/80 border border-slate-800/80 rounded-2xl p-4">
+          <button
+            type="button"
+            onClick={() => setActiveSubTab('messages')}
+            className={`border rounded-2xl p-4 text-left transition cursor-pointer hover:border-cyan-500/50 hover:bg-slate-900 ${
+              activeSubTab === 'messages'
+                ? 'bg-slate-900 border-cyan-500 ring-2 ring-cyan-500/20'
+                : 'bg-slate-900/80 border-slate-800/80'
+            }`}
+          >
             <div className="text-[11px] font-bold uppercase tracking-wider text-slate-400 flex items-center justify-between">
               <span>Contact Inquiries</span>
               <Users className="w-4 h-4 text-cyan-400" />
             </div>
             <div className="text-2xl font-black text-white mt-1.5">{overview.contactCount}</div>
-            <span className="text-[10px] text-slate-500">Unread driver messages</span>
-          </div>
+            <span className="text-[10px] text-slate-500">Unread driver messages • Click to view</span>
+          </button>
 
-          <div className="bg-slate-900/80 border border-slate-800/80 rounded-2xl p-4">
+          <button
+            type="button"
+            onClick={() => setActiveSubTab('leads')}
+            className={`border rounded-2xl p-4 text-left transition cursor-pointer hover:border-emerald-500/50 hover:bg-slate-900 ${
+              activeSubTab === 'leads'
+                ? 'bg-slate-900 border-emerald-500 ring-2 ring-emerald-500/20'
+                : 'bg-slate-900/80 border-slate-800/80'
+            }`}
+          >
             <div className="text-[11px] font-bold uppercase tracking-wider text-slate-400 flex items-center justify-between">
               <span>Broker Leads</span>
               <DollarSign className="w-4 h-4 text-emerald-400" />
             </div>
-            <div className="text-2xl font-black text-white mt-1.5">{overview.leadsCount}</div>
-            <span className="text-[10px] text-slate-500">High-intent switchers</span>
-          </div>
+            <div className="text-2xl font-black text-emerald-400 mt-1.5">{overview.leadsCount}</div>
+            <span className="text-[10px] text-emerald-400/80 font-semibold">High-intent switchers • Click to view</span>
+          </button>
         </div>
       )}
 
       {/* Tabs and Search Bar */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <div className="flex items-center gap-2 bg-slate-900/80 p-1.5 rounded-2xl border border-slate-800">
+        <div className="flex flex-wrap items-center gap-2 bg-slate-900/80 p-1.5 rounded-2xl border border-slate-800">
           <button
             onClick={() => setActiveSubTab('submissions')}
             className={`px-4 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer ${
@@ -394,6 +494,26 @@ export function AdminDashboard({ onExit }) {
             }`}
           >
             Contact Messages ({messages.length})
+          </button>
+          <button
+            onClick={() => setActiveSubTab('leads')}
+            className={`px-4 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+              activeSubTab === 'leads'
+                ? 'bg-emerald-500 text-slate-950 shadow-sm'
+                : 'text-slate-400 hover:text-white'
+            }`}
+          >
+            Broker Leads ({leads.length})
+          </button>
+          <button
+            onClick={() => setActiveSubTab('feedback')}
+            className={`px-4 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+              activeSubTab === 'feedback'
+                ? 'bg-emerald-500 text-slate-950 shadow-sm'
+                : 'text-slate-400 hover:text-white'
+            }`}
+          >
+            Model Feedback ({feedbacks.length})
           </button>
         </div>
 
@@ -594,6 +714,155 @@ export function AdminDashboard({ onExit }) {
               ))}
             </div>
           )}
+        </div>
+      )}
+
+      {/* Tab 4: Broker Leads (INS-30) */}
+      {activeSubTab === 'leads' && (
+        <div className="bg-slate-900 border border-slate-800 rounded-3xl overflow-hidden shadow-xl">
+          <div className="overflow-x-auto">
+            <table className="w-full text-left text-xs text-slate-300">
+              <thead className="bg-slate-950/80 text-[11px] uppercase tracking-wider text-slate-400 border-b border-slate-800">
+                <tr>
+                  <th className="py-3 px-4">ID</th>
+                  <th className="py-3 px-4">Date</th>
+                  <th className="py-3 px-4">Lead Name</th>
+                  <th className="py-3 px-4">Contact Details</th>
+                  <th className="py-3 px-4">Vehicle & Postal Code</th>
+                  <th className="py-3 px-4">Current Premium</th>
+                  <th className="py-3 px-4">Est. Savings</th>
+                  <th className="py-3 px-4">Status</th>
+                  <th className="py-3 px-4 text-right">Actions</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-slate-800/60">
+                {leads.length === 0 ? (
+                  <tr>
+                    <td colSpan="9" className="text-center py-12 text-slate-500 text-xs">
+                      No broker leads recorded yet.
+                    </td>
+                  </tr>
+                ) : (
+                  leads.map((lead) => (
+                    <tr key={lead.id} className="hover:bg-slate-800/40 transition">
+                      <td className="py-3 px-4 font-mono text-slate-500">#{lead.id}</td>
+                      <td className="py-3 px-4 whitespace-nowrap text-slate-400 font-mono text-[11px]">
+                        {new Date(lead.created_at).toLocaleDateString()}
+                      </td>
+                      <td className="py-3 px-4 font-bold text-white whitespace-nowrap">{lead.name}</td>
+                      <td className="py-3 px-4">
+                        <div className="text-emerald-400 font-medium">{lead.email}</div>
+                        {lead.phone && <div className="text-[11px] text-slate-400">{lead.phone}</div>}
+                      </td>
+                      <td className="py-3 px-4">
+                        <div className="text-slate-200">{lead.vehicle || 'Not specified'}</div>
+                        <div className="text-[10px] text-slate-500 font-mono">{lead.postal_code || 'N/A'}</div>
+                      </td>
+                      <td className="py-3 px-4 font-semibold text-white">
+                        ${lead.current_premium || 0}/mo
+                      </td>
+                      <td className="py-3 px-4 font-black text-emerald-400 whitespace-nowrap">
+                        ${lead.estimated_savings || 0}/yr
+                      </td>
+                      <td className="py-3 px-4">
+                        <button
+                          type="button"
+                          onClick={() => handleToggleLeadStatus(lead.id, lead.status)}
+                          className={`px-2.5 py-1 rounded-full text-[10px] font-extrabold uppercase tracking-wider transition cursor-pointer ${
+                            lead.status === 'contacted'
+                              ? 'bg-amber-500/15 text-amber-300 border border-amber-500/30'
+                              : lead.status === 'closed'
+                              ? 'bg-slate-800 text-slate-400 border border-slate-700'
+                              : 'bg-emerald-500/15 text-emerald-400 border border-emerald-500/30'
+                          }`}
+                          title="Click to toggle status"
+                        >
+                          {lead.status || 'new'}
+                        </button>
+                      </td>
+                      <td className="py-3 px-4 text-right whitespace-nowrap">
+                        <button
+                          type="button"
+                          onClick={() => handleDeleteLead(lead.id)}
+                          className="p-1.5 rounded-lg bg-slate-800 hover:bg-rose-500/20 text-rose-400 transition cursor-pointer"
+                          title="Delete lead"
+                        >
+                          <Trash2 className="w-3.5 h-3.5" />
+                        </button>
+                      </td>
+                    </tr>
+                  ))
+                )}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      )}
+
+      {/* Tab 5: Benchmark Feedback (INS-38) */}
+      {activeSubTab === 'feedback' && (
+        <div className="bg-slate-900 border border-slate-800 rounded-3xl overflow-hidden shadow-xl">
+          <div className="overflow-x-auto">
+            <table className="w-full text-left text-xs text-slate-300">
+              <thead className="bg-slate-950/80 text-[11px] uppercase tracking-wider text-slate-400 border-b border-slate-800">
+                <tr>
+                  <th className="py-3 px-4">ID</th>
+                  <th className="py-3 px-4">Date</th>
+                  <th className="py-3 px-4">Rating</th>
+                  <th className="py-3 px-4">Reasonable?</th>
+                  <th className="py-3 px-4">Matches?</th>
+                  <th className="py-3 px-4">Before Renew?</th>
+                  <th className="py-3 px-4">Before Buy?</th>
+                  <th className="py-3 px-4">Vehicle & Benchmark</th>
+                  <th className="py-3 px-4">Trust Feedback</th>
+                  <th className="py-3 px-4 text-right">Actions</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-slate-800/60">
+                {feedbacks.length === 0 ? (
+                  <tr>
+                    <td colSpan="10" className="text-center py-12 text-slate-500 text-xs">
+                      No model validation feedback recorded yet.
+                    </td>
+                  </tr>
+                ) : (
+                  feedbacks.map((fb) => (
+                    <tr key={fb.id} className="hover:bg-slate-800/40 transition">
+                      <td className="py-3 px-4 font-mono text-slate-500">#{fb.id}</td>
+                      <td className="py-3 px-4 whitespace-nowrap text-slate-400 font-mono text-[11px]">
+                        {new Date(fb.created_at).toLocaleDateString()}
+                      </td>
+                      <td className="py-3 px-4 whitespace-nowrap">
+                        <span className="text-amber-400 font-bold">{'★'.repeat(fb.rating)}</span>
+                        <span className="text-slate-600">{'★'.repeat(5 - fb.rating)}</span>
+                      </td>
+                      <td className="py-3 px-4 font-semibold text-white">{fb.is_reasonable || '-'}</td>
+                      <td className="py-3 px-4 font-semibold text-white">{fb.matches_knowledge || '-'}</td>
+                      <td className="py-3 px-4">{fb.use_before_renew || '-'}</td>
+                      <td className="py-3 px-4">{fb.use_before_buy || '-'}</td>
+                      <td className="py-3 px-4">
+                        <div className="text-white font-medium">{fb.vehicle || 'Unknown'} ({fb.postal_code || 'N/A'})</div>
+                        <div className="text-[10px] text-emerald-400 font-bold">Benchmark: ${fb.benchmark_rate || '-'}/mo</div>
+                      </td>
+                      <td className="py-3 px-4 max-w-xs text-slate-300 italic text-[11px]">
+                        {fb.trust_comment || <span className="text-slate-600 not-italic">None</span>}
+                      </td>
+                      <td className="py-3 px-4 text-right whitespace-nowrap">
+                        <button
+                          type="button"
+                          onClick={() => handleDeleteFeedback(fb.id)}
+                          className="p-1.5 rounded-lg bg-slate-800 hover:bg-rose-500/20 text-rose-400 transition cursor-pointer"
+                          title="Delete feedback"
+                        >
+                          <Trash2 className="w-3.5 h-3.5" />
+                        </button>
+                      </td>
+                    </tr>
+                  ))
+                )}
+              </tbody>
+            </table>
+          </div>
         </div>
       )}
 

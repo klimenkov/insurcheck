@@ -2,17 +2,17 @@ import React from 'react';
 import { AlertTriangle } from 'lucide-react';
 
 export function HeroBanner({ stats }) {
-  const totalSaved = stats?.total_money_saved
+  const totalSaved = (stats?.total_money_saved && stats.total_money_saved > 0)
     ? `$${Math.round(stats.total_money_saved).toLocaleString()}`
     : 'TBD';
 
-  const checksRun = stats?.total_checks_run
+  const checksRun = (stats?.total_checks_run !== undefined && stats?.total_checks_run !== null)
     ? stats.total_checks_run.toLocaleString()
-    : '14,820';
+    : '0';
 
-  const avgOverpay = stats?.avg_monthly_overpay
+  const avgOverpay = (stats?.avg_monthly_overpay && stats.avg_monthly_overpay > 0)
     ? `$${stats.avg_monthly_overpay}/mo`
-    : '$86/mo';
+    : 'TBD';
 
   return (
     <div className="relative overflow-hidden pt-8 pb-12">
@@ -44,7 +44,7 @@ export function HeroBanner({ stats }) {
             <div className="text-xs text-slate-400 mt-1">Identified Savings</div>
           </div>
           <div className="bg-slate-900/80 border border-slate-800/80 rounded-2xl p-4 text-center backdrop-blur-sm shadow-sm">
-            <div className="text-xl sm:text-2xl font-black text-cyan-400">{checksRun}+</div>
+            <div className="text-xl sm:text-2xl font-black text-cyan-400">{checksRun}</div>
             <div className="text-xs text-slate-400 mt-1">Ontario Checks Run</div>
           </div>
           <div className="bg-slate-900/80 border border-slate-800/80 rounded-2xl p-4 text-center backdrop-blur-sm shadow-sm">

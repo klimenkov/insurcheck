@@ -152,7 +152,7 @@ export function normalizeInsurerName(rawName) {
 }
 
 export const MIN_MONTHLY_PREMIUM = 50;
-export const MAX_MONTHLY_PREMIUM = 1200;
+export const MAX_MONTHLY_PREMIUM = 2500;
 
 /**
  * Validates driver monthly insurance premium against realistic Ontario limits.
@@ -181,7 +181,7 @@ export function validateMonthlyPremium(premium) {
     return {
       valid: false,
       sanitized: num,
-      error: `Monthly premium of $${num} exceeds maximum expected limits ($${MAX_MONTHLY_PREMIUM}/mo). Please verify your monthly amount.`
+      error: 'Monthly rate exceeds expected limits. If this is an annual payment, divide by 12.'
     };
   }
 

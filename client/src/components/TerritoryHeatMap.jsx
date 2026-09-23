@@ -12,8 +12,10 @@ import {
   Building2,
   Compass,
   Layers,
-  Sparkles
+  Sparkles,
+  Map as MapIcon
 } from 'lucide-react';
+import { InteractiveMap } from './InteractiveMap.jsx';
 
 export function TerritoryHeatMap({ onOpenContribute }) {
   const [territories, setTerritories] = useState([]);
@@ -22,7 +24,7 @@ export function TerritoryHeatMap({ onOpenContribute }) {
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedTier, setSelectedTier] = useState('All');
-  const [viewMode, setViewMode] = useState('grid'); // 'grid' | 'leaderboard'
+  const [viewMode, setViewMode] = useState('map'); // 'map' | 'grid' | 'leaderboard'
   const [activeFsaModal, setActiveFsaModal] = useState(null);
 
   useEffect(() => {
@@ -253,10 +255,21 @@ export function TerritoryHeatMap({ onOpenContribute }) {
         </div>
 
         {/* View Mode Toggle */}
-        <div className="flex items-center bg-slate-950 p-1 rounded-xl border border-slate-800 shrink-0">
+        <div className="flex flex-wrap items-center bg-slate-950 p-1 rounded-xl border border-slate-800 shrink-0 gap-1">
+          <button
+            onClick={() => setViewMode('map')}
+            className={`px-3 py-1 rounded-lg text-xs font-semibold transition-all cursor-pointer flex items-center gap-1.5 ${
+              viewMode === 'map'
+                ? 'bg-indigo-600 text-white shadow-sm'
+                : 'text-slate-400 hover:text-white'
+            }`}
+          >
+            <MapIcon className="w-3.5 h-3.5" />
+            <span>Interactive Map</span>
+          </button>
           <button
             onClick={() => setViewMode('grid')}
-            className={`px-3 py-1 rounded-lg text-xs font-semibold transition-all ${
+            className={`px-3 py-1 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
               viewMode === 'grid'
                 ? 'bg-indigo-600 text-white shadow-sm'
                 : 'text-slate-400 hover:text-white'
@@ -266,7 +279,7 @@ export function TerritoryHeatMap({ onOpenContribute }) {
           </button>
           <button
             onClick={() => setViewMode('leaderboard')}
-            className={`px-3 py-1 rounded-lg text-xs font-semibold transition-all ${
+            className={`px-3 py-1 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
               viewMode === 'leaderboard'
                 ? 'bg-indigo-600 text-white shadow-sm'
                 : 'text-slate-400 hover:text-white'
@@ -298,6 +311,30 @@ export function TerritoryHeatMap({ onOpenContribute }) {
           >
             Reset Filters
           </button>
+        </div>
+      ) : viewMode === 'map' ? (
+        /* ========================================================================= */
+        /* VIEW 0: INTERACTIVE TERRITORIAL HEAT MAP LAYER (INS-35)                   */
+        /* ========================================================================= */
+        <div className="space-y-6">
+          <InteractiveMap
+            territories={territories}
+            selectedTier={selectedTier}
+            searchQuery={searchQuery}
+            onSelectFsa={(fsaItem) => setActiveFsaModal(fsaItem)}
+          />
+
+          <div className="p-4 bg-slate-900/60 border border-slate-800 rounded-2xl flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-slate-400">
+            <div>
+              💡 <strong>Tip:</strong> Click on any territory circle to inspect its exact FSRA rating, variance against Ontario neutral rate, and risk factors.
+            </div>
+            <button
+              onClick={() => setViewMode('grid')}
+              className="text-indigo-400 hover:text-indigo-300 font-semibold underline whitespace-nowrap cursor-pointer"
+            >
+              Switch to table grid view →
+            </button>
+          </div>
         </div>
       ) : viewMode === 'grid' ? (
         /* ========================================================================= */

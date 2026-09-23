@@ -25,7 +25,7 @@ export function ContributeModal({ isOpen, onClose }) {
 
   const premiumVal = parseFloat(formData.monthlyPremium);
   const isTooLow = !isNaN(premiumVal) && premiumVal < 50;
-  const isTooHigh = !isNaN(premiumVal) && premiumVal > 1200;
+  const isTooHigh = !isNaN(premiumVal) && premiumVal > 2500;
   const isPremiumInvalid = isNaN(premiumVal) || isTooLow || isTooHigh;
 
   const handleSubmit = async (e) => {
@@ -170,7 +170,7 @@ export function ContributeModal({ isOpen, onClose }) {
                   <input
                     type="number"
                     min="50"
-                    max="1200"
+                    max="2500"
                     value={formData.monthlyPremium}
                     onChange={(e) => setFormData({ ...formData, monthlyPremium: e.target.value })}
                     className={`w-full bg-slate-950 border rounded-xl px-3 py-2 text-xs font-bold text-emerald-400 focus:outline-none transition ${
@@ -298,7 +298,7 @@ export function ContributeModal({ isOpen, onClose }) {
               {isTooHigh && (
                 <div className="p-2.5 rounded-xl bg-amber-500/10 border border-amber-500/30 text-amber-300 text-xs flex items-center gap-2">
                   <AlertCircle className="w-4 h-4 shrink-0" />
-                  <span>Maximum supported monthly rate is $1,200/mo. If this is annual, divide by 12.</span>
+                  <span>Monthly rate exceeds expected limits. If this is an annual payment, divide by 12.</span>
                 </div>
               )}
 

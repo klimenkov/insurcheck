@@ -4,7 +4,7 @@ import { ShieldAlert, PlusCircle, Menu, X } from 'lucide-react';
 export function Navbar({ activeTab, setActiveTab, onOpenContribute, totalSaved }) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
-  const formattedSaved = totalSaved
+  const formattedSaved = (totalSaved && totalSaved > 0)
     ? `$${Math.round(totalSaved).toLocaleString()}`
     : 'TBD';
 
