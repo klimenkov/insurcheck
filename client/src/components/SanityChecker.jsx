@@ -610,7 +610,7 @@ export function SanityChecker({ onCalculate, loading }) {
             </>
           ) : (
             <>
-              <span>{formData.isEstimating ? 'Calculate Fair Market Quote' : 'See how I compare'}</span>
+              <span>{formData.isEstimating ? 'Calculate Fair Market Rate' : 'See how I compare'}</span>
               <ArrowRight className="w-5 h-5" />
             </>
           )}

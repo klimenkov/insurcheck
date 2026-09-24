@@ -70,14 +70,15 @@ export function ResultCard({ result, onConnectBroker, onOpenFsraExplainer }) {
             <div className="flex items-center gap-2 mb-1.5">
               <span className="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-pulse"></span>
               <span className="text-xs font-bold uppercase tracking-wider text-emerald-400">
-                Ontario Actuarial Model Result
+                Ontario Fair Market Estimate
               </span>
             </div>
             <h3 className="text-2xl sm:text-3xl font-black text-white">
               Estimated benchmark: <span className="text-emerald-400">${fairMonthlyStandard}/month</span>
             </h3>
             <p className="text-xs sm:text-sm text-slate-300 mt-1 max-w-xl leading-relaxed">
-              Based on the information you provided and our current Ontario insurance data for {location?.city || 'Ontario'} ({vehicle?.year} {vehicle?.make} {vehicle?.model}).
+              Based on the information you provided and our current Ontario insurance data for {location?.city || 'Ontario'} ({vehicle?.year} {vehicle?.make} {vehicle?.model}).{' '}
+              <span className="text-slate-400">Not an insurance quote. Actual rates vary by insurer and individual circumstances.</span>
             </p>
           </div>
 
@@ -201,6 +202,55 @@ export function ResultCard({ result, onConnectBroker, onOpenFsraExplainer }) {
                   </div>
                 );
               })}
+            </div>
+
+            {/* Discounts Note (INS-40) */}
+            <div className="mt-4 p-4 bg-slate-950/70 border border-slate-800 rounded-2xl space-y-3">
+              <div>
+                <h5 className="text-xs font-bold uppercase tracking-wider text-emerald-400 mb-1.5 flex items-center gap-1.5">
+                  <CheckCircle2 className="w-3.5 h-3.5" />
+                  Discounts included
+                </h5>
+                <ul className="text-xs text-slate-300 space-y-1">
+                  <li className="flex items-baseline gap-2">
+                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 shrink-0"></span>
+                    <span><strong className="text-white">Winter tires</strong> · 2%–5% discount for using approved winter tires</span>
+                  </li>
+                </ul>
+              </div>
+
+              <div className="pt-2.5 border-t border-slate-900">
+                <h5 className="text-xs font-bold uppercase tracking-wider text-slate-400 mb-1.5 flex items-center gap-1.5">
+                  <HelpCircle className="w-3.5 h-3.5 text-slate-500" />
+                  Discounts not included
+                </h5>
+                <ul className="grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-1.5 text-xs text-slate-300">
+                  <li className="flex items-baseline gap-2">
+                    <span className="w-1.5 h-1.5 rounded-full bg-slate-600 shrink-0"></span>
+                    <span><strong className="text-slate-200">Home + auto bundle</strong> · Up to 10% for combining home and auto insurance</span>
+                  </li>
+                  <li className="flex items-baseline gap-2">
+                    <span className="w-1.5 h-1.5 rounded-full bg-slate-600 shrink-0"></span>
+                    <span><strong className="text-slate-200">Multi-vehicle / multi-driver</strong> · Discount for insuring multiple vehicles or drivers</span>
+                  </li>
+                  <li className="flex items-baseline gap-2">
+                    <span className="w-1.5 h-1.5 rounded-full bg-slate-600 shrink-0"></span>
+                    <span><strong className="text-slate-200">Usage-based insurance</strong> · Discount for using an insurer's driving-tracking app</span>
+                  </li>
+                  <li className="flex items-baseline gap-2">
+                    <span className="w-1.5 h-1.5 rounded-full bg-slate-600 shrink-0"></span>
+                    <span><strong className="text-slate-200">Low mileage</strong> · Discount for driving fewer kilometres</span>
+                  </li>
+                  <li className="flex items-baseline gap-2">
+                    <span className="w-1.5 h-1.5 rounded-full bg-slate-600 shrink-0"></span>
+                    <span><strong className="text-slate-200">Anti-theft devices</strong> · Discount for eligible anti-theft or security systems</span>
+                  </li>
+                  <li className="flex items-baseline gap-2">
+                    <span className="w-1.5 h-1.5 rounded-full bg-slate-600 shrink-0"></span>
+                    <span><strong className="text-slate-200">Driver training</strong> · Discount for completing an approved driver-training course</span>
+                  </li>
+                </ul>
+              </div>
             </div>
           </div>
         )}
@@ -394,20 +444,38 @@ export function ResultCard({ result, onConnectBroker, onOpenFsraExplainer }) {
         )}
       </div>
 
-      {/* 3. Optional Broker Match (Secondary bridge) */}
-      <div className="p-4 sm:p-5 bg-slate-900/60 border border-slate-800/80 rounded-2xl flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-slate-400">
-        <div>
-          <span className="text-white font-semibold">Need to shop official carrier rates?</span> An independent Ontario broker searches 30+ insurers (Intact, Aviva, Desjardins, etc.) with zero obligation.
-        </div>
-        <button
-          type="button"
-          onClick={onConnectBroker}
-          className="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-emerald-300 hover:text-white font-bold rounded-xl transition border border-slate-700 whitespace-nowrap cursor-pointer flex items-center gap-1.5 shrink-0"
-        >
-          <span>Connect with a broker</span>
-          <ArrowRight className="w-3.5 h-3.5" />
-        </button>
-      </div>
+      {/* 3. Optional Broker Match (Secondary bridge - INS-39) */}
+      {(() => {
+        let brokerTitle = "Lock In Your Best Insurance Price";
+        let brokerDesc = "An independent Ontario broker compares 30+ insurers to find your lowest available rate. Free, no obligation.";
+
+        if (!isEstimating) {
+          if (annualSavings > 0) {
+            brokerTitle = `Save Up to $${annualSavings.toLocaleString()}/year`;
+            brokerDesc = "An independent Ontario broker compares 30+ insurers to find your lowest available rate. Free, no obligation.";
+          } else {
+            brokerTitle = "See If You Can Find a Better Rate";
+            brokerDesc = "Even with a competitive rate, brokers often find unlisted discounts across 30+ insurers. Free, no obligation.";
+          }
+        }
+
+        return (
+          <div className="p-4 sm:p-5 bg-slate-900/60 border border-slate-800/80 rounded-2xl flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-slate-400">
+            <div>
+              <span className="text-white font-semibold block sm:inline mr-1.5">{brokerTitle}:</span>
+              <span>{brokerDesc}</span>
+            </div>
+            <button
+              type="button"
+              onClick={onConnectBroker}
+              className="px-4 py-2.5 bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold rounded-xl transition shadow-md shadow-emerald-500/10 whitespace-nowrap cursor-pointer flex items-center gap-1.5 shrink-0"
+            >
+              <span>Get Official Quotes</span>
+              <ArrowRight className="w-3.5 h-3.5" />
+            </button>
+          </div>
+        );
+      })()}
     </div>
   );
 }

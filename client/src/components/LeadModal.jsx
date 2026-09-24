@@ -36,6 +36,22 @@ export function LeadModal({ isOpen, onClose, checkResult }) {
     }
   };
 
+  const isEstimating = Boolean(checkResult?.isEstimating);
+  const annualSavings = isEstimating ? 0 : (checkResult?.annualSavings || 0);
+
+  let modalTitle = "Lock In Your Best Insurance Price";
+  let modalSubtitle = "Independent brokers compare 30+ Ontario carriers (Intact, Aviva, Travelers, etc.) with zero obligation.";
+
+  if (!isEstimating) {
+    if (annualSavings > 0) {
+      modalTitle = `Save Up to $${annualSavings.toLocaleString()}/year`;
+      modalSubtitle = "Independent brokers compare 30+ Ontario carriers (Intact, Aviva, Travelers, etc.) with zero obligation.";
+    } else {
+      modalTitle = "See If You Can Find a Better Rate";
+      modalSubtitle = "Even with a competitive rate, brokers often find unlisted discounts across 30+ insurers with zero obligation.";
+    }
+  }
+
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-sm">
       <div className="bg-slate-900 border border-slate-800 rounded-3xl p-6 sm:p-8 max-w-md w-full shadow-2xl relative">
@@ -53,11 +69,15 @@ export function LeadModal({ isOpen, onClose, checkResult }) {
             </div>
             <h3 className="text-xl font-black text-white">Broker Match Requested!</h3>
             <p className="text-sm text-slate-300 mt-2">
-              A certified independent Ontario insurance broker will review your quote to unlock your potential ${checkResult?.annualSavings || 500}/year savings.
+              {isEstimating
+                ? "A certified independent Ontario insurance broker will compare 30+ insurers to find your lowest available rate."
+                : annualSavings > 0
+                ? `A certified independent Ontario insurance broker will review your quote to unlock your potential $${annualSavings.toLocaleString()}/year savings.`
+                : "A certified independent Ontario insurance broker will search 30+ insurers to see if unlisted discounts can beat your current rate."}
             </p>
             <button
               onClick={onClose}
-              className="mt-6 w-full py-3 bg-emerald-500 text-slate-950 font-bold rounded-xl"
+              className="mt-6 w-full py-3 bg-emerald-500 text-slate-950 font-bold rounded-xl cursor-pointer"
             >
               Done
             </button>
@@ -69,10 +89,10 @@ export function LeadModal({ isOpen, onClose, checkResult }) {
               Verified Ontario Broker Match
             </div>
             <h3 className="text-2xl font-black text-white leading-tight">
-              Lock In Your ${checkResult?.annualSavings || 600}/yr Savings
+              {modalTitle}
             </h3>
             <p className="text-xs text-slate-400 mt-1">
-              Independent brokers compare 30+ Ontario carriers (Intact, Aviva, Travelers, etc.) with zero obligation.
+              {modalSubtitle}
             </p>
 
             <form onSubmit={handleSubmit} className="mt-6 space-y-4">
@@ -116,7 +136,7 @@ export function LeadModal({ isOpen, onClose, checkResult }) {
                 disabled={loading}
                 className="w-full py-3.5 bg-emerald-400 hover:bg-emerald-300 text-slate-950 font-black rounded-xl text-sm transition shadow-lg shadow-emerald-500/20 flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50"
               >
-                {loading ? <Loader2 className="w-5 h-5 animate-spin" /> : <><span>Request Broker Quote</span><ArrowRight className="w-4 h-4" /></>}
+                {loading ? <Loader2 className="w-5 h-5 animate-spin" /> : <><span>Get Official Quotes</span><ArrowRight className="w-4 h-4" /></>}
               </button>
             </form>
           </div>

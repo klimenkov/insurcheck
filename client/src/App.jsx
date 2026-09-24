@@ -11,12 +11,18 @@ import { ContributeModal } from './components/ContributeModal.jsx';
 import { FsraExplainerModal } from './components/FsraExplainerModal.jsx';
 import { ContactUs } from './components/ContactUs.jsx';
 import { AdminDashboard } from './components/AdminDashboard.jsx';
+import { TermsOfUse } from './components/TermsOfUse.jsx';
+import { PrivacyPolicy } from './components/PrivacyPolicy.jsx';
 
 export default function App() {
   const [activeTab, setActiveTab] = useState(() => {
-    return typeof window !== 'undefined' && window.location.pathname.startsWith('/admin')
-      ? 'admin'
-      : 'checker';
+    if (typeof window !== 'undefined') {
+      const path = window.location.pathname;
+      if (path.startsWith('/admin')) return 'admin';
+      if (path.startsWith('/terms')) return 'terms';
+      if (path.startsWith('/privacy')) return 'privacy';
+    }
+    return 'checker';
   });
   const [stats, setStats] = useState(null);
   const [checkResult, setCheckResult] = useState(null);
@@ -43,8 +49,33 @@ export default function App() {
         if (!ignore && json.success) setStats(json.data);
       })
       .catch(console.error);
-    return () => { ignore = true; };
+
+    const handlePopState = () => {
+      const path = window.location.pathname;
+      if (path.startsWith('/admin')) setActiveTab('admin');
+      else if (path.startsWith('/terms')) setActiveTab('terms');
+      else if (path.startsWith('/privacy')) setActiveTab('privacy');
+      else if (path.startsWith('/quotes')) setActiveTab('quotes');
+      else if (path.startsWith('/heatmap')) setActiveTab('heatmap');
+      else if (path.startsWith('/insurers')) setActiveTab('insurers');
+      else if (path.startsWith('/contact')) setActiveTab('contact');
+      else setActiveTab('checker');
+    };
+    window.addEventListener('popstate', handlePopState);
+
+    return () => {
+      ignore = true;
+      window.removeEventListener('popstate', handlePopState);
+    };
   }, []);
+
+  const navigateTab = (tab, path) => {
+    setActiveTab(tab);
+    if (typeof window !== 'undefined') {
+      window.history.pushState({}, '', path || (tab === 'checker' ? '/' : `/${tab}`));
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+  };
 
   const handleCalculate = async (formData) => {
     setLoading(true);
@@ -128,14 +159,17 @@ export default function App() {
           <ContactUs />
         )}
 
+        {activeTab === 'terms' && (
+          <TermsOfUse onBack={() => navigateTab('checker', '/')} />
+        )}
+
+        {activeTab === 'privacy' && (
+          <PrivacyPolicy onBack={() => navigateTab('checker', '/')} />
+        )}
+
         {activeTab === 'admin' && (
           <AdminDashboard
-            onExit={() => {
-              setActiveTab('checker');
-              if (typeof window !== 'undefined') {
-                window.history.pushState({}, '', '/');
-              }
-            }}
+            onExit={() => navigateTab('checker', '/')}
           />
         )}
       </div>
@@ -145,20 +179,33 @@ export default function App() {
         <p>InsurCheck Ontario • Open benchmark project designed for driver rate transparency.</p>
         <p className="mt-1">Not affiliated with FSRA or insurance providers. Estimates are for informational sanity-checks.</p>
         <p className="mt-3 flex items-center justify-center gap-2">
-          <a href="#" className="hover:text-slate-300 transition">Terms of Use</a>
-          <span>·</span>
-          <a href="#" className="hover:text-slate-300 transition">Privacy Policy</a>
-          <span>·</span>
-          <a href="#" className="hover:text-slate-300 transition">Cookie Preferences</a>
+          <button
+            type="button"
+            onClick={() => navigateTab('terms', '/terms')}
+            className="hover:text-slate-300 transition cursor-pointer"
+          >
+            Terms of Use
+          </button>
           <span>·</span>
           <button
             type="button"
-            onClick={() => {
-              setActiveTab('admin');
-              if (typeof window !== 'undefined') {
-                window.history.pushState({}, '', '/admin');
-              }
-            }}
+            onClick={() => navigateTab('privacy', '/privacy')}
+            className="hover:text-slate-300 transition cursor-pointer"
+          >
+            Privacy Policy
+          </button>
+          <span>·</span>
+          <button
+            type="button"
+            onClick={() => navigateTab('privacy', '/privacy')}
+            className="hover:text-slate-300 transition cursor-pointer"
+          >
+            Cookie Preferences
+          </button>
+          <span>·</span>
+          <button
+            type="button"
+            onClick={() => navigateTab('admin', '/admin')}
             className="hover:text-slate-300 transition cursor-pointer"
           >
             Admin Portal
