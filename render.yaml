@@ -4,6 +4,8 @@ services:
     env: node
     plan: starter
     region: oregon
+    branch: main
+    autoDeploy: true
     disk:
       name: insurcheck-data
       mountPath: /data
