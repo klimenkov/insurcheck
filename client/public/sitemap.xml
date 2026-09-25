@@ -7,19 +7,13 @@
     <priority>1.0</priority>
   </url>
   <url>
-    <loc>https://insurcheck.ca/#reviews</loc>
+    <loc>https://insurcheck.ca/terms</loc>
     <lastmod>2026-09-25</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.8</priority>
+    <changefreq>monthly</changefreq>
+    <priority>0.5</priority>
   </url>
   <url>
-    <loc>https://insurcheck.ca/#database</loc>
-    <lastmod>2026-09-25</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.8</priority>
-  </url>
-  <url>
-    <loc>https://insurcheck.ca/#feedback</loc>
+    <loc>https://insurcheck.ca/privacy</loc>
     <lastmod>2026-09-25</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.5</priority>

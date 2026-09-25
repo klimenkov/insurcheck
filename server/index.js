@@ -49,6 +49,17 @@ app.get('/api/health', (req, res) => {
 
 // Serve client in production if built
 const distPath = path.join(__dirname, '../client/dist');
+
+app.get('/sitemap.xml', (req, res) => {
+  res.type('application/xml');
+  res.sendFile(path.join(distPath, 'sitemap.xml'));
+});
+
+app.get('/robots.txt', (req, res) => {
+  res.type('text/plain');
+  res.sendFile(path.join(distPath, 'robots.txt'));
+});
+
 app.use(express.static(distPath));
 
 app.use((req, res, next) => {
