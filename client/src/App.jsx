@@ -7,6 +7,7 @@ import { CommunityQuotes } from './components/CommunityQuotes.jsx';
 import { InsurerReviews } from './components/InsurerReviews.jsx';
 import { TerritoryHeatMap } from './components/TerritoryHeatMap.jsx';
 import { LeadModal } from './components/LeadModal.jsx';
+import { trackEvent } from './analytics.js';
 import { ContributeModal } from './components/ContributeModal.jsx';
 import { FsraExplainerModal } from './components/FsraExplainerModal.jsx';
 import { ContactUs } from './components/ContactUs.jsx';
@@ -71,6 +72,7 @@ export default function App() {
 
   const navigateTab = (tab, path) => {
     setActiveTab(tab);
+    trackEvent('tab_viewed', { tab });
     if (typeof window !== 'undefined') {
       window.history.pushState({}, '', path || (tab === 'checker' ? '/' : `/${tab}`));
       window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -79,6 +81,11 @@ export default function App() {
 
   const handleCalculate = async (formData) => {
     setLoading(true);
+    trackEvent('sanity_check_submitted', {
+      vehicle_make: formData.vehicleMake,
+      vehicle_model: formData.vehicleModel,
+      is_estimating: Boolean(formData.isEstimating || formData.noCurrentInsurance)
+    });
     try {
       const res = await fetch('/api/check', {
         method: 'POST',
@@ -88,6 +95,12 @@ export default function App() {
       const json = await res.json();
       if (json.success) {
         setCheckResult(json.data);
+        trackEvent('sanity_check_completed', {
+          city: json.data?.locationInfo?.city,
+          verdict: json.data?.verdict,
+          target_rate: json.data?.targetRate,
+          monthly_difference: json.data?.monthlyDifference
+        });
         fetchStats(); // update live counter
         if (typeof window !== 'undefined') {
           window.dispatchEvent(new CustomEvent('insurcheck:submission-created'));
@@ -121,7 +134,10 @@ export default function App() {
                 {checkResult ? (
                   <ResultCard
                     result={checkResult}
-                    onConnectBroker={() => setLeadModalOpen(true)}
+                    onConnectBroker={() => {
+                      trackEvent('broker_cta_clicked', { verdict: checkResult?.verdict });
+                      setLeadModalOpen(true);
+                    }}
                     onOpenFsraExplainer={() => setFsraModalOpen(true)}
                   />
                 ) : (
