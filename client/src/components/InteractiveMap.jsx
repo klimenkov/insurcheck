@@ -28,28 +28,51 @@ export function InteractiveMap({ territories, selectedTier, searchQuery, onSelec
   useEffect(() => {
     if (!mapContainerRef.current) return;
 
-    if (!mapInstanceRef.current) {
-      const map = L.map(mapContainerRef.current, {
+    let map = mapInstanceRef.current;
+    if (!map) {
+      map = L.map(mapContainerRef.current, {
         center: [43.78, -79.48],
         zoom: 9,
         minZoom: 6,
-        maxZoom: 14,
+        maxZoom: 16,
         zoomControl: true,
         attributionControl: false
       });
 
-      // CartoDB Dark Matter tile layer
-      L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
-        subdomains: 'abcd',
-        maxZoom: 19
+      // Esri World Dark Gray Base (Free, reliable, no API key required)
+      L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Dark_Gray_Base/MapServer/tile/{z}/{y}/{x}', {
+        maxZoom: 16
+      }).addTo(map);
+
+      // Esri Reference Labels (Highways, towns, cities)
+      L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Dark_Gray_Reference/MapServer/tile/{z}/{y}/{x}', {
+        maxZoom: 16
       }).addTo(map);
 
       layerGroupRef.current = L.layerGroup().addTo(map);
       mapInstanceRef.current = map;
     }
 
+    const timer = setTimeout(() => {
+      if (mapInstanceRef.current) {
+        mapInstanceRef.current.invalidateSize();
+      }
+    }, 150);
+
+    const handleResize = () => {
+      if (mapInstanceRef.current) {
+        mapInstanceRef.current.invalidateSize();
+      }
+    };
+    window.addEventListener('resize', handleResize);
+
     return () => {
-      // Keep map instance across renders or cleanup if unmounted
+      clearTimeout(timer);
+      window.removeEventListener('resize', handleResize);
+      if (mapInstanceRef.current) {
+        mapInstanceRef.current.remove();
+        mapInstanceRef.current = null;
+      }
     };
   }, []);
 

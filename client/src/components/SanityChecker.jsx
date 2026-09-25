@@ -5,7 +5,7 @@ import { VEHICLE_OPTIONS, POPULAR_FSAS } from '../data/vehicles.js';
 export function SanityChecker({ onCalculate, loading }) {
   const [formData, setFormData] = useState({
     coverageLevel: 'standard',
-    postalCode: 'L6P',
+    postalCode: 'M4G',
     vehicleMake: 'Honda',
     vehicleModel: 'CR-V',
     vehicleYear: 2022,

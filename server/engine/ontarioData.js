@@ -85,6 +85,7 @@ export const FSA_RISK_MAP = {
   'M4Y': { city: 'Toronto (Downtown)', risk: 1.09, label: 'Church and Wellesley' },
   'M4E': { city: 'Toronto (East)', risk: 1.04, label: 'The Beaches' },
   'M4C': { city: 'Toronto (East)', risk: 1.08, label: 'East York / Woodbine' },
+  'M4G': { city: 'Toronto (Leaside)', risk: 1.01, label: 'Leaside / East York' },
   'M6H': { city: 'Toronto (West)', risk: 1.12, label: 'Dufferin / Dovercourt' },
   'M6P': { city: 'Toronto (West)', risk: 1.09, label: 'High Park / Junction' },
   'M6S': { city: 'Toronto (West)', risk: 1.05, label: 'Swansea / Bloor West' },

@@ -22,6 +22,7 @@ export const VEHICLE_OPTIONS = [
 ];
 
 export const POPULAR_FSAS = [
+  { fsa: 'M4G', city: 'Toronto (Leaside)', note: 'Moderate / Standard Territory' },
   { fsa: 'L6P', city: 'Brampton (East)', note: 'High Risk Territory' },
   { fsa: 'L6Y', city: 'Brampton (Southwest)', note: 'High Risk Territory' },
   { fsa: 'L4T', city: 'Mississauga (Malton)', note: 'High Risk Territory' },
