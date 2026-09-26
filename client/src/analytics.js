@@ -35,6 +35,13 @@ export function trackEvent(name, properties = {}) {
   } catch (e) {
     // Non-blocking
   }
+  try {
+    if (typeof window !== 'undefined' && typeof window.gtag === 'function') {
+      window.gtag('event', name, properties);
+    }
+  } catch (e) {
+    // Non-blocking
+  }
 }
 
 export { posthog };
