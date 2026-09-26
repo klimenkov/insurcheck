@@ -4,9 +4,8 @@ import { ShieldAlert, PlusCircle, Menu, X } from 'lucide-react';
 export function Navbar({ activeTab, setActiveTab, onOpenContribute, totalSaved }) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
-  const formattedSaved = (totalSaved && totalSaved > 0)
-    ? `$${Math.round(totalSaved).toLocaleString()}`
-    : 'TBD';
+  // Set to 'TBD' until broker integration is live as requested
+  const formattedSaved = 'TBD';
 
   const handleNavClick = (tab) => {
     setActiveTab(tab);
