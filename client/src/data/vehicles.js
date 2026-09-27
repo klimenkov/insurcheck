@@ -18,7 +18,11 @@ export const VEHICLE_OPTIONS = [
   { make: 'Chevrolet', models: ['Silverado', 'Tahoe', 'Suburban', 'Equinox'] },
   { make: 'GMC', models: ['Sierra', 'Yukon', 'Terrain'] },
   { make: 'Acura', models: ['RDX', 'MDX', 'TLX'] },
-  { make: 'Nissan', models: ['Rogue', 'Sentra', 'Altima', 'Pathfinder'] }
+  { make: 'Nissan', models: ['Rogue', 'Sentra', 'Altima', 'Pathfinder'] },
+  { make: 'Volvo', models: ['XC60', 'XC90', 'XC40', 'S60'] },
+  { make: 'Dodge', models: ['RAM 1500', 'Charger', 'Challenger', 'Durango'] },
+  { make: 'Porsche', models: ['Macan', 'Cayenne', '911', 'Taycan'] },
+  { make: 'Mitsubishi', models: ['Outlander', 'RVR', 'Eclipse Cross'] }
 ];
 
 export const POPULAR_FSAS = [

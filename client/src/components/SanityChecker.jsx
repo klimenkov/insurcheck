@@ -1,14 +1,17 @@
 import React, { useState } from 'react';
 import { Car, MapPin, User, Shield, DollarSign, ArrowRight, Loader2, Sparkles, ShieldCheck, CheckCircle2, Building2, Users, ChevronDown, Minus, Plus, AlertCircle, Info, X } from 'lucide-react';
 import { VEHICLE_OPTIONS, POPULAR_FSAS } from '../data/vehicles.js';
+import { SearchableSelect } from './SearchableSelect.jsx';
+
+const YEAR_OPTIONS = Array.from({ length: 27 }, (_, i) => 2026 - i);
 
 export function SanityChecker({ onCalculate, loading }) {
   const [formData, setFormData] = useState({
     coverageLevel: 'standard',
     postalCode: 'M4G',
-    vehicleMake: 'Honda',
-    vehicleModel: 'CR-V',
-    vehicleYear: 2022,
+    vehicleMake: '',
+    vehicleModel: '',
+    vehicleYear: '',
     isEstimating: false,
     currentPremium: 280,
     insuranceCompany: '',
@@ -28,20 +31,26 @@ export function SanityChecker({ onCalculate, loading }) {
   const isPremiumTooHigh = !formData.isEstimating && formData.currentPremium !== '' && !isNaN(premiumNum) && premiumNum > 2500;
   const isPremiumInvalid = isPremiumTooLow || isPremiumTooHigh;
 
-  const currentModels = (VEHICLE_OPTIONS.find(v => v.make === formData.vehicleMake)?.models) || ['Standard Model'];
+  const currentModels = formData.vehicleMake
+    ? (VEHICLE_OPTIONS.find(v => v.make.toLowerCase() === formData.vehicleMake.toLowerCase())?.models || ['Standard Model'])
+    : [];
+
+  const isVehicleIncomplete = !formData.vehicleMake || !formData.vehicleModel || !formData.vehicleYear;
 
   const handleMakeChange = (make) => {
-    const models = VEHICLE_OPTIONS.find(v => v.make === make)?.models || ['Standard'];
-    setFormData({
-      ...formData,
+    setFormData(prev => ({
+      ...prev,
       vehicleMake: make,
-      vehicleModel: models[0]
-    });
+      vehicleModel: ''
+    }));
   };
 
   const handleSubmit = (e) => {
     e.preventDefault();
     if (!formData.isEstimating && !formData.insuranceCompany) {
+      return;
+    }
+    if (isVehicleIncomplete) {
       return;
     }
     onCalculate(formData);
@@ -358,40 +367,60 @@ export function SanityChecker({ onCalculate, loading }) {
             Vehicle Details
           </label>
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+            {/* Make */}
             <div>
               <span className="text-[11px] text-slate-500 font-medium block mb-1">Car make</span>
-              <select
+              <SearchableSelect
                 value={formData.vehicleMake}
-                onChange={(e) => handleMakeChange(e.target.value)}
-                className="w-full bg-slate-950 border border-slate-700/80 rounded-xl px-3 py-2.5 text-sm text-white focus:outline-none focus:border-emerald-500"
-              >
-                {VEHICLE_OPTIONS.map((v) => (
-                  <option key={v.make} value={v.make}>{v.make}</option>
-                ))}
-              </select>
+                onChange={handleMakeChange}
+                options={VEHICLE_OPTIONS.map((v) => v.make)}
+                placeholder="Select or type a make"
+              />
             </div>
+
+            {/* Model */}
             <div>
               <span className="text-[11px] text-slate-500 font-medium block mb-1">Car model</span>
-              <select
+              <SearchableSelect
                 value={formData.vehicleModel}
-                onChange={(e) => setFormData({ ...formData, vehicleModel: e.target.value })}
-                className="w-full bg-slate-950 border border-slate-700/80 rounded-xl px-3 py-2.5 text-sm text-white focus:outline-none focus:border-emerald-500"
-              >
-                {currentModels.map((m) => (
-                  <option key={m} value={m}>{m}</option>
-                ))}
-              </select>
+                onChange={(model) => setFormData((prev) => ({ ...prev, vehicleModel: model }))}
+                options={currentModels}
+                placeholder="Select or type a model"
+                disabled={!formData.vehicleMake}
+              />
             </div>
+
+            {/* Year */}
             <div>
               <span className="text-[11px] text-slate-500 font-medium block mb-1">Car year</span>
-              <input
-                type="number"
-                min="2000"
-                max="2026"
-                value={formData.vehicleYear}
-                onChange={(e) => setFormData({ ...formData, vehicleYear: parseInt(e.target.value, 10) || 2022 })}
-                className="w-full bg-slate-950 border border-slate-700/80 rounded-xl px-3 py-2.5 text-sm text-white focus:outline-none focus:border-emerald-500"
-              />
+              <div className="relative">
+                <select
+                  value={formData.vehicleYear}
+                  onChange={(e) =>
+                    setFormData((prev) => ({
+                      ...prev,
+                      vehicleYear: e.target.value ? parseInt(e.target.value, 10) : ''
+                    }))
+                  }
+                  className={`w-full bg-slate-950 border rounded-xl pl-3.5 pr-8 py-2.5 text-sm transition appearance-none cursor-pointer focus:outline-none focus:border-emerald-500 ${
+                    formData.vehicleYear
+                      ? 'text-white border-slate-700/80 hover:border-slate-600'
+                      : 'text-slate-500 border-slate-700/80 hover:border-slate-600'
+                  }`}
+                >
+                  <option value="" disabled className="text-slate-500 bg-slate-950">
+                    Select year
+                  </option>
+                  {YEAR_OPTIONS.map((yr) => (
+                    <option key={yr} value={yr} className="text-white bg-slate-900">
+                      {yr}
+                    </option>
+                  ))}
+                </select>
+                <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none text-slate-400">
+                  <ChevronDown className="w-4 h-4" />
+                </div>
+              </div>
             </div>
           </div>
         </div>
@@ -600,13 +629,18 @@ export function SanityChecker({ onCalculate, loading }) {
         {/* Submit CTA */}
         <button
           type="submit"
-          disabled={loading || isPremiumInvalid || (!formData.isEstimating && !formData.insuranceCompany)}
+          disabled={loading || isPremiumInvalid || (!formData.isEstimating && !formData.insuranceCompany) || isVehicleIncomplete}
           className="w-full py-4 px-6 rounded-2xl font-extrabold text-base text-slate-950 bg-gradient-to-r from-emerald-400 via-teal-300 to-emerald-400 hover:opacity-95 transition shadow-lg shadow-emerald-500/25 flex items-center justify-center gap-2 cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed"
         >
           {loading ? (
             <>
               <Loader2 className="w-5 h-5 animate-spin" />
               <span>Analyzing Ontario Benchmarks...</span>
+            </>
+          ) : isVehicleIncomplete ? (
+            <>
+              <span>Select vehicle details to compare</span>
+              <ArrowRight className="w-5 h-5 opacity-40" />
             </>
           ) : (
             <>

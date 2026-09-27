@@ -2,9 +2,8 @@ import React from 'react';
 import { AlertTriangle } from 'lucide-react';
 
 export function HeroBanner({ stats }) {
-  const totalSaved = (stats?.total_money_saved && stats.total_money_saved > 0)
-    ? `$${Math.round(stats.total_money_saved).toLocaleString()}`
-    : 'TBD';
+  // Set to 'TBD' until broker partnerships are live as requested
+  const totalSaved = 'TBD';
 
   const checksRun = (stats?.total_checks_run !== undefined && stats?.total_checks_run !== null)
     ? stats.total_checks_run.toLocaleString()
