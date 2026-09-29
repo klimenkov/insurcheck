@@ -165,14 +165,13 @@ export function ensureStatsInitialized() {
 
   initStat.run('total_money_saved', 2700);
   initStat.run('avg_monthly_overpay', 0);
+  initStat.run('total_checks_run', 12);
 
-  // Maintain verified check baseline while honoring real checks run
+  // If total_checks_run was inflated by the mock offset (>= 1000), restore the genuine real testing check count
   const row = db.prepare("SELECT value FROM platform_stats WHERE key = 'total_checks_run'").get();
-  if (!row) {
-    initStat.run('total_checks_run', 1432);
-  } else if (row.value < 1000) {
-    // Reconcile if counter was accidentally reset to raw increment
-    db.prepare("UPDATE platform_stats SET value = 1420 + value WHERE key = 'total_checks_run'").run();
+  if (row && row.value >= 1000) {
+    const realCount = Math.max(12, row.value - 1420);
+    db.prepare("UPDATE platform_stats SET value = ? WHERE key = 'total_checks_run'").run(realCount);
   }
 }
 

@@ -25,9 +25,9 @@ checkRouter.post('/', (req, res) => {
 
     const result = evaluateInsurance(req.body);
 
-    // Update check count stat atomically with baseline fallback
+    // Update check count stat atomically with fallback
     db.prepare(`
-      INSERT INTO platform_stats (key, value) VALUES ('total_checks_run', 1421)
+      INSERT INTO platform_stats (key, value) VALUES ('total_checks_run', 1)
       ON CONFLICT(key) DO UPDATE SET value = value + 1
     `).run();
 

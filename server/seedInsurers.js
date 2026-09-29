@@ -1,4 +1,5 @@
 import { db } from './db.js';
+import { initialSubmissions, initialReviews } from './initialData.js';
 
 export function ensureInsurersPopulated() {
   const insurers = [
@@ -507,67 +508,103 @@ export function ensureInsurersPopulated() {
       }
     ];
 
-  const today = new Date().toISOString();
-  for (const rev of sampleReviews) {
-    const existing = db.prepare('SELECT id FROM reviews WHERE insurer_id = ?').get(rev.insurer_id);
-    if (!existing) {
-      insertReview.run(
-        rev.insurer_id,
-        today,
-        rev.rating,
-        rev.rating_value,
-        rev.rating_claims,
-        rev.rating_support,
-        rev.rating_renewal,
-        rev.rating_ease,
-        rev.title,
-        rev.body,
-        rev.had_accident,
-        rev.claims_experience,
-        rev.payout_speed,
-        rev.author_city,
-        rev.vehicle,
-        rev.monthly_premium
-      );
-    }
-  }
+  // Populate all verified baseline reviews (16 reviews)
+  ensureReviewsPopulated();
 
   console.log('16 Ontario insurers populated with 5-dimension rating metrics.');
 }
 
-const defaultSubmissions = [
-  { created_at: '2026-09-12', fsa: 'L6P', city: 'Brampton', vehicle_make: 'Honda', vehicle_model: 'Civic', vehicle_year: 2022, driver_age: 23, driver_profile: 'young', years_licensed: 3, clean_record: 1, provider_name: 'Aviva', monthly_premium: 440, coverage_type: 'Standard', comment: 'Insane price for young driver in Brampton' },
-  { created_at: '2026-09-11', fsa: 'L6Y', city: 'Brampton', vehicle_make: 'Lexus', vehicle_model: 'RX350', vehicle_year: 2023, driver_age: 42, driver_profile: 'experienced', years_licensed: 18, clean_record: 1, provider_name: 'Intact', monthly_premium: 385, coverage_type: 'Comprehensive', comment: 'Theft tag mandatory, price jumped 30% from last year' },
-  { created_at: '2026-09-10', fsa: 'M5V', city: 'Toronto (Downtown)', vehicle_make: 'Mazda', vehicle_model: 'CX-5', vehicle_year: 2021, driver_age: 34, driver_profile: 'experienced', years_licensed: 12, clean_record: 1, provider_name: 'Belairdirect', monthly_premium: 195, coverage_type: 'Standard', comment: 'Underground condo parking discount applied' },
-  { created_at: '2026-09-09', fsa: 'K1P', city: 'Ottawa', vehicle_make: 'Subaru', vehicle_model: 'Outback', vehicle_year: 2020, driver_age: 39, driver_profile: 'experienced', years_licensed: 16, clean_record: 1, provider_name: 'CAA', monthly_premium: 135, coverage_type: 'Standard', comment: 'Ottawa rates are so much better than GTA' },
-  { created_at: '2026-09-08', fsa: 'L5M', city: 'Mississauga', vehicle_make: 'Toyota', vehicle_model: 'RAV4', vehicle_year: 2022, driver_age: 29, driver_profile: 'experienced', years_licensed: 8, clean_record: 1, provider_name: 'TD Insurance', monthly_premium: 240, coverage_type: 'Standard', comment: 'Alumni group discount included' },
-  { created_at: '2026-09-07', fsa: 'L4B', city: 'Richmond Hill', vehicle_make: 'Tesla', vehicle_model: 'Model 3', vehicle_year: 2023, driver_age: 36, driver_profile: 'experienced', years_licensed: 14, clean_record: 1, provider_name: 'Desjardins', monthly_premium: 275, coverage_type: 'Comprehensive', comment: 'EV parts repair surcharge is noticeable' },
-  { created_at: '2026-09-05', fsa: 'M1B', city: 'Toronto (Scarborough)', vehicle_make: 'Hyundai', vehicle_model: 'Elantra', vehicle_year: 2020, driver_age: 26, driver_profile: 'young', years_licensed: 5, clean_record: 1, provider_name: 'Sonnet', monthly_premium: 290, coverage_type: 'Standard', comment: 'Scarborough rate is almost as high as Brampton' },
-  { created_at: '2026-09-04', fsa: 'N2L', city: 'Waterloo', vehicle_make: 'Volkswagen', vehicle_model: 'Golf', vehicle_year: 2019, driver_age: 28, driver_profile: 'experienced', years_licensed: 9, clean_record: 1, provider_name: 'Onlia', monthly_premium: 165, coverage_type: 'Standard', comment: 'Waterloo rate is decent, Onlia cash rewards work' },
-  { created_at: '2026-09-02', fsa: 'L8P', city: 'Hamilton', vehicle_make: 'Ford', vehicle_model: 'F-150', vehicle_year: 2021, driver_age: 48, driver_profile: 'experienced', years_licensed: 25, clean_record: 1, provider_name: 'Intact', monthly_premium: 210, coverage_type: 'Standard', comment: 'Commercial / personal combo' },
-  { created_at: '2026-09-22', fsa: 'M5V', city: 'Toronto (Downtown)', vehicle_make: 'Toyota', vehicle_model: 'RAV4', vehicle_year: 2022, driver_age: 32, driver_profile: 'experienced', years_licensed: 10, clean_record: 1, provider_name: 'Belairdirect', monthly_premium: 275, coverage_type: 'Standard', comment: 'Submitted via Sanity Check' },
-  { created_at: '2026-09-22', fsa: 'L6P', city: 'Brampton', vehicle_make: 'Honda', vehicle_model: 'Civic', vehicle_year: 2021, driver_age: 28, driver_profile: 'experienced', years_licensed: 8, clean_record: 1, provider_name: 'TD Insurance', monthly_premium: 220, coverage_type: 'Standard', comment: 'Submitted via Sanity Check' },
-  { created_at: '2026-09-23', fsa: 'M5V', city: 'Toronto (Downtown)', vehicle_make: 'Honda', vehicle_model: 'Civic', vehicle_year: 2021, driver_age: 24, driver_profile: 'young', years_licensed: 3, clean_record: 0, provider_name: 'Belairdirect', monthly_premium: 275, coverage_type: 'Full', comment: 'Test submission from INS-27 modal' },
-  { created_at: '2026-09-23', fsa: 'L6P', city: 'Brampton', vehicle_make: 'Toyota', vehicle_model: 'RAV4', vehicle_year: 2023, driver_age: 45, driver_profile: 'experienced', years_licensed: 20, clean_record: 1, provider_name: 'TD Insurance', monthly_premium: 220, coverage_type: 'Standard', comment: 'Submitted via Sanity Check' },
-  { created_at: '2026-09-24', fsa: 'M5V', city: 'Toronto (Downtown)', vehicle_make: 'Honda', vehicle_model: 'Civic', vehicle_year: 2021, driver_age: 24, driver_profile: 'young', years_licensed: 3, clean_record: 0, provider_name: 'Belairdirect', monthly_premium: 275, coverage_type: 'Full', comment: 'Test submission from INS-27 modal' },
-  { created_at: '2026-09-24', fsa: 'L6P', city: 'Brampton', vehicle_make: 'Toyota', vehicle_model: 'RAV4', vehicle_year: 2023, driver_age: 45, driver_profile: 'experienced', years_licensed: 20, clean_record: 1, provider_name: 'TD Insurance', monthly_premium: 220, coverage_type: 'Standard', comment: 'Submitted via Sanity Check' }
-];
-
-export function ensureSubmissionsPopulated() {
-  const count = db.prepare('SELECT count(*) as c FROM submissions').get().c;
-  if (count > 0) return;
-
-  const insertSub = db.prepare(`
-    INSERT INTO submissions (created_at, fsa, city, vehicle_make, vehicle_model, vehicle_year, driver_age, driver_profile, years_licensed, clean_record, provider_name, monthly_premium, coverage_type, comment)
-    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+export function ensureReviewsPopulated() {
+  const insertReview = db.prepare(`
+    INSERT OR IGNORE INTO reviews (
+      id, insurer_id, created_at, rating, rating_value, rating_claims, rating_support, rating_renewal, rating_ease,
+      title, body, had_accident, claims_experience, payout_speed, author_city, vehicle, monthly_premium
+    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
   `);
 
-  for (const s of defaultSubmissions) {
+  for (const rev of initialReviews) {
+    insertReview.run(
+      rev.id,
+      rev.insurer_id,
+      rev.created_at,
+      rev.rating,
+      rev.rating_value || 4.0,
+      rev.rating_claims || 4.0,
+      rev.rating_support || 4.0,
+      rev.rating_renewal || 4.0,
+      rev.rating_ease || 4.0,
+      rev.title,
+      rev.body,
+      rev.had_accident || 0,
+      rev.claims_experience,
+      rev.payout_speed,
+      rev.author_city,
+      rev.vehicle,
+      rev.monthly_premium
+    );
+  }
+
+  // Recalculate true rating aggregates for each insurer
+  const insurers = db.prepare('SELECT id FROM insurers').all();
+  for (const ins of insurers) {
+    const stats = db.prepare(`
+      SELECT 
+        COUNT(*) as total,
+        AVG(rating) as avg_overall,
+        AVG(rating_value) as avg_value,
+        AVG(rating_claims) as avg_claims,
+        AVG(rating_support) as avg_support,
+        AVG(rating_renewal) as avg_renewal,
+        AVG(rating_ease) as avg_ease
+      FROM reviews
+      WHERE insurer_id = ?
+    `).get(ins.id);
+
+    if (stats && stats.total > 0) {
+      db.prepare(`
+        UPDATE insurers
+        SET 
+          total_reviews = ?,
+          overall_rating = ?,
+          rating_value = ?,
+          rating_claims = ?,
+          rating_support = ?,
+          rating_renewal = ?,
+          rating_ease = ?,
+          claims_rating = ?,
+          support_rating = ?
+        WHERE id = ?
+      `).run(
+        stats.total,
+        Math.round(stats.avg_overall * 10) / 10,
+        Math.round((stats.avg_value || 4.0) * 10) / 10,
+        Math.round((stats.avg_claims || 4.0) * 10) / 10,
+        Math.round((stats.avg_support || 4.0) * 10) / 10,
+        Math.round((stats.avg_renewal || 4.0) * 10) / 10,
+        Math.round((stats.avg_ease || 4.0) * 10) / 10,
+        Math.round((stats.avg_claims || 4.0) * 10) / 10,
+        Math.round((stats.avg_support || 4.0) * 10) / 10,
+        ins.id
+      );
+    }
+  }
+}
+
+export function ensureSubmissionsPopulated() {
+  const insertSub = db.prepare(`
+    INSERT OR IGNORE INTO submissions (
+      id, created_at, fsa, city, vehicle_make, vehicle_model, vehicle_year,
+      driver_age, driver_profile, years_licensed, clean_record,
+      provider_name, monthly_premium, coverage_type, comment
+    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+  `);
+
+  for (const s of initialSubmissions) {
     insertSub.run(
-      s.created_at, s.fsa, s.city, s.vehicle_make, s.vehicle_model, s.vehicle_year,
+      s.id, s.created_at, s.fsa, s.city, s.vehicle_make, s.vehicle_model, s.vehicle_year,
       s.driver_age, s.driver_profile, s.years_licensed, s.clean_record,
       s.provider_name, s.monthly_premium, s.coverage_type, s.comment
     );
   }
-  console.log(`Populated ${defaultSubmissions.length} baseline submissions into fresh database.`);
+  console.log(`Ensured all ${initialSubmissions.length} driver submissions exist.`);
 }

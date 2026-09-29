@@ -295,7 +295,7 @@ const insertStat = db.prepare(`
   ON CONFLICT(key) DO NOTHING
 `);
 insertStat.run('total_money_saved', 2700);
-insertStat.run('total_checks_run', 1432);
+insertStat.run('total_checks_run', 12);
 insertStat.run('avg_monthly_overpay', 0);
 
 console.log('Database seeded successfully!');
