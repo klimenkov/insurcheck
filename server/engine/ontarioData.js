@@ -263,7 +263,9 @@ export const VEHICLE_RISK_MAP = {
 };
 
 export const POPULAR_MAKES = [
-  'Honda', 'Toyota', 'Ford', 'Lexus', 'Hyundai', 'Mazda', 'Subaru',
-  'Tesla', 'RAM', 'Jeep', 'Chevrolet', 'GMC', 'Acura', 'Nissan',
-  'Volkswagen', 'BMW', 'Audi', 'Mercedes-Benz', 'Kia', 'Volvo', 'Land Rover'
+  'Volvo', 'Volkswagen', 'Toyota', 'Tesla', 'Subaru', 'Rivian', 'RAM',
+  'Porsche', 'Polestar', 'Nissan', 'Mitsubishi', 'MINI', 'Mercedes-Benz',
+  'Mazda', 'Lincoln', 'Lexus', 'Land Rover', 'Kia', 'Jeep', 'Jaguar',
+  'Infiniti', 'Hyundai', 'Honda', 'GMC', 'Genesis', 'Ford', 'Dodge',
+  'Chrysler', 'Chevrolet', 'Cadillac', 'Buick', 'BMW', 'Audi', 'Alfa Romeo', 'Acura'
 ];

@@ -16,6 +16,7 @@ export function SanityChecker({ onCalculate, loading }) {
     isEstimating: false,
     currentPremium: '',
     insuranceCompany: '',
+    customInsuranceCompany: '',
     driverAge: '',
     yearsLicensed: '',
     cleanRecord: true,
@@ -57,6 +58,13 @@ export function SanityChecker({ onCalculate, loading }) {
 
   const isVehicleIncomplete = !formData.vehicleMake || !formData.vehicleModel || !formData.vehicleYear;
 
+  // Insurance company validation (including custom name if Other)
+  const isCustomCompanyMissing =
+    !formData.isEstimating &&
+    formData.insuranceCompany === 'Other' &&
+    (!formData.customInsuranceCompany || !formData.customInsuranceCompany.trim());
+  const isCompanyMissing = !formData.isEstimating && (!formData.insuranceCompany || isCustomCompanyMissing);
+
   // Consent validation
   const isConsentMissing = !formData.isEstimating && !formData.shareAnonymously;
 
@@ -65,7 +73,7 @@ export function SanityChecker({ onCalculate, loading }) {
     !isCoverageMissing &&
     postalValidation.isValid &&
     !isVehicleIncomplete &&
-    (!formData.isEstimating ? (!isPremiumInvalid && !!formData.insuranceCompany && !isConsentMissing) : true) &&
+    (!formData.isEstimating ? (!isPremiumInvalid && !isCompanyMissing && !isConsentMissing) : true) &&
     !isAgeInvalid &&
     !isYearsInvalid;
 
@@ -85,13 +93,18 @@ export function SanityChecker({ onCalculate, loading }) {
     if (!postalValidation.isValid) return;
     if (isVehicleIncomplete) return;
     if (!formData.isEstimating) {
-      if (isPremiumInvalid || !formData.insuranceCompany) return;
+      if (isPremiumInvalid || isCompanyMissing) return;
       if (!formData.shareAnonymously) return;
     }
     if (isAgeInvalid || isYearsInvalid) return;
 
+    const resolvedCompany = formData.insuranceCompany === 'Other'
+      ? (formData.customInsuranceCompany || '').trim()
+      : formData.insuranceCompany;
+
     onCalculate({
       ...formData,
+      insuranceCompany: resolvedCompany,
       // Provide clean extracted 3-character FSA to backend
       postalCode: postalValidation.fsa || formData.postalCode,
       rawPostalCode: formData.postalCode
@@ -528,28 +541,40 @@ export function SanityChecker({ onCalculate, loading }) {
                 <label className="block text-xs font-bold uppercase tracking-wider text-emerald-400 mb-1 flex items-center gap-1.5">
                   <DollarSign className="w-4 h-4" />
                   What do you pay per month? (CAD)
+                  <span className="text-rose-400 font-bold">*</span>
                 </label>
                 <div className="flex items-center gap-4 mt-1.5">
                   <div className="relative flex-1">
-                    <span className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 font-bold">$</span>
+                    <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 font-semibold text-sm">$</span>
                     <input
                       type="number"
                       min="50"
                       max="2500"
                       value={formData.currentPremium}
                       onChange={(e) => setFormData({ ...formData, currentPremium: e.target.value })}
-                      className={`w-full bg-slate-900 border rounded-xl pl-8 pr-4 py-2.5 text-lg font-extrabold text-white focus:outline-none transition ${
-                        isPremiumInvalid ? 'border-amber-500/80 focus:border-amber-400' : 'border-slate-700 focus:border-emerald-500'
+                      className={`w-full bg-slate-900 border rounded-xl pl-8 pr-16 py-2.5 text-sm font-semibold text-white placeholder:text-slate-500 focus:outline-none transition ${
+                        attemptedSubmit && isPremiumInvalid
+                          ? 'border-rose-500/80 focus:border-rose-400'
+                          : isPremiumInvalid && formData.currentPremium !== ''
+                          ? 'border-amber-500/80 focus:border-amber-400'
+                          : 'border-slate-700 focus:border-emerald-500'
                       }`}
                       placeholder="e.g. 250"
                       required={!formData.isEstimating}
                     />
-                    <span className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-500 text-xs font-semibold">/ month</span>
+                    <span className="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-500 text-xs font-semibold">/ month</span>
                   </div>
                   <div className="text-xs text-slate-400">
                     ≈ ${((parseFloat(formData.currentPremium) || 0) * 12).toLocaleString()} / year
                   </div>
                 </div>
+
+                {attemptedSubmit && isPremiumEmpty && (
+                  <p className="text-xs text-rose-400 mt-2 flex items-center gap-1">
+                    <AlertCircle className="w-3.5 h-3.5 shrink-0" />
+                    <span>Please enter your current monthly premium.</span>
+                  </p>
+                )}
 
                 {isPremiumTooLow && (
                   <div className="mt-2 p-2.5 rounded-xl bg-amber-500/10 border border-amber-500/30 text-amber-300 text-xs flex items-center gap-2">
@@ -570,38 +595,89 @@ export function SanityChecker({ onCalculate, loading }) {
                 </span>
               </div>
 
-              {/* Standardized 15 Ontario Insurers Dropdown - Mandatory */}
+              {/* Standardized Ontario Insurers Dropdown - Sorted Z–A */}
               <div className="pt-2 border-t border-slate-900">
                 <label className="block text-xs font-semibold text-slate-300 mb-1 flex items-center gap-1.5">
                   <Building2 className="w-3.5 h-3.5 text-emerald-400" />
-                  Insurance company <span className="text-emerald-400">*</span>
+                  Insurance company <span className="text-rose-400 font-bold">*</span>
                 </label>
                 <select
                   required={!formData.isEstimating}
                   value={formData.insuranceCompany}
-                  onChange={(e) => setFormData({ ...formData, insuranceCompany: e.target.value })}
-                  className="w-full bg-slate-900/80 border border-slate-800 rounded-xl px-3.5 py-2.5 text-xs text-white focus:outline-none focus:border-emerald-500 cursor-pointer"
+                  onChange={(e) => {
+                    const val = e.target.value;
+                    setFormData((prev) => ({
+                      ...prev,
+                      insuranceCompany: val,
+                      customInsuranceCompany: val === 'Other' ? prev.customInsuranceCompany : ''
+                    }));
+                  }}
+                  className={`w-full bg-slate-900/80 border rounded-xl px-3.5 py-2.5 text-sm text-white focus:outline-none transition cursor-pointer ${
+                    attemptedSubmit && !formData.insuranceCompany
+                      ? 'border-rose-500/80 focus:border-rose-400'
+                      : 'border-slate-800 focus:border-emerald-500'
+                  }`}
                 >
                   <option value="">Select your insurance company</option>
-                  <option value="Intact">Intact</option>
+                  <option value="Wawanesa">Wawanesa</option>
+                  <option value="Travelers">Travelers</option>
                   <option value="TD Insurance">TD Insurance</option>
-                  <option value="Aviva">Aviva</option>
-                  <option value="Belairdirect">Belairdirect</option>
-                  <option value="CAA Insurance">CAA Insurance</option>
+                  <option value="Square One">Square One Insurance</option>
+                  <option value="Sonnet">Sonnet</option>
+                  <option value="Northbridge">Northbridge</option>
+                  <option value="Intact">Intact</option>
+                  <option value="Gore Mutual">Gore Mutual</option>
+                  <option value="Facility">Facility (High Risk)</option>
                   <option value="Economical">Economical</option>
                   <option value="Desjardins">Desjardins</option>
                   <option value="Co-operators">Co-operators</option>
-                  <option value="Sonnet">Sonnet</option>
-                  <option value="Square One">Square One Insurance</option>
-                  <option value="Wawanesa">Wawanesa</option>
-                  <option value="Travelers">Travelers</option>
+                  <option value="CAA Insurance">CAA Insurance</option>
+                  <option value="Belairdirect">Belairdirect</option>
+                  <option value="Aviva">Aviva</option>
                   <option value="Allstate">Allstate</option>
-                  <option value="Gore Mutual">Gore Mutual</option>
-                  <option value="Northbridge">Northbridge</option>
-                  <option value="Facility">Facility (High Risk)</option>
                   <option value="Other">Other / Not Listed</option>
                 </select>
-                <span className="text-[10px] text-slate-500 mt-1 block">
+
+                {attemptedSubmit && !formData.insuranceCompany && (
+                  <p className="text-xs text-rose-400 mt-1.5 flex items-center gap-1">
+                    <AlertCircle className="w-3.5 h-3.5 shrink-0" />
+                    <span>Please select your insurance company.</span>
+                  </p>
+                )}
+
+                {/* Custom Insurer Name Input when 'Other / Not Listed' is selected (INS-53) */}
+                {formData.insuranceCompany === 'Other' && (
+                  <div className="mt-3">
+                    <label className="block text-xs font-semibold text-slate-300 mb-1 flex items-center gap-1.5">
+                      Insurance company name <span className="text-emerald-400">*</span>
+                    </label>
+                    <input
+                      type="text"
+                      required={!formData.isEstimating}
+                      placeholder="Enter your insurance company name"
+                      value={formData.customInsuranceCompany || ''}
+                      onChange={(e) =>
+                        setFormData((prev) => ({
+                          ...prev,
+                          customInsuranceCompany: e.target.value
+                        }))
+                      }
+                      className={`w-full bg-slate-900 border rounded-xl px-3.5 py-2.5 text-sm text-white placeholder:text-slate-500 focus:outline-none transition ${
+                        attemptedSubmit && (!formData.customInsuranceCompany || !formData.customInsuranceCompany.trim())
+                          ? 'border-rose-500/80 focus:border-rose-400'
+                          : 'border-slate-700 focus:border-emerald-500'
+                      }`}
+                    />
+                    {attemptedSubmit && (!formData.customInsuranceCompany || !formData.customInsuranceCompany.trim()) && (
+                      <p className="text-xs text-rose-400 mt-1 flex items-center gap-1">
+                        <AlertCircle className="w-3.5 h-3.5 shrink-0" />
+                        <span>Please enter your insurance company name.</span>
+                      </p>
+                    )}
+                  </div>
+                )}
+
+                <span className="text-[10px] text-slate-500 mt-1.5 block">
                   Enables benchmark comparison against specific carrier rate filings approved by FSRA
                 </span>
               </div>
@@ -764,6 +840,8 @@ export function SanityChecker({ onCalculate, loading }) {
                   ? 'Select vehicle details'
                   : !formData.isEstimating && isPremiumInvalid
                   ? 'Enter monthly premium'
+                  : !formData.isEstimating && isCustomCompanyMissing
+                  ? 'Enter custom insurer name'
                   : !formData.isEstimating && !formData.insuranceCompany
                   ? 'Select your insurance company'
                   : isAgeInvalid || isYearsInvalid

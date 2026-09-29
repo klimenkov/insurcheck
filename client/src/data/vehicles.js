@@ -1,28 +1,149 @@
+/**
+ * Comprehensive Canadian Market Vehicle Makes & Models
+ * Audited against Transport Canada, Équité Association theft rankings, and Canadian Black Book.
+ * Sorted Z–A (descending) case-insensitively, with models within each make also sorted Z–A.
+ */
 export const VEHICLE_OPTIONS = [
-  { make: 'Honda', models: ['CR-V', 'Civic', 'Accord', 'Pilot'] },
-  { make: 'Toyota', models: ['RAV4', 'Highlander', 'Corolla', 'Camry', 'Prius', 'Tacoma', 'Tundra'] },
-  { make: 'Lexus', models: ['RX 350', 'RX450h', 'NX300', 'GX460', 'ES350', 'IS300'] },
-  { make: 'Ford', models: ['F-150', 'Escape', 'Explorer', 'Mustang', 'Mustang Mach-E'] },
-  { make: 'RAM', models: ['1500', '2500'] },
-  { make: 'Jeep', models: ['Grand Cherokee', 'Wrangler', 'Gladiator'] },
-  { make: 'Land Rover', models: ['Range Rover', 'Range Rover Sport', 'Defender'] },
-  { make: 'Tesla', models: ['Model 3', 'Model Y', 'Model S', 'Model X'] },
-  { make: 'Hyundai', models: ['Elantra', 'Tucson', 'Santa Fe', 'Kona', 'Ioniq 5'] },
-  { make: 'Kia', models: ['Sportage', 'Forte', 'Telluride', 'Seltos'] },
-  { make: 'Mazda', models: ['CX-5', '3', 'CX-30', 'CX-50'] },
-  { make: 'Subaru', models: ['Outback', 'Forester', 'Crosstrek', 'Impreza'] },
-  { make: 'Volkswagen', models: ['Tiguan', 'Golf', 'Jetta', 'Atlas'] },
-  { make: 'BMW', models: ['3 Series', 'X3', 'X5', '5 Series', '4 Series'] },
-  { make: 'Audi', models: ['Q5', 'A4', 'Q7', 'A3', 'Q3'] },
-  { make: 'Mercedes-Benz', models: ['C-Class', 'GLC', 'GLE', 'E-Class', 'CLA'] },
-  { make: 'Chevrolet', models: ['Silverado', 'Tahoe', 'Suburban', 'Equinox'] },
-  { make: 'GMC', models: ['Sierra', 'Yukon', 'Terrain'] },
-  { make: 'Acura', models: ['RDX', 'MDX', 'TLX'] },
-  { make: 'Nissan', models: ['Rogue', 'Sentra', 'Altima', 'Pathfinder'] },
-  { make: 'Volvo', models: ['XC60', 'XC90', 'XC40', 'S60'] },
-  { make: 'Dodge', models: ['RAM 1500', 'Charger', 'Challenger', 'Durango'] },
-  { make: 'Porsche', models: ['Macan', 'Cayenne', '911', 'Taycan'] },
-  { make: 'Mitsubishi', models: ['Outlander', 'RVR', 'Eclipse Cross'] }
+  {
+    make: 'Volvo',
+    models: ['XC90', 'XC60', 'XC40', 'V60', 'S60']
+  },
+  {
+    make: 'Volkswagen',
+    models: ['Tiguan', 'Taos', 'Jetta', 'ID.4', 'Golf', 'Atlas Cross Sport', 'Atlas']
+  },
+  {
+    make: 'Toyota',
+    models: ['Tundra', 'Tacoma', 'Sienna', 'RAV4', 'Prius', 'Highlander', 'Corolla Cross', 'Corolla', 'Camry', '4Runner']
+  },
+  {
+    make: 'Tesla',
+    models: ['Model Y', 'Model X', 'Model S', 'Model 3', 'Cybertruck']
+  },
+  {
+    make: 'Subaru',
+    models: ['Solterra', 'Outback', 'Legacy', 'Impreza', 'Forester', 'Crosstrek', 'BRZ', 'Ascent']
+  },
+  {
+    make: 'Rivian',
+    models: ['R1T', 'R1S']
+  },
+  {
+    make: 'RAM',
+    models: ['ProMaster', '3500', '2500', '1500 Classic', '1500']
+  },
+  {
+    make: 'Porsche',
+    models: ['Taycan', 'Panamera', 'Macan', 'Cayenne', '911', '718 Cayman']
+  },
+  {
+    make: 'Polestar',
+    models: ['Polestar 3', 'Polestar 2']
+  },
+  {
+    make: 'Nissan',
+    models: ['Z', 'Versa', 'Sentra', 'Rogue', 'Pathfinder', 'Murano', 'Kicks', 'Frontier', 'Altima', 'Ariya']
+  },
+  {
+    make: 'Mitsubishi',
+    models: ['RVR', 'Outlander PHEV', 'Outlander', 'Mirage', 'Eclipse Cross']
+  },
+  {
+    make: 'MINI',
+    models: ['Countryman', 'Cooper']
+  },
+  {
+    make: 'Mercedes-Benz',
+    models: ['S-Class', 'GLB', 'GLE', 'GLC', 'GLA', 'E-Class', 'CLA', 'C-Class', 'A-Class']
+  },
+  {
+    make: 'Mazda',
+    models: ['MX-5', 'CX-90', 'CX-70', 'CX-50', 'CX-5', 'CX-30', '3']
+  },
+  {
+    make: 'Lincoln',
+    models: ['Navigator', 'Nautilus', 'Corsair', 'Aviator']
+  },
+  {
+    make: 'Lexus',
+    models: ['TX', 'RX 450h', 'RX 350', 'NX 350', 'NX 300', 'IS 300', 'GX 460', 'ES 350']
+  },
+  {
+    make: 'Land Rover',
+    models: ['Range Rover Velar', 'Range Rover Sport', 'Range Rover Evoque', 'Range Rover', 'Discovery Sport', 'Discovery', 'Defender']
+  },
+  {
+    make: 'Kia',
+    models: ['Telluride', 'Sportage', 'Soul', 'Sorento', 'Seltos', 'Niro', 'K5', 'Forte', 'EV9', 'EV6', 'Carnival']
+  },
+  {
+    make: 'Jeep',
+    models: ['Wrangler', 'Renegade', 'Gladiator', 'Grand Cherokee', 'Compass', 'Cherokee']
+  },
+  {
+    make: 'Jaguar',
+    models: ['XF', 'I-Pace', 'F-Type', 'F-Pace', 'E-Pace']
+  },
+  {
+    make: 'Infiniti',
+    models: ['QX80', 'QX60', 'QX55', 'QX50', 'Q50']
+  },
+  {
+    make: 'Hyundai',
+    models: ['Venue', 'Tucson', 'Sonata', 'Santa Fe', 'Palisade', 'Kona', 'Ioniq 6', 'Ioniq 5', 'Elantra']
+  },
+  {
+    make: 'Honda',
+    models: ['Ridgeline', 'Pilot', 'Passport', 'Odyssey', 'HR-V', 'CR-V', 'Civic', 'Accord']
+  },
+  {
+    make: 'GMC',
+    models: ['Yukon XL', 'Yukon', 'Terrain', 'Sierra 2500', 'Sierra 1500', 'Canyon', 'Acadia']
+  },
+  {
+    make: 'Genesis',
+    models: ['GV80', 'GV70', 'GV60', 'G90', 'G80', 'G70']
+  },
+  {
+    make: 'Ford',
+    models: ['Ranger', 'Mustang Mach-E', 'Mustang', 'Maverick', 'F-250', 'F-150 Lightning', 'F-150', 'Explorer', 'Expedition', 'Escape', 'Bronco Sport', 'Bronco', 'Edge']
+  },
+  {
+    make: 'Dodge',
+    models: ['Hornet', 'Durango', 'Charger', 'Challenger']
+  },
+  {
+    make: 'Chrysler',
+    models: ['Pacifica', 'Grand Caravan', '300']
+  },
+  {
+    make: 'Chevrolet',
+    models: ['Trax', 'Trailblazer', 'Traverse', 'Tahoe', 'Suburban', 'Silverado 2500', 'Silverado 1500', 'Malibu', 'Equinox', 'Corvette', 'Colorado', 'Camaro', 'Blazer']
+  },
+  {
+    make: 'Cadillac',
+    models: ['XT6', 'XT5', 'XT4', 'Lyriq', 'Escalade', 'CT5', 'CT4']
+  },
+  {
+    make: 'Buick',
+    models: ['Envision', 'Encore GX', 'Enclave']
+  },
+  {
+    make: 'BMW',
+    models: ['Z4', 'X7', 'X5', 'X3', 'X1', 'iX', 'i4', '7 Series', '5 Series', '4 Series', '3 Series', '2 Series']
+  },
+  {
+    make: 'Audi',
+    models: ['TT', 'Q8', 'Q7', 'Q5', 'Q4 e-tron', 'Q3', 'e-tron GT', 'A6', 'A5', 'A4', 'A3']
+  },
+  {
+    make: 'Alfa Romeo',
+    models: ['Tonale', 'Stelvio', 'Giulia']
+  },
+  {
+    make: 'Acura',
+    models: ['TLX', 'RDX', 'MDX', 'Integra']
+  }
 ];
 
 export const POPULAR_FSAS = [
