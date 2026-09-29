@@ -534,3 +534,40 @@ export function ensureInsurersPopulated() {
 
   console.log('16 Ontario insurers populated with 5-dimension rating metrics.');
 }
+
+const defaultSubmissions = [
+  { created_at: '2026-09-12', fsa: 'L6P', city: 'Brampton', vehicle_make: 'Honda', vehicle_model: 'Civic', vehicle_year: 2022, driver_age: 23, driver_profile: 'young', years_licensed: 3, clean_record: 1, provider_name: 'Aviva', monthly_premium: 440, coverage_type: 'Standard', comment: 'Insane price for young driver in Brampton' },
+  { created_at: '2026-09-11', fsa: 'L6Y', city: 'Brampton', vehicle_make: 'Lexus', vehicle_model: 'RX350', vehicle_year: 2023, driver_age: 42, driver_profile: 'experienced', years_licensed: 18, clean_record: 1, provider_name: 'Intact', monthly_premium: 385, coverage_type: 'Comprehensive', comment: 'Theft tag mandatory, price jumped 30% from last year' },
+  { created_at: '2026-09-10', fsa: 'M5V', city: 'Toronto (Downtown)', vehicle_make: 'Mazda', vehicle_model: 'CX-5', vehicle_year: 2021, driver_age: 34, driver_profile: 'experienced', years_licensed: 12, clean_record: 1, provider_name: 'Belairdirect', monthly_premium: 195, coverage_type: 'Standard', comment: 'Underground condo parking discount applied' },
+  { created_at: '2026-09-09', fsa: 'K1P', city: 'Ottawa', vehicle_make: 'Subaru', vehicle_model: 'Outback', vehicle_year: 2020, driver_age: 39, driver_profile: 'experienced', years_licensed: 16, clean_record: 1, provider_name: 'CAA', monthly_premium: 135, coverage_type: 'Standard', comment: 'Ottawa rates are so much better than GTA' },
+  { created_at: '2026-09-08', fsa: 'L5M', city: 'Mississauga', vehicle_make: 'Toyota', vehicle_model: 'RAV4', vehicle_year: 2022, driver_age: 29, driver_profile: 'experienced', years_licensed: 8, clean_record: 1, provider_name: 'TD Insurance', monthly_premium: 240, coverage_type: 'Standard', comment: 'Alumni group discount included' },
+  { created_at: '2026-09-07', fsa: 'L4B', city: 'Richmond Hill', vehicle_make: 'Tesla', vehicle_model: 'Model 3', vehicle_year: 2023, driver_age: 36, driver_profile: 'experienced', years_licensed: 14, clean_record: 1, provider_name: 'Desjardins', monthly_premium: 275, coverage_type: 'Comprehensive', comment: 'EV parts repair surcharge is noticeable' },
+  { created_at: '2026-09-05', fsa: 'M1B', city: 'Toronto (Scarborough)', vehicle_make: 'Hyundai', vehicle_model: 'Elantra', vehicle_year: 2020, driver_age: 26, driver_profile: 'young', years_licensed: 5, clean_record: 1, provider_name: 'Sonnet', monthly_premium: 290, coverage_type: 'Standard', comment: 'Scarborough rate is almost as high as Brampton' },
+  { created_at: '2026-09-04', fsa: 'N2L', city: 'Waterloo', vehicle_make: 'Volkswagen', vehicle_model: 'Golf', vehicle_year: 2019, driver_age: 28, driver_profile: 'experienced', years_licensed: 9, clean_record: 1, provider_name: 'Onlia', monthly_premium: 165, coverage_type: 'Standard', comment: 'Waterloo rate is decent, Onlia cash rewards work' },
+  { created_at: '2026-09-02', fsa: 'L8P', city: 'Hamilton', vehicle_make: 'Ford', vehicle_model: 'F-150', vehicle_year: 2021, driver_age: 48, driver_profile: 'experienced', years_licensed: 25, clean_record: 1, provider_name: 'Intact', monthly_premium: 210, coverage_type: 'Standard', comment: 'Commercial / personal combo' },
+  { created_at: '2026-09-22', fsa: 'M5V', city: 'Toronto (Downtown)', vehicle_make: 'Toyota', vehicle_model: 'RAV4', vehicle_year: 2022, driver_age: 32, driver_profile: 'experienced', years_licensed: 10, clean_record: 1, provider_name: 'Belairdirect', monthly_premium: 275, coverage_type: 'Standard', comment: 'Submitted via Sanity Check' },
+  { created_at: '2026-09-22', fsa: 'L6P', city: 'Brampton', vehicle_make: 'Honda', vehicle_model: 'Civic', vehicle_year: 2021, driver_age: 28, driver_profile: 'experienced', years_licensed: 8, clean_record: 1, provider_name: 'TD Insurance', monthly_premium: 220, coverage_type: 'Standard', comment: 'Submitted via Sanity Check' },
+  { created_at: '2026-09-23', fsa: 'M5V', city: 'Toronto (Downtown)', vehicle_make: 'Honda', vehicle_model: 'Civic', vehicle_year: 2021, driver_age: 24, driver_profile: 'young', years_licensed: 3, clean_record: 0, provider_name: 'Belairdirect', monthly_premium: 275, coverage_type: 'Full', comment: 'Test submission from INS-27 modal' },
+  { created_at: '2026-09-23', fsa: 'L6P', city: 'Brampton', vehicle_make: 'Toyota', vehicle_model: 'RAV4', vehicle_year: 2023, driver_age: 45, driver_profile: 'experienced', years_licensed: 20, clean_record: 1, provider_name: 'TD Insurance', monthly_premium: 220, coverage_type: 'Standard', comment: 'Submitted via Sanity Check' },
+  { created_at: '2026-09-24', fsa: 'M5V', city: 'Toronto (Downtown)', vehicle_make: 'Honda', vehicle_model: 'Civic', vehicle_year: 2021, driver_age: 24, driver_profile: 'young', years_licensed: 3, clean_record: 0, provider_name: 'Belairdirect', monthly_premium: 275, coverage_type: 'Full', comment: 'Test submission from INS-27 modal' },
+  { created_at: '2026-09-24', fsa: 'L6P', city: 'Brampton', vehicle_make: 'Toyota', vehicle_model: 'RAV4', vehicle_year: 2023, driver_age: 45, driver_profile: 'experienced', years_licensed: 20, clean_record: 1, provider_name: 'TD Insurance', monthly_premium: 220, coverage_type: 'Standard', comment: 'Submitted via Sanity Check' }
+];
+
+export function ensureSubmissionsPopulated() {
+  const count = db.prepare('SELECT count(*) as c FROM submissions').get().c;
+  if (count > 0) return;
+
+  const insertSub = db.prepare(`
+    INSERT INTO submissions (created_at, fsa, city, vehicle_make, vehicle_model, vehicle_year, driver_age, driver_profile, years_licensed, clean_record, provider_name, monthly_premium, coverage_type, comment)
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+  `);
+
+  for (const s of defaultSubmissions) {
+    insertSub.run(
+      s.created_at, s.fsa, s.city, s.vehicle_make, s.vehicle_model, s.vehicle_year,
+      s.driver_age, s.driver_profile, s.years_licensed, s.clean_record,
+      s.provider_name, s.monthly_premium, s.coverage_type, s.comment
+    );
+  }
+  console.log(`Populated ${defaultSubmissions.length} baseline submissions into fresh database.`);
+}
