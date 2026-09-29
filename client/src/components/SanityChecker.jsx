@@ -595,7 +595,7 @@ export function SanityChecker({ onCalculate, loading }) {
                 </span>
               </div>
 
-              {/* Standardized Ontario Insurers Dropdown - Sorted Z–A */}
+              {/* Standardized Ontario Insurers Dropdown - Sorted A–Z */}
               <div className="pt-2 border-t border-slate-900">
                 <label className="block text-xs font-semibold text-slate-300 mb-1 flex items-center gap-1.5">
                   <Building2 className="w-3.5 h-3.5 text-emerald-400" />
@@ -619,22 +619,22 @@ export function SanityChecker({ onCalculate, loading }) {
                   }`}
                 >
                   <option value="">Select your insurance company</option>
-                  <option value="Wawanesa">Wawanesa</option>
-                  <option value="Travelers">Travelers</option>
-                  <option value="TD Insurance">TD Insurance</option>
-                  <option value="Square One">Square One Insurance</option>
-                  <option value="Sonnet">Sonnet</option>
-                  <option value="Northbridge">Northbridge</option>
-                  <option value="Intact">Intact</option>
-                  <option value="Gore Mutual">Gore Mutual</option>
-                  <option value="Facility">Facility (High Risk)</option>
-                  <option value="Economical">Economical</option>
-                  <option value="Desjardins">Desjardins</option>
-                  <option value="Co-operators">Co-operators</option>
-                  <option value="CAA Insurance">CAA Insurance</option>
-                  <option value="Belairdirect">Belairdirect</option>
-                  <option value="Aviva">Aviva</option>
                   <option value="Allstate">Allstate</option>
+                  <option value="Aviva">Aviva</option>
+                  <option value="Belairdirect">Belairdirect</option>
+                  <option value="CAA Insurance">CAA Insurance</option>
+                  <option value="Co-operators">Co-operators</option>
+                  <option value="Desjardins">Desjardins</option>
+                  <option value="Economical">Economical</option>
+                  <option value="Facility">Facility (High Risk)</option>
+                  <option value="Gore Mutual">Gore Mutual</option>
+                  <option value="Intact">Intact</option>
+                  <option value="Northbridge">Northbridge</option>
+                  <option value="Sonnet">Sonnet</option>
+                  <option value="Square One">Square One Insurance</option>
+                  <option value="TD Insurance">TD Insurance</option>
+                  <option value="Travelers">Travelers</option>
+                  <option value="Wawanesa">Wawanesa</option>
                   <option value="Other">Other / Not Listed</option>
                 </select>
 

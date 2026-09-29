@@ -146,22 +146,22 @@ export function ContributeModal({ isOpen, onClose }) {
                     required
                   >
                     <option value="">Select insurer</option>
-                    <option value="Intact">Intact</option>
-                    <option value="TD Insurance">TD Insurance</option>
+                    <option value="Allstate">Allstate</option>
                     <option value="Aviva">Aviva</option>
                     <option value="Belairdirect">Belairdirect</option>
                     <option value="CAA Insurance">CAA Insurance</option>
-                    <option value="Economical">Economical</option>
-                    <option value="Desjardins">Desjardins</option>
                     <option value="Co-operators">Co-operators</option>
+                    <option value="Desjardins">Desjardins</option>
+                    <option value="Economical">Economical</option>
+                    <option value="Facility">Facility (High Risk)</option>
+                    <option value="Gore Mutual">Gore Mutual</option>
+                    <option value="Intact">Intact</option>
+                    <option value="Northbridge">Northbridge</option>
                     <option value="Sonnet">Sonnet</option>
                     <option value="Square One">Square One Insurance</option>
-                    <option value="Wawanesa">Wawanesa</option>
+                    <option value="TD Insurance">TD Insurance</option>
                     <option value="Travelers">Travelers</option>
-                    <option value="Allstate">Allstate</option>
-                    <option value="Gore Mutual">Gore Mutual</option>
-                    <option value="Northbridge">Northbridge</option>
-                    <option value="Facility">Facility (High Risk)</option>
+                    <option value="Wawanesa">Wawanesa</option>
                     <option value="Other">Other</option>
                   </select>
                 </div>

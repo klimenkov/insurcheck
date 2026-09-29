@@ -25,8 +25,26 @@ checkRouter.post('/', (req, res) => {
 
     const result = evaluateInsurance(req.body);
 
-    // Update check count stat
-    db.prepare("UPDATE platform_stats SET value = value + 1 WHERE key = 'total_checks_run'").run();
+    // Update check count stat atomically with baseline fallback
+    db.prepare(`
+      INSERT INTO platform_stats (key, value) VALUES ('total_checks_run', 1421)
+      ON CONFLICT(key) DO UPDATE SET value = value + 1
+    `).run();
+
+    // Log check event for immutable audit trail
+    try {
+      db.prepare(`
+        INSERT INTO check_events (created_at, fsa, vehicle, is_estimating)
+        VALUES (?, ?, ?, ?)
+      `).run(
+        new Date().toISOString(),
+        (req.body.postalCode || '').trim().replace(/\s+/g, '').toUpperCase().slice(0, 3) || 'UNK',
+        `${req.body.vehicleYear || ''} ${req.body.vehicleMake || ''} ${req.body.vehicleModel || ''}`.trim() || 'Vehicle',
+        isEstimating ? 1 : 0
+      );
+    } catch (auditErr) {
+      console.warn('Check event audit log skipped:', auditErr.message);
+    }
 
     // Automatically record rate in the public community database only if user explicitly consented
     if (!isEstimating && req.body.shareAnonymously === true && req.body.currentPremium) {

@@ -16,12 +16,12 @@ export function SearchableSelect({
   const inputRef = useRef(null);
   const listRef = useRef(null);
 
-  // Sort options Z–A descending case-insensitively
+  // Sort options A–Z ascending case-insensitively
   const sortedOptions = [...options].sort((a, b) =>
-    b.localeCompare(a, undefined, { sensitivity: 'base' })
+    a.localeCompare(b, undefined, { sensitivity: 'base' })
   );
 
-  // Filter options based on query (preserving Z–A order)
+  // Filter options based on query (preserving A–Z order)
   const filteredOptions = sortedOptions.filter(opt =>
     opt.toLowerCase().includes((searchQuery || '').toLowerCase().trim())
   );

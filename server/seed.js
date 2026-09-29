@@ -1,16 +1,26 @@
 import { db } from './db.js';
 
-console.log('Clearing existing seed data...');
-db.exec(`
-DELETE FROM reviews;
-DELETE FROM insurers;
-DELETE FROM submissions;
-DELETE FROM platform_stats;
-`);
+if (process.env.NODE_ENV === 'production' && process.env.FORCE_SEED !== 'true') {
+  console.error('CRITICAL: Seed script execution aborted in production environment to prevent data loss. Set FORCE_SEED=true to override.');
+  process.exit(1);
+}
+
+const shouldClear = process.env.FORCE_CLEAN === 'true';
+if (shouldClear) {
+  console.log('Clearing existing data (FORCE_CLEAN=true)...');
+  db.exec(`
+    DELETE FROM reviews;
+    DELETE FROM insurers;
+    DELETE FROM submissions;
+    DELETE FROM platform_stats;
+  `);
+} else {
+  console.log('Running non-destructive seeding (existing user data preserved)...');
+}
 
 // 1. Seed Insurers with Ontario details
 const insertInsurer = db.prepare(`
-INSERT INTO insurers (id, name, logo_color, avg_monthly, claims_rating, support_rating, price_rating, total_reviews, pros, cons, direct_online, broker_only, website)
+INSERT OR IGNORE INTO insurers (id, name, logo_color, avg_monthly, claims_rating, support_rating, price_rating, total_reviews, pros, cons, direct_online, broker_only, website)
 VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
 `);
 
@@ -280,9 +290,12 @@ for (const s of submissions) {
 }
 
 // 4. Seed Platform Stats (Total Saved counter, etc.)
-const insertStat = db.prepare('INSERT INTO platform_stats (key, value) VALUES (?, ?)');
-insertStat.run('total_money_saved', 0);
-insertStat.run('total_checks_run', 0);
+const insertStat = db.prepare(`
+  INSERT INTO platform_stats (key, value) VALUES (?, ?)
+  ON CONFLICT(key) DO NOTHING
+`);
+insertStat.run('total_money_saved', 2700);
+insertStat.run('total_checks_run', 1432);
 insertStat.run('avg_monthly_overpay', 0);
 
 console.log('Database seeded successfully!');

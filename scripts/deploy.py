@@ -1,4 +1,6 @@
 import os
+import sys
+import subprocess
 import requests
 from dotenv import load_dotenv
 
@@ -7,6 +9,16 @@ load_dotenv()
 HOOK_URL = os.getenv("RENDER_DEPLOY_HOOK")
 
 def trigger_deploy():
+    # 1. Run automated pre-deploy backup
+    print("[DEPLOY] Running pre-deploy data backup...")
+    try:
+        scripts_dir = os.path.dirname(os.path.abspath(__file__))
+        backup_script = os.path.join(scripts_dir, "backup_db.py")
+        subprocess.run([sys.executable, backup_script], check=True)
+    except Exception as e:
+        print(f"[DEPLOY WARNING] Pre-deploy backup encountered error: {e}")
+
+    # 2. Trigger Render deploy hook
     if not HOOK_URL:
         print("ERROR: RENDER_DEPLOY_HOOK is not set in .env")
         return False
