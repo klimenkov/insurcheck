@@ -28,10 +28,11 @@ checkRouter.post('/', (req, res) => {
     // Update check count stat
     db.prepare("UPDATE platform_stats SET value = value + 1 WHERE key = 'total_checks_run'").run();
 
-    // Automatically record rate in the public community database if user opted to share
-    if (!isEstimating && req.body.shareAnonymously !== false && req.body.currentPremium) {
+    // Automatically record rate in the public community database only if user explicitly consented
+    if (!isEstimating && req.body.shareAnonymously === true && req.body.currentPremium) {
       try {
-        const fsa = (req.body.postalCode || '').trim().toUpperCase().slice(0, 3);
+        const cleanPostal = (req.body.postalCode || '').trim().replace(/\s+/g, '').toUpperCase();
+        const fsa = cleanPostal.slice(0, 3);
         const location = FSA_RISK_MAP[fsa] || { city: 'Ontario' };
         const age = parseInt(req.body.driverAge, 10) || 30;
         const profile = age < 25 ? 'young' : (age >= 65 ? 'senior' : 'experienced');

@@ -48,7 +48,7 @@ export function evaluateInsurance(params) {
   } = params;
 
   // 1. Resolve Location Risk from FSRA Territorial Matrices
-  const cleanFSA = (postalCode || '').trim().toUpperCase().slice(0, 3);
+  const cleanFSA = (postalCode || '').trim().replace(/\s+/g, '').toUpperCase().slice(0, 3);
   const locationInfo = FSA_RISK_MAP[cleanFSA] || {
     city: 'Ontario (General / GTA Fringe)',
     risk: 1.05,

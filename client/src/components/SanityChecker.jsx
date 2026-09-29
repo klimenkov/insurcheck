@@ -2,40 +2,72 @@ import React, { useState } from 'react';
 import { Car, MapPin, User, Shield, DollarSign, ArrowRight, Loader2, Sparkles, ShieldCheck, CheckCircle2, Building2, Users, ChevronDown, Minus, Plus, AlertCircle, Info, X } from 'lucide-react';
 import { VEHICLE_OPTIONS, POPULAR_FSAS } from '../data/vehicles.js';
 import { SearchableSelect } from './SearchableSelect.jsx';
+import { parseAndValidatePostalCode } from '../utils/postalCode.js';
 
 const YEAR_OPTIONS = Array.from({ length: 27 }, (_, i) => 2026 - i);
 
 export function SanityChecker({ onCalculate, loading }) {
   const [formData, setFormData] = useState({
-    coverageLevel: 'standard',
-    postalCode: 'M4G',
+    coverageLevel: '',
+    postalCode: '',
     vehicleMake: '',
     vehicleModel: '',
     vehicleYear: '',
     isEstimating: false,
-    currentPremium: 280,
+    currentPremium: '',
     insuranceCompany: '',
-    driverAge: 28,
-    yearsLicensed: 8,
+    driverAge: '',
+    yearsLicensed: '',
     cleanRecord: true,
     numberOfDrivers: 1,
     numberOfVehicles: 1,
-    shareAnonymously: true
+    shareAnonymously: false
   });
 
   const [householdOpen, setHouseholdOpen] = useState(false);
   const [coverageInfoOpen, setCoverageInfoOpen] = useState(false);
+  const [attemptedSubmit, setAttemptedSubmit] = useState(false);
+  const [postalTouched, setPostalTouched] = useState(false);
 
+  // Postal code validation & FSA extraction
+  const postalValidation = parseAndValidatePostalCode(formData.postalCode);
+  const showPostalError = (postalTouched || attemptedSubmit) && !postalValidation.isValid;
+
+  // Premium validation
   const premiumNum = parseFloat(formData.currentPremium);
+  const isPremiumEmpty = !formData.isEstimating && (formData.currentPremium === '' || isNaN(premiumNum));
   const isPremiumTooLow = !formData.isEstimating && formData.currentPremium !== '' && !isNaN(premiumNum) && premiumNum < 50;
   const isPremiumTooHigh = !formData.isEstimating && formData.currentPremium !== '' && !isNaN(premiumNum) && premiumNum > 2500;
-  const isPremiumInvalid = isPremiumTooLow || isPremiumTooHigh;
+  const isPremiumInvalid = isPremiumEmpty || isPremiumTooLow || isPremiumTooHigh;
 
+  // Driver age & experience validation
+  const ageNum = parseInt(formData.driverAge, 10);
+  const isAgeInvalid = formData.driverAge === '' || isNaN(ageNum) || ageNum < 16 || ageNum > 99;
+
+  const yearsNum = parseInt(formData.yearsLicensed, 10);
+  const isYearsInvalid = formData.yearsLicensed === '' || isNaN(yearsNum) || yearsNum < 0 || yearsNum > 70;
+
+  // Coverage level validation
+  const isCoverageMissing = !formData.coverageLevel;
+
+  // Vehicle details validation
   const currentModels = formData.vehicleMake
     ? (VEHICLE_OPTIONS.find(v => v.make.toLowerCase() === formData.vehicleMake.toLowerCase())?.models || ['Standard Model'])
     : [];
 
   const isVehicleIncomplete = !formData.vehicleMake || !formData.vehicleModel || !formData.vehicleYear;
+
+  // Consent validation
+  const isConsentMissing = !formData.isEstimating && !formData.shareAnonymously;
+
+  // Overall validity
+  const isFormValid =
+    !isCoverageMissing &&
+    postalValidation.isValid &&
+    !isVehicleIncomplete &&
+    (!formData.isEstimating ? (!isPremiumInvalid && !!formData.insuranceCompany && !isConsentMissing) : true) &&
+    !isAgeInvalid &&
+    !isYearsInvalid;
 
   const handleMakeChange = (make) => {
     setFormData(prev => ({
@@ -47,13 +79,23 @@ export function SanityChecker({ onCalculate, loading }) {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    if (!formData.isEstimating && !formData.insuranceCompany) {
-      return;
+    setAttemptedSubmit(true);
+
+    if (!formData.coverageLevel) return;
+    if (!postalValidation.isValid) return;
+    if (isVehicleIncomplete) return;
+    if (!formData.isEstimating) {
+      if (isPremiumInvalid || !formData.insuranceCompany) return;
+      if (!formData.shareAnonymously) return;
     }
-    if (isVehicleIncomplete) {
-      return;
-    }
-    onCalculate(formData);
+    if (isAgeInvalid || isYearsInvalid) return;
+
+    onCalculate({
+      ...formData,
+      // Provide clean extracted 3-character FSA to backend
+      postalCode: postalValidation.fsa || formData.postalCode,
+      rawPostalCode: formData.postalCode
+    });
   };
 
   return (
@@ -147,6 +189,7 @@ export function SanityChecker({ onCalculate, loading }) {
             <label className="text-xs font-bold uppercase tracking-wider text-slate-300 flex items-center gap-1.5">
               <ShieldCheck className="w-4 h-4 text-emerald-400" />
               Choose coverage level
+              <span className="text-rose-400 font-bold">*</span>
             </label>
             <button
               type="button"
@@ -234,6 +277,12 @@ export function SanityChecker({ onCalculate, loading }) {
               </div>
             </button>
           </div>
+          {attemptedSubmit && isCoverageMissing && (
+            <p className="text-xs text-rose-400 mt-2.5 flex items-center gap-1.5">
+              <AlertCircle className="w-3.5 h-3.5 shrink-0" />
+              <span>Please select a coverage level to continue.</span>
+            </p>
+          )}
         </div>
 
         {/* Coverage Details Modal */}
@@ -319,24 +368,33 @@ export function SanityChecker({ onCalculate, loading }) {
           </div>
         )}
 
-        {/* Step 2: Location (Postal code prefix FSA) */}
+        {/* Step 2: Location (Postal code or prefix FSA) */}
         <div>
           <label className="block text-xs font-bold uppercase tracking-wider text-slate-400 mb-1 flex items-center gap-1.5">
             <MapPin className="w-4 h-4 text-emerald-400" />
-            Postal code prefix (FSA)
+            Postal code or prefix (FSA)
+            <span className="text-rose-400 font-bold">*</span>
           </label>
           <span className="text-[11px] text-slate-500 block mb-2">
-            The first 3 characters of your postal code (e.g. M4N, L6P)
+            Enter the first 3 characters (e.g. M4G) or your full postal code (e.g. M4N 0A5)
           </span>
           <div className="flex flex-col sm:flex-row gap-3 items-start sm:items-center">
-            <div className="w-full sm:w-48">
+            <div className="w-full sm:w-56">
               <input
                 type="text"
-                maxLength={3}
-                placeholder="e.g. M4N"
+                maxLength={7}
+                placeholder="e.g. M4N or M4N 0A5"
                 value={formData.postalCode}
-                onChange={(e) => setFormData({ ...formData, postalCode: e.target.value.toUpperCase() })}
-                className="w-full bg-slate-950 border border-slate-700/80 rounded-xl px-4 py-2.5 text-base font-mono uppercase text-white tracking-widest text-center focus:outline-none focus:border-emerald-500"
+                onBlur={() => setPostalTouched(true)}
+                onChange={(e) => {
+                  setFormData({ ...formData, postalCode: e.target.value.toUpperCase() });
+                  setPostalTouched(true);
+                }}
+                className={`w-full bg-slate-950 border rounded-xl px-4 py-2.5 text-sm font-mono uppercase text-white tracking-wider text-center focus:outline-none transition ${
+                  showPostalError
+                    ? 'border-rose-500/80 focus:border-rose-400 text-rose-200'
+                    : 'border-slate-700/80 focus:border-emerald-500'
+                }`}
                 required
               />
             </div>
@@ -346,9 +404,12 @@ export function SanityChecker({ onCalculate, loading }) {
                 <button
                   type="button"
                   key={item.fsa}
-                  onClick={() => setFormData({ ...formData, postalCode: item.fsa })}
+                  onClick={() => {
+                    setFormData({ ...formData, postalCode: item.fsa });
+                    setPostalTouched(true);
+                  }}
                   className={`px-2 py-1 rounded-lg border text-xs font-medium transition cursor-pointer ${
-                    formData.postalCode === item.fsa
+                    postalValidation.fsa === item.fsa
                       ? 'bg-emerald-500/20 text-emerald-300 border-emerald-500/40'
                       : 'bg-slate-950/60 text-slate-400 border-slate-800 hover:border-slate-700'
                   }`}
@@ -358,6 +419,18 @@ export function SanityChecker({ onCalculate, loading }) {
               ))}
             </div>
           </div>
+          {showPostalError && (
+            <p className="text-xs text-rose-400 mt-2 flex items-center gap-1.5">
+              <AlertCircle className="w-4 h-4 shrink-0" />
+              <span>{postalValidation.error}</span>
+            </p>
+          )}
+          {postalValidation.isValid && postalValidation.fsa && (
+            <p className="text-[11px] text-emerald-400/90 mt-1.5 flex items-center gap-1">
+              <CheckCircle2 className="w-3.5 h-3.5 shrink-0" />
+              <span>Resolved to Ontario FSA: <strong>{postalValidation.fsa}</strong></span>
+            </p>
+          )}
         </div>
 
         {/* Step 3: Vehicle Information */}
@@ -541,40 +614,69 @@ export function SanityChecker({ onCalculate, loading }) {
           <label className="block text-xs font-bold uppercase tracking-wider text-slate-400 mb-2 flex items-center gap-1.5">
             <User className="w-4 h-4 text-emerald-400" />
             Driver Age & License Experience
+            <span className="text-rose-400 font-bold">*</span>
           </label>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div>
-              <span className="text-[11px] text-slate-500 font-medium block mb-1">Driver Age: <strong className="text-white">{formData.driverAge} yrs</strong></span>
+              <span className="text-[11px] text-slate-500 font-medium block mb-1">
+                Driver Age
+              </span>
               <input
-                type="range"
+                type="number"
                 min="16"
-                max="80"
+                max="99"
+                placeholder="e.g. 28"
                 value={formData.driverAge}
-                onChange={(e) => setFormData({ ...formData, driverAge: parseInt(e.target.value, 10) })}
-                className="w-full accent-emerald-500 cursor-pointer"
+                onChange={(e) =>
+                  setFormData({
+                    ...formData,
+                    driverAge: e.target.value === '' ? '' : parseInt(e.target.value, 10)
+                  })
+                }
+                className={`w-full bg-slate-950 border rounded-xl px-3.5 py-2.5 text-sm text-white placeholder:text-slate-500 focus:outline-none transition ${
+                  attemptedSubmit && isAgeInvalid
+                    ? 'border-rose-500/80 focus:border-rose-400'
+                    : 'border-slate-700/80 focus:border-emerald-500'
+                }`}
+                required
               />
-              <div className="flex justify-between text-[10px] text-slate-500 mt-1">
-                <span>16 (G2 New)</span>
-                <span>35 (Prime)</span>
-                <span>70+ (Senior)</span>
-              </div>
+              <span className="text-[10px] text-slate-500 mt-1 block">Min. 16 years old</span>
+              {attemptedSubmit && isAgeInvalid && (
+                <p className="text-xs text-rose-400 mt-1 flex items-center gap-1">
+                  <AlertCircle className="w-3.5 h-3.5" /> Please enter your driver age (16–99).
+                </p>
+              )}
             </div>
 
             <div>
-              <span className="text-[11px] text-slate-500 font-medium block mb-1">Years with Full G License: <strong className="text-white">{formData.yearsLicensed} yrs</strong></span>
+              <span className="text-[11px] text-slate-500 font-medium block mb-1">
+                Years with Full G License
+              </span>
               <input
-                type="range"
+                type="number"
                 min="0"
-                max="40"
+                max="70"
+                placeholder="e.g. 8"
                 value={formData.yearsLicensed}
-                onChange={(e) => setFormData({ ...formData, yearsLicensed: parseInt(e.target.value, 10) })}
-                className="w-full accent-emerald-500 cursor-pointer"
+                onChange={(e) =>
+                  setFormData({
+                    ...formData,
+                    yearsLicensed: e.target.value === '' ? '' : parseInt(e.target.value, 10)
+                  })
+                }
+                className={`w-full bg-slate-950 border rounded-xl px-3.5 py-2.5 text-sm text-white placeholder:text-slate-500 focus:outline-none transition ${
+                  attemptedSubmit && isYearsInvalid
+                    ? 'border-rose-500/80 focus:border-rose-400'
+                    : 'border-slate-700/80 focus:border-emerald-500'
+                }`}
+                required
               />
-              <div className="flex justify-between text-[10px] text-slate-500 mt-1">
-                <span>0 (Novice)</span>
-                <span>10 yrs</span>
-                <span>30+ yrs</span>
-              </div>
+              <span className="text-[10px] text-slate-500 mt-1 block">0 for novice / newly licensed</span>
+              {attemptedSubmit && isYearsInvalid && (
+                <p className="text-xs text-rose-400 mt-1 flex items-center gap-1">
+                  <AlertCircle className="w-3.5 h-3.5" /> Please enter years with full G license (0 or more).
+                </p>
+              )}
             </div>
           </div>
         </div>
@@ -611,25 +713,39 @@ export function SanityChecker({ onCalculate, loading }) {
           </div>
         </div>
 
-        {/* Anonymous Contribution Opt-in (Hidden when estimating) */}
+        {/* Anonymous Contribution Consent (Required when not estimating) */}
         {!formData.isEstimating && (
-          <label className="flex items-start gap-2.5 cursor-pointer group py-1">
-            <input
-              type="checkbox"
-              checked={formData.shareAnonymously}
-              onChange={(e) => setFormData({ ...formData, shareAnonymously: e.target.checked })}
-              className="w-4 h-4 mt-0.5 rounded border-slate-700 text-emerald-500 focus:ring-emerald-500 focus:ring-offset-slate-900 accent-emerald-500 cursor-pointer"
-            />
-            <span className="text-xs text-slate-400 group-hover:text-emerald-300 transition leading-relaxed">
-              Share my anonymous rate parameters to help build Ontario's open driver benchmark (zero personal data saved)
-            </span>
-          </label>
+          <div className="space-y-1.5 pt-1">
+            <label
+              className={`flex items-start gap-2.5 cursor-pointer group p-3 rounded-xl border transition ${
+                attemptedSubmit && isConsentMissing
+                  ? 'bg-rose-950/20 border-rose-500/40 ring-1 ring-rose-500/30'
+                  : 'bg-slate-950/40 border-slate-800/80 hover:border-slate-700'
+              }`}
+            >
+              <input
+                type="checkbox"
+                checked={formData.shareAnonymously}
+                onChange={(e) => setFormData({ ...formData, shareAnonymously: e.target.checked })}
+                className="w-4 h-4 mt-0.5 rounded border-slate-700 text-emerald-500 focus:ring-emerald-500 focus:ring-offset-slate-900 accent-emerald-500 cursor-pointer shrink-0"
+              />
+              <span className="text-xs text-slate-300 group-hover:text-emerald-300 transition leading-relaxed">
+                I agree to share my anonymous rate parameters to help build Ontario's open driver benchmark (zero personal data saved)
+              </span>
+            </label>
+            {attemptedSubmit && isConsentMissing && (
+              <p className="text-xs text-rose-400 flex items-center gap-1.5 px-1 font-medium">
+                <AlertCircle className="w-3.5 h-3.5 shrink-0" />
+                <span>Please agree to share anonymous rate parameters to proceed.</span>
+              </p>
+            )}
+          </div>
         )}
 
         {/* Submit CTA */}
         <button
           type="submit"
-          disabled={loading || isPremiumInvalid || (!formData.isEstimating && !formData.insuranceCompany) || isVehicleIncomplete}
+          disabled={loading || (attemptedSubmit && !isFormValid)}
           className="w-full py-4 px-6 rounded-2xl font-extrabold text-base text-slate-950 bg-gradient-to-r from-emerald-400 via-teal-300 to-emerald-400 hover:opacity-95 transition shadow-lg shadow-emerald-500/25 flex items-center justify-center gap-2 cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed"
         >
           {loading ? (
@@ -637,9 +753,25 @@ export function SanityChecker({ onCalculate, loading }) {
               <Loader2 className="w-5 h-5 animate-spin" />
               <span>Analyzing Ontario Benchmarks...</span>
             </>
-          ) : isVehicleIncomplete ? (
+          ) : !isFormValid ? (
             <>
-              <span>Select vehicle details to compare</span>
+              <span>
+                {isCoverageMissing
+                  ? 'Choose coverage level to start'
+                  : !postalValidation.isValid
+                  ? 'Enter postal code or FSA'
+                  : isVehicleIncomplete
+                  ? 'Select vehicle details'
+                  : !formData.isEstimating && isPremiumInvalid
+                  ? 'Enter monthly premium'
+                  : !formData.isEstimating && !formData.insuranceCompany
+                  ? 'Select your insurance company'
+                  : isAgeInvalid || isYearsInvalid
+                  ? 'Enter driver age & experience'
+                  : isConsentMissing
+                  ? 'Agree to share to continue'
+                  : 'Complete form to compare'}
+              </span>
               <ArrowRight className="w-5 h-5 opacity-40" />
             </>
           ) : (
