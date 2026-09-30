@@ -18,7 +18,19 @@ def trigger_deploy():
     except Exception as e:
         print(f"[DEPLOY WARNING] Pre-deploy backup encountered error: {e}")
 
-    # 2. Trigger Render deploy hook
+    # 2. Check if server/initialData.js was updated by live backup, commit and push
+    try:
+        status = subprocess.run(["git", "status", "--porcelain", "server/initialData.js"], capture_output=True, text=True).stdout.strip()
+        if status:
+            print("[DEPLOY] Live database state updated, committing server/initialData.js...")
+            subprocess.run(["git", "add", "server/initialData.js"], check=True)
+            subprocess.run(["git", "commit", "-m", "chore(data): auto-sync platform data snapshot before deploy"], check=True)
+            subprocess.run(["git", "push", "origin", "main"], check=True)
+            print("[DEPLOY] Pushed latest data snapshot to main.")
+    except Exception as e:
+        print(f"[DEPLOY WARNING] Error auto-committing data snapshot: {e}")
+
+    # 3. Trigger Render deploy hook
     if not HOOK_URL:
         print("ERROR: RENDER_DEPLOY_HOOK is not set in .env")
         return False

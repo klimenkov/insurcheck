@@ -2,6 +2,7 @@ import { DatabaseSync } from 'node:sqlite';
 import path from 'node:path';
 import fs from 'node:fs';
 import { fileURLToPath } from 'node:url';
+import { initialStats } from './initialData.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -163,15 +164,21 @@ export function ensureStatsInitialized() {
     ON CONFLICT(key) DO NOTHING
   `);
 
+  const checksFloor = (initialStats && typeof initialStats.total_checks_run === 'number')
+    ? initialStats.total_checks_run
+    : 12;
+
   initStat.run('total_money_saved', 2700);
   initStat.run('avg_monthly_overpay', 0);
-  initStat.run('total_checks_run', 12);
+  initStat.run('total_checks_run', checksFloor);
 
-  // If total_checks_run was inflated by the mock offset (>= 1000), restore the genuine real testing check count
+  // If total_checks_run was inflated by the mock offset (>= 1000), restore real check count
   const row = db.prepare("SELECT value FROM platform_stats WHERE key = 'total_checks_run'").get();
   if (row && row.value >= 1000) {
-    const realCount = Math.max(12, row.value - 1420);
+    const realCount = Math.max(checksFloor, row.value - 1420);
     db.prepare("UPDATE platform_stats SET value = ? WHERE key = 'total_checks_run'").run(realCount);
+  } else if (row && row.value < checksFloor) {
+    db.prepare("UPDATE platform_stats SET value = ? WHERE key = 'total_checks_run'").run(checksFloor);
   }
 }
 

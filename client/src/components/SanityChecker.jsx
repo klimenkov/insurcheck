@@ -324,23 +324,23 @@ export function SanityChecker({ onCalculate, loading }) {
           )}
         </div>
 
-        {/* Coverage Details Modal (INS-57) */}
+        {/* Coverage Details Modal (INS-57 & INS-58 mobile fix) */}
         {coverageInfoOpen && (
           <div
-            className="fixed inset-0 z-[1000] flex items-center justify-center p-3 sm:p-4 bg-slate-950/85 backdrop-blur-md overflow-y-auto overscroll-contain animate-in fade-in duration-200"
+            className="fixed inset-0 z-[1000] flex items-center justify-center p-2.5 sm:p-4 bg-slate-950/85 backdrop-blur-md animate-in fade-in duration-200"
             onClick={(e) => {
               if (e.target === e.currentTarget) setCoverageInfoOpen(false);
             }}
           >
-            <div className="bg-slate-900 border border-slate-800 rounded-3xl max-w-2xl w-full max-h-[90vh] sm:max-h-[85vh] flex flex-col shadow-2xl relative overflow-hidden my-auto">
+            <div className="bg-slate-900 border border-slate-800 rounded-2xl sm:rounded-3xl max-w-2xl w-full h-[90dvh] sm:h-auto sm:max-h-[85vh] flex flex-col shadow-2xl relative overflow-hidden">
               {/* Sticky Modal Header */}
-              <div className="p-5 sm:p-6 pb-4 border-b border-slate-800/80 flex items-start justify-between gap-4 sticky top-0 bg-slate-900/95 backdrop-blur-md z-10 shrink-0">
+              <div className="p-4 sm:p-6 pb-3 sm:pb-4 border-b border-slate-800/80 flex items-start justify-between gap-3 sticky top-0 bg-slate-900/95 backdrop-blur-md z-10 shrink-0">
                 <div>
                   <div className="flex items-center gap-2 mb-1 text-emerald-400 text-xs font-bold uppercase tracking-wider">
                     <ShieldCheck className="w-4 h-4" />
                     Ontario Auto Insurance Tiers
                   </div>
-                  <h3 className="text-xl sm:text-2xl font-black text-white">Coverage Level Breakdown</h3>
+                  <h3 className="text-lg sm:text-2xl font-black text-white leading-tight">Coverage Level Breakdown</h3>
                   <p className="text-xs sm:text-sm text-slate-400 mt-1">
                     Understand what is covered under each package as mandated and regulated by FSRA in Ontario.
                   </p>
@@ -348,7 +348,7 @@ export function SanityChecker({ onCalculate, loading }) {
                 <button
                   type="button"
                   onClick={() => setCoverageInfoOpen(false)}
-                  className="p-2.5 rounded-xl text-slate-400 hover:text-white hover:bg-slate-800 transition cursor-pointer shrink-0 touch-manipulation"
+                  className="p-2 sm:p-2.5 rounded-xl text-slate-400 hover:text-white hover:bg-slate-800 transition cursor-pointer shrink-0 touch-manipulation min-w-[40px] min-h-[40px] flex items-center justify-center"
                   title="Close"
                   aria-label="Close coverage details"
                 >
@@ -356,9 +356,12 @@ export function SanityChecker({ onCalculate, loading }) {
                 </button>
               </div>
 
-              {/* Scrollable Content Body */}
-              <div className="p-5 sm:p-6 overflow-y-auto space-y-4 overscroll-contain flex-1">
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+              {/* Scrollable Content Body with min-h-0 for proper mobile flex scrolling */}
+              <div
+                className="p-4 sm:p-6 overflow-y-auto space-y-4 overscroll-contain flex-1 min-h-0"
+                style={{ WebkitOverflowScrolling: 'touch' }}
+              >
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4">
                   {/* Basic */}
                   <div className="bg-slate-950/70 border border-slate-800 rounded-2xl p-4 flex flex-col justify-between">
                     <div>

@@ -3,6 +3,8 @@ import sys
 import json
 import shutil
 import datetime
+import hashlib
+import subprocess
 import requests
 
 if sys.platform == "win32":
@@ -15,6 +17,9 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 BACKUP_DIR = os.path.join(BASE_DIR, "backups")
 LOCAL_DB = os.path.join(BASE_DIR, "server", "insurcheck.db")
 PROD_BASE_URL = os.getenv("PROD_BASE_URL", "https://insurcheck.ca")
+
+ADMIN_PASSWORD = os.getenv("ADMIN_PASSWORD", "insurcheck2026")
+EXPECTED_TOKEN = hashlib.sha256(f"{ADMIN_PASSWORD}:insurcheck_salt_2026".encode("utf-8")).hexdigest()
 
 def ensure_backup_dir():
     os.makedirs(BACKUP_DIR, exist_ok=True)
@@ -44,6 +49,8 @@ def backup_live_production():
         "submissions": [],
         "insurers": [],
         "reviews": {},
+        "feedback": [],
+        "leads": [],
         "scraped_quotes": []
     }
 
@@ -79,6 +86,22 @@ def backup_live_production():
     except Exception as e:
         print(f"[BACKUP WARNING] Failed to fetch insurers: {e}")
 
+    # Fetch admin protected data (feedback & leads)
+    admin_headers = {"Authorization": f"Bearer {EXPECTED_TOKEN}"}
+    try:
+        r_fb = requests.get(f"{PROD_BASE_URL}/api/admin/feedback", headers=admin_headers, timeout=10)
+        if r_fb.status_code == 200:
+            backup_data["feedback"] = r_fb.json().get("data", [])
+    except Exception as e:
+        print(f"[BACKUP WARNING] Failed to fetch feedback: {e}")
+
+    try:
+        r_leads = requests.get(f"{PROD_BASE_URL}/api/admin/leads", headers=admin_headers, timeout=10)
+        if r_leads.status_code == 200:
+            backup_data["leads"] = r_leads.json().get("data", [])
+    except Exception as e:
+        print(f"[BACKUP WARNING] Failed to fetch leads: {e}")
+
     with open(backup_file, "w", encoding="utf-8") as f:
         json.dump(backup_data, f, indent=2, ensure_ascii=False)
 
@@ -87,7 +110,10 @@ def backup_live_production():
 
     sub_count = len(backup_data["submissions"])
     rev_count = sum(len(v) for v in backup_data["reviews"].values())
-    print(f"[BACKUP OK] Production snapshot complete: {sub_count} submissions, {rev_count} reviews saved to {backup_file}")
+    fb_count = len(backup_data["feedback"])
+    leads_count = len(backup_data["leads"])
+    print(f"[BACKUP OK] Production snapshot complete: {sub_count} submissions, {rev_count} reviews, {fb_count} feedback, {leads_count} leads saved to {backup_file}")
+
     return backup_file
 
 if __name__ == "__main__":

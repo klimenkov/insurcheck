@@ -15,15 +15,22 @@ import { contactRouter } from './routes/contact.js';
 import { adminRouter } from './routes/admin.js';
 import { feedbackRouter } from './routes/feedback.js';
 import { ensureQuotesPopulated } from './seedQuotes.js';
-import { ensureInsurersPopulated, ensureSubmissionsPopulated } from './seedInsurers.js';
+import {
+  ensureInsurersPopulated,
+  ensureSubmissionsPopulated,
+  ensureFeedbackPopulated,
+  ensureLeadsPopulated
+} from './seedInsurers.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-// Ensure insurers, quotes, submissions and rate dynamics are populated in SQLite
+// Ensure insurers, quotes, submissions, feedback, leads and rate dynamics are populated in SQLite
 ensureInsurersPopulated();
 ensureQuotesPopulated();
 ensureSubmissionsPopulated();
+ensureFeedbackPopulated();
+ensureLeadsPopulated();
 
 const app = express();
 const PORT = process.env.PORT || 5000;
