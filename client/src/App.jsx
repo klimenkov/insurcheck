@@ -194,7 +194,15 @@ export default function App() {
       <footer className="border-t border-slate-900 bg-slate-950 py-8 text-center text-xs text-slate-500">
         <p>InsurCheck Ontario • Open benchmark project designed for driver rate transparency.</p>
         <p className="mt-1">Not affiliated with FSRA or insurance providers. Estimates are for informational sanity-checks.</p>
-        <p className="mt-3 flex items-center justify-center gap-2">
+        <p className="mt-3 flex flex-wrap items-center justify-center gap-2">
+          <button
+            type="button"
+            onClick={() => setFsraModalOpen(true)}
+            className="hover:text-emerald-400 text-slate-400 transition cursor-pointer font-medium"
+          >
+            Actuarial Model ℹ️
+          </button>
+          <span>·</span>
           <button
             type="button"
             onClick={() => navigateTab('terms', '/terms')}

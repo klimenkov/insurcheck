@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Car, MapPin, User, Shield, DollarSign, ArrowRight, Loader2, Sparkles, ShieldCheck, CheckCircle2, Building2, Users, ChevronDown, Minus, Plus, AlertCircle, Info, X } from 'lucide-react';
 import { VEHICLE_OPTIONS, POPULAR_FSAS } from '../data/vehicles.js';
 import { SearchableSelect } from './SearchableSelect.jsx';
@@ -29,6 +29,22 @@ export function SanityChecker({ onCalculate, loading }) {
   const [coverageInfoOpen, setCoverageInfoOpen] = useState(false);
   const [attemptedSubmit, setAttemptedSubmit] = useState(false);
   const [postalTouched, setPostalTouched] = useState(false);
+
+  // Lock body scroll and handle ESC when coverage info modal is open
+  useEffect(() => {
+    if (coverageInfoOpen) {
+      const originalOverflow = document.body.style.overflow;
+      document.body.style.overflow = 'hidden';
+      const handleKeyDown = (e) => {
+        if (e.key === 'Escape') setCoverageInfoOpen(false);
+      };
+      window.addEventListener('keydown', handleKeyDown);
+      return () => {
+        document.body.style.overflow = originalOverflow;
+        window.removeEventListener('keydown', handleKeyDown);
+      };
+    }
+  }, [coverageInfoOpen]);
 
   // Postal code validation & FSA extraction
   const postalValidation = parseAndValidatePostalCode(formData.postalCode);
@@ -298,85 +314,101 @@ export function SanityChecker({ onCalculate, loading }) {
           )}
         </div>
 
-        {/* Coverage Details Modal */}
+        {/* Coverage Details Modal (INS-57) */}
         {coverageInfoOpen && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-md">
-            <div className="bg-slate-900 border border-slate-800 rounded-3xl max-w-2xl w-full p-6 sm:p-8 shadow-2xl relative">
-              <button
-                type="button"
-                onClick={() => setCoverageInfoOpen(false)}
-                className="absolute top-6 right-6 p-2 rounded-xl text-slate-400 hover:text-white hover:bg-slate-800 transition cursor-pointer"
-                title="Close"
-              >
-                <X className="w-5 h-5" />
-              </button>
-
-              <div className="flex items-center gap-2 mb-2 text-emerald-400 text-xs font-bold uppercase tracking-wider">
-                <ShieldCheck className="w-4 h-4" />
-                Ontario Auto Insurance Tiers
-              </div>
-              <h3 className="text-xl sm:text-2xl font-black text-white mb-2">Coverage Level Breakdown</h3>
-              <p className="text-xs sm:text-sm text-slate-400 mb-6">
-                Understand what is covered under each package as mandated and regulated by FSRA in Ontario.
-              </p>
-
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                {/* Basic */}
-                <div className="bg-slate-950/70 border border-slate-800 rounded-2xl p-4 flex flex-col justify-between">
-                  <div>
-                    <div className="font-extrabold text-sm text-white mb-1">Basic</div>
-                    <div className="text-[11px] text-emerald-400 font-semibold mb-3">Lowest price · Minimum coverage</div>
-                    <ul className="space-y-1.5 text-xs text-slate-300">
-                      <li className="flex items-start gap-1.5"><span>•</span><span>Mandatory Ontario coverage</span></li>
-                      <li className="flex items-start gap-1.5"><span>•</span><span>$200,000 liability</span></li>
-                      <li className="flex items-start gap-1.5"><span>•</span><span>DCPD</span></li>
-                      <li className="flex items-start gap-1.5 text-slate-400"><span>•</span><span>No collision</span></li>
-                      <li className="flex items-start gap-1.5 text-slate-400"><span>•</span><span>No comprehensive</span></li>
-                      <li className="flex items-start gap-1.5 text-amber-400/90 font-medium"><span>•</span><span>Higher out-of-pocket risk</span></li>
-                    </ul>
+          <div
+            className="fixed inset-0 z-[1000] flex items-center justify-center p-3 sm:p-4 bg-slate-950/85 backdrop-blur-md overflow-y-auto overscroll-contain animate-in fade-in duration-200"
+            onClick={(e) => {
+              if (e.target === e.currentTarget) setCoverageInfoOpen(false);
+            }}
+          >
+            <div className="bg-slate-900 border border-slate-800 rounded-3xl max-w-2xl w-full max-h-[90vh] sm:max-h-[85vh] flex flex-col shadow-2xl relative overflow-hidden my-auto">
+              {/* Sticky Modal Header */}
+              <div className="p-5 sm:p-6 pb-4 border-b border-slate-800/80 flex items-start justify-between gap-4 sticky top-0 bg-slate-900/95 backdrop-blur-md z-10 shrink-0">
+                <div>
+                  <div className="flex items-center gap-2 mb-1 text-emerald-400 text-xs font-bold uppercase tracking-wider">
+                    <ShieldCheck className="w-4 h-4" />
+                    Ontario Auto Insurance Tiers
                   </div>
+                  <h3 className="text-xl sm:text-2xl font-black text-white">Coverage Level Breakdown</h3>
+                  <p className="text-xs sm:text-sm text-slate-400 mt-1">
+                    Understand what is covered under each package as mandated and regulated by FSRA in Ontario.
+                  </p>
                 </div>
-
-                {/* Standard */}
-                <div className="bg-slate-950/70 border border-emerald-500/40 rounded-2xl p-4 ring-1 ring-emerald-500/20 flex flex-col justify-between">
-                  <div>
-                    <div className="font-extrabold text-sm text-emerald-300 mb-1">Standard</div>
-                    <div className="text-[11px] text-emerald-400 font-semibold mb-3">Typical coverage · Balanced protection</div>
-                    <ul className="space-y-1.5 text-xs text-slate-300">
-                      <li className="flex items-start gap-1.5"><span>•</span><span>$1M liability</span></li>
-                      <li className="flex items-start gap-1.5"><span>•</span><span>DCPD</span></li>
-                      <li className="flex items-start gap-1.5"><span>•</span><span>Comprehensive</span></li>
-                      <li className="flex items-start gap-1.5 text-slate-400"><span>•</span><span>$500 deductible</span></li>
-                      <li className="flex items-start gap-1.5"><span>•</span><span>Collision</span></li>
-                      <li className="flex items-start gap-1.5 text-slate-400"><span>•</span><span>$500 deductible</span></li>
-                    </ul>
-                  </div>
-                </div>
-
-                {/* Full */}
-                <div className="bg-slate-950/70 border border-slate-800 rounded-2xl p-4 flex flex-col justify-between">
-                  <div>
-                    <div className="font-extrabold text-sm text-white mb-1">Full</div>
-                    <div className="text-[11px] text-emerald-400 font-semibold mb-3">More protection · Lower out-of-pocket costs</div>
-                    <ul className="space-y-1.5 text-xs text-slate-300">
-                      <li className="flex items-start gap-1.5"><span>•</span><span>$2M liability</span></li>
-                      <li className="flex items-start gap-1.5"><span>•</span><span>DCPD</span></li>
-                      <li className="flex items-start gap-1.5"><span>•</span><span>Comprehensive</span></li>
-                      <li className="flex items-start gap-1.5 text-slate-400"><span>•</span><span>Lower deductibles</span></li>
-                      <li className="flex items-start gap-1.5"><span>•</span><span>Collision</span></li>
-                      <li className="flex items-start gap-1.5 text-emerald-400 font-medium"><span>•</span><span>Higher protection overall</span></li>
-                    </ul>
-                  </div>
-                </div>
+                <button
+                  type="button"
+                  onClick={() => setCoverageInfoOpen(false)}
+                  className="p-2.5 rounded-xl text-slate-400 hover:text-white hover:bg-slate-800 transition cursor-pointer shrink-0 touch-manipulation"
+                  title="Close"
+                  aria-label="Close coverage details"
+                >
+                  <X className="w-5 h-5" />
+                </button>
               </div>
 
-              <button
-                type="button"
-                onClick={() => setCoverageInfoOpen(false)}
-                className="mt-6 w-full py-3 bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold rounded-xl text-sm transition cursor-pointer"
-              >
-                Close
-              </button>
+              {/* Scrollable Content Body */}
+              <div className="p-5 sm:p-6 overflow-y-auto space-y-4 overscroll-contain flex-1">
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                  {/* Basic */}
+                  <div className="bg-slate-950/70 border border-slate-800 rounded-2xl p-4 flex flex-col justify-between">
+                    <div>
+                      <div className="font-extrabold text-sm text-white mb-1">Basic</div>
+                      <div className="text-[11px] text-emerald-400 font-semibold mb-3">Lowest price · Minimum coverage</div>
+                      <ul className="space-y-1.5 text-xs text-slate-300">
+                        <li className="flex items-start gap-1.5"><span>•</span><span>Mandatory Ontario coverage</span></li>
+                        <li className="flex items-start gap-1.5"><span>•</span><span>$200,000 liability</span></li>
+                        <li className="flex items-start gap-1.5"><span>•</span><span>DCPD</span></li>
+                        <li className="flex items-start gap-1.5 text-slate-400"><span>•</span><span>No collision</span></li>
+                        <li className="flex items-start gap-1.5 text-slate-400"><span>•</span><span>No comprehensive</span></li>
+                        <li className="flex items-start gap-1.5 text-amber-400/90 font-medium"><span>•</span><span>Higher out-of-pocket risk</span></li>
+                      </ul>
+                    </div>
+                  </div>
+
+                  {/* Standard */}
+                  <div className="bg-slate-950/70 border border-emerald-500/40 rounded-2xl p-4 ring-1 ring-emerald-500/20 flex flex-col justify-between">
+                    <div>
+                      <div className="font-extrabold text-sm text-emerald-300 mb-1">Standard</div>
+                      <div className="text-[11px] text-emerald-400 font-semibold mb-3">Typical coverage · Balanced protection</div>
+                      <ul className="space-y-1.5 text-xs text-slate-300">
+                        <li className="flex items-start gap-1.5"><span>•</span><span>$1M liability</span></li>
+                        <li className="flex items-start gap-1.5"><span>•</span><span>DCPD</span></li>
+                        <li className="flex items-start gap-1.5"><span>•</span><span>Comprehensive</span></li>
+                        <li className="flex items-start gap-1.5 text-slate-400"><span>•</span><span>$500 deductible</span></li>
+                        <li className="flex items-start gap-1.5"><span>•</span><span>Collision</span></li>
+                        <li className="flex items-start gap-1.5 text-slate-400"><span>•</span><span>$500 deductible</span></li>
+                      </ul>
+                    </div>
+                  </div>
+
+                  {/* Full */}
+                  <div className="bg-slate-950/70 border border-slate-800 rounded-2xl p-4 flex flex-col justify-between">
+                    <div>
+                      <div className="font-extrabold text-sm text-white mb-1">Full</div>
+                      <div className="text-[11px] text-emerald-400 font-semibold mb-3">More protection · Lower out-of-pocket costs</div>
+                      <ul className="space-y-1.5 text-xs text-slate-300">
+                        <li className="flex items-start gap-1.5"><span>•</span><span>$2M liability</span></li>
+                        <li className="flex items-start gap-1.5"><span>•</span><span>DCPD</span></li>
+                        <li className="flex items-start gap-1.5"><span>•</span><span>Comprehensive</span></li>
+                        <li className="flex items-start gap-1.5 text-slate-400"><span>•</span><span>Lower deductibles</span></li>
+                        <li className="flex items-start gap-1.5"><span>•</span><span>Collision</span></li>
+                        <li className="flex items-start gap-1.5 text-emerald-400 font-medium"><span>•</span><span>Higher protection overall</span></li>
+                      </ul>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Sticky Modal Footer */}
+              <div className="p-4 sm:p-5 pt-3 border-t border-slate-800/80 bg-slate-900/95 shrink-0">
+                <button
+                  type="button"
+                  onClick={() => setCoverageInfoOpen(false)}
+                  className="w-full py-3 bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold rounded-xl text-sm transition cursor-pointer touch-manipulation"
+                >
+                  Close
+                </button>
+              </div>
             </div>
           </div>
         )}

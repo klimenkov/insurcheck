@@ -3,7 +3,7 @@ import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import { FSA_COORDINATES } from '../data/fsaCoordinates.js';
 
-export function InteractiveMap({ territories, selectedTier, searchQuery, onSelectFsa }) {
+export function InteractiveMap({ territories, selectedTier, searchQuery, onSelectFsa, isModalOpen }) {
   const mapContainerRef = useRef(null);
   const mapInstanceRef = useRef(null);
   const layerGroupRef = useRef(null);
@@ -148,6 +148,9 @@ export function InteractiveMap({ territories, selectedTier, searchQuery, onSelec
       });
 
       coreCircle.on('click', () => {
+        if (mapInstanceRef.current) {
+          mapInstanceRef.current.closePopup();
+        }
         if (onSelectFsa) onSelectFsa(item);
       });
 
@@ -164,8 +167,12 @@ export function InteractiveMap({ territories, selectedTier, searchQuery, onSelec
 
   return (
     <div className="relative rounded-3xl overflow-hidden border border-slate-800 bg-slate-950 shadow-2xl">
-      {/* Map Jumper Bar */}
-      <div className="absolute top-4 left-4 z-[400] flex flex-wrap gap-1.5 bg-slate-900/90 backdrop-blur-md p-1.5 rounded-2xl border border-slate-800 shadow-xl max-w-[calc(100%-2rem)]">
+      {/* Map Jumper Bar (INS-58: hidden/fade when modal is open) */}
+      <div
+        className={`absolute top-4 left-4 z-[400] flex flex-wrap gap-1.5 bg-slate-900/90 backdrop-blur-md p-1.5 rounded-2xl border border-slate-800 shadow-xl max-w-[calc(100%-2rem)] transition-opacity duration-200 ${
+          isModalOpen ? 'opacity-0 pointer-events-none' : 'opacity-100'
+        }`}
+      >
         <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider self-center px-2">Jump to:</span>
         <button
           type="button"
@@ -204,8 +211,12 @@ export function InteractiveMap({ territories, selectedTier, searchQuery, onSelec
         </button>
       </div>
 
-      {/* Map Legend Overlay */}
-      <div className="absolute bottom-4 right-4 z-[400] bg-slate-900/90 backdrop-blur-md p-3.5 rounded-2xl border border-slate-800 shadow-xl pointer-events-auto text-xs space-y-1.5">
+      {/* Map Legend Overlay (INS-58: hidden/fade when modal is open) */}
+      <div
+        className={`absolute bottom-4 right-4 z-[400] bg-slate-900/90 backdrop-blur-md p-3.5 rounded-2xl border border-slate-800 shadow-xl pointer-events-auto text-xs space-y-1.5 transition-opacity duration-200 ${
+          isModalOpen ? 'opacity-0 pointer-events-none' : 'opacity-100'
+        }`}
+      >
         <div className="text-[10px] font-extrabold uppercase tracking-wider text-slate-400 mb-2">
           Territorial Heat Legend
         </div>
@@ -228,7 +239,10 @@ export function InteractiveMap({ territories, selectedTier, searchQuery, onSelec
       </div>
 
       {/* Actual Map Container */}
-      <div ref={mapContainerRef} className="w-full h-[540px] sm:h-[620px] bg-slate-950 z-0" />
+      <div
+        ref={mapContainerRef}
+        className={`w-full h-[540px] sm:h-[620px] bg-slate-950 z-0 ${isModalOpen ? 'pointer-events-none' : ''}`}
+      />
     </div>
   );
 }
