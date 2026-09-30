@@ -6,13 +6,30 @@ import { initialStats } from './initialData.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
-const dbPath = process.env.DB_PATH || path.join(__dirname, 'insurcheck.db');
+const defaultPath = fs.existsSync('/data')
+  ? '/data/insurcheck.db'
+  : path.join(__dirname, 'insurcheck.db');
+
+export const dbPath = process.env.DB_PATH || defaultPath;
 
 // Ensure parent directory exists (critical for persistent volume mounts like /data)
 try {
   fs.mkdirSync(path.dirname(dbPath), { recursive: true });
 } catch (e) {
   console.warn('Could not create directory for database:', e.message);
+}
+
+// If persistent volume /data is mounted and target DB doesn't exist yet, migrate existing DB if present
+if (fs.existsSync('/data') && dbPath.startsWith('/data') && !fs.existsSync(dbPath)) {
+  const localDb = path.join(__dirname, 'insurcheck.db');
+  if (fs.existsSync(localDb)) {
+    try {
+      fs.copyFileSync(localDb, dbPath);
+      console.log(`Migrated initial database from ${localDb} to persistent ${dbPath}`);
+    } catch (e) {
+      console.warn('Could not copy local DB to persistent mount:', e.message);
+    }
+  }
 }
 
 export const db = new DatabaseSync(dbPath);

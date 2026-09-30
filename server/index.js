@@ -14,6 +14,8 @@ import { territoriesRouter } from './routes/territories.js';
 import { contactRouter } from './routes/contact.js';
 import { adminRouter } from './routes/admin.js';
 import { feedbackRouter } from './routes/feedback.js';
+import fs from 'node:fs';
+import { dbPath } from './db.js';
 import { ensureQuotesPopulated } from './seedQuotes.js';
 import {
   ensureInsurersPopulated,
@@ -52,7 +54,14 @@ app.use('/api/feedback', feedbackRouter);
 
 // Health check
 app.get('/api/health', (req, res) => {
-  res.json({ status: 'healthy', timestamp: new Date().toISOString() });
+  res.json({
+    status: 'healthy',
+    timestamp: new Date().toISOString(),
+    dbPath,
+    dataMounted: fs.existsSync('/data'),
+    dbExists: fs.existsSync(dbPath),
+    dbSize: fs.existsSync(dbPath) ? fs.statSync(dbPath).size : 0
+  });
 });
 
 // Serve client in production if built
