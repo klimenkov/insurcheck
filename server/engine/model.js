@@ -3,7 +3,7 @@ import { FSA_RISK_MAP, VEHICLE_RISK_MAP } from './ontarioData.js';
 /**
  * Normalizes vehicle keys to match VEHICLE_RISK_MAP variations.
  */
-function resolveVehicleInfo(make, model) {
+export function resolveVehicleInfo(make, model) {
   const rawMake = (make || '').trim().toUpperCase();
   const rawModel = (model || '').trim().toUpperCase();
 

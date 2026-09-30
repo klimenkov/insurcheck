@@ -1,10 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { Car, MapPin, User, Shield, DollarSign, ArrowRight, Loader2, Sparkles, ShieldCheck, CheckCircle2, Building2, Users, ChevronDown, Minus, Plus, AlertCircle, Info, X } from 'lucide-react';
-import { VEHICLE_OPTIONS, POPULAR_FSAS } from '../data/vehicles.js';
+import { VEHICLE_OPTIONS, POPULAR_MAKES, ALL_MAKES, getModelsForMake, getYearsForModel, POPULAR_FSAS } from '../data/vehicles.js';
 import { SearchableSelect } from './SearchableSelect.jsx';
 import { parseAndValidatePostalCode } from '../utils/postalCode.js';
-
-const YEAR_OPTIONS = Array.from({ length: 27 }, (_, i) => 2026 - i);
 
 export function SanityChecker({ onCalculate, loading }) {
   const [formData, setFormData] = useState({
@@ -67,10 +65,9 @@ export function SanityChecker({ onCalculate, loading }) {
   // Coverage level validation
   const isCoverageMissing = !formData.coverageLevel;
 
-  // Vehicle details validation
-  const currentModels = formData.vehicleMake
-    ? (VEHICLE_OPTIONS.find(v => v.make.toLowerCase() === formData.vehicleMake.toLowerCase())?.models || ['Standard Model'])
-    : [];
+  // Vehicle details validation & dynamic models/years
+  const currentModels = getModelsForMake(formData.vehicleMake);
+  const availableYears = getYearsForModel(formData.vehicleMake, formData.vehicleModel);
 
   const isVehicleIncomplete = !formData.vehicleMake || !formData.vehicleModel || !formData.vehicleYear;
 
@@ -97,8 +94,21 @@ export function SanityChecker({ onCalculate, loading }) {
     setFormData(prev => ({
       ...prev,
       vehicleMake: make,
-      vehicleModel: ''
+      vehicleModel: '',
+      vehicleYear: ''
     }));
+  };
+
+  const handleModelChange = (model) => {
+    setFormData(prev => {
+      const validYears = getYearsForModel(prev.vehicleMake, model);
+      const isCurrentYearValid = prev.vehicleYear && validYears.includes(Number(prev.vehicleYear));
+      return {
+        ...prev,
+        vehicleModel: model,
+        vehicleYear: isCurrentYearValid ? prev.vehicleYear : ''
+      };
+    });
   };
 
   const handleSubmit = (e) => {
@@ -491,7 +501,10 @@ export function SanityChecker({ onCalculate, loading }) {
               <SearchableSelect
                 value={formData.vehicleMake}
                 onChange={handleMakeChange}
-                options={VEHICLE_OPTIONS.map((v) => v.make)}
+                sections={[
+                  { title: 'Popular brands', options: POPULAR_MAKES },
+                  { title: 'All brands', options: ALL_MAKES }
+                ]}
                 placeholder="Select or type a make"
               />
             </div>
@@ -501,9 +514,9 @@ export function SanityChecker({ onCalculate, loading }) {
               <span className="text-[11px] text-slate-500 font-medium block mb-1">Car model</span>
               <SearchableSelect
                 value={formData.vehicleModel}
-                onChange={(model) => setFormData((prev) => ({ ...prev, vehicleModel: model }))}
+                onChange={handleModelChange}
                 options={currentModels}
-                placeholder="Select or type a model"
+                placeholder={formData.vehicleMake ? "Select or type a model" : "Select make first"}
                 disabled={!formData.vehicleMake}
               />
             </div>
@@ -514,22 +527,25 @@ export function SanityChecker({ onCalculate, loading }) {
               <div className="relative">
                 <select
                   value={formData.vehicleYear}
+                  disabled={!formData.vehicleMake}
                   onChange={(e) =>
                     setFormData((prev) => ({
                       ...prev,
                       vehicleYear: e.target.value ? parseInt(e.target.value, 10) : ''
                     }))
                   }
-                  className={`w-full bg-slate-950 border rounded-xl pl-3.5 pr-8 py-2.5 text-sm transition appearance-none cursor-pointer focus:outline-none focus:border-emerald-500 ${
-                    formData.vehicleYear
-                      ? 'text-white border-slate-700/80 hover:border-slate-600'
-                      : 'text-slate-500 border-slate-700/80 hover:border-slate-600'
+                  className={`w-full bg-slate-950 border rounded-xl pl-3.5 pr-8 py-2.5 text-sm transition appearance-none focus:outline-none focus:border-emerald-500 ${
+                    !formData.vehicleMake
+                      ? 'opacity-40 cursor-not-allowed border-slate-800 text-slate-500 bg-slate-950/40 select-none'
+                      : formData.vehicleYear
+                      ? 'text-white border-slate-700/80 hover:border-slate-600 cursor-pointer'
+                      : 'text-slate-500 border-slate-700/80 hover:border-slate-600 cursor-pointer'
                   }`}
                 >
                   <option value="" disabled className="text-slate-500 bg-slate-950">
-                    Select year
+                    {formData.vehicleMake ? "Select year" : "Select make first"}
                   </option>
-                  {YEAR_OPTIONS.map((yr) => (
+                  {availableYears.map((yr) => (
                     <option key={yr} value={yr} className="text-white bg-slate-900">
                       {yr}
                     </option>

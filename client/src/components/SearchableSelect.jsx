@@ -5,6 +5,7 @@ export function SearchableSelect({
   value = '',
   onChange,
   options = [],
+  sections = null, // [{ title: 'Popular brands', options: [...] }, { title: 'All brands', options: [...] }]
   placeholder = 'Select option',
   disabled = false,
   className = ''
@@ -16,15 +17,29 @@ export function SearchableSelect({
   const inputRef = useRef(null);
   const listRef = useRef(null);
 
-  // Sort options A–Z ascending case-insensitively
-  const sortedOptions = [...options].sort((a, b) =>
-    a.localeCompare(b, undefined, { sensitivity: 'base' })
-  );
+  const isSearchActive = Boolean(searchQuery && searchQuery.trim().length > 0);
 
-  // Filter options based on query (preserving A–Z order)
-  const filteredOptions = sortedOptions.filter(opt =>
-    opt.toLowerCase().includes((searchQuery || '').toLowerCase().trim())
-  );
+  // When search is active, deduplicate across all sections or options, sort A–Z
+  let filteredOptions = [];
+  let flatSelectableItems = [];
+
+  if (isSearchActive) {
+    const allUniqueOptions = Array.from(
+      new Set(sections ? sections.flatMap(s => s.options) : options)
+    ).sort((a, b) => a.localeCompare(b, undefined, { sensitivity: 'base' }));
+
+    const query = searchQuery.toLowerCase().trim();
+    filteredOptions = allUniqueOptions.filter(opt =>
+      opt.toLowerCase().includes(query)
+    );
+    flatSelectableItems = filteredOptions;
+  } else if (sections && sections.length > 0) {
+    flatSelectableItems = sections.flatMap(s => s.options);
+  } else {
+    flatSelectableItems = [...options].sort((a, b) =>
+      a.localeCompare(b, undefined, { sensitivity: 'base' })
+    );
+  }
 
   // Close on outside click
   useEffect(() => {
@@ -38,17 +53,20 @@ export function SearchableSelect({
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
-  // Reset highlight index when filtered list changes
+  // Reset highlight index when query or open state changes
   useEffect(() => {
     setHighlightedIndex(0);
   }, [searchQuery, isOpen]);
 
   // Scroll highlighted item into view
   useEffect(() => {
-    if (isOpen && listRef.current && listRef.current.children[highlightedIndex]) {
-      listRef.current.children[highlightedIndex].scrollIntoView({
-        block: 'nearest'
-      });
+    if (isOpen && listRef.current) {
+      const items = listRef.current.querySelectorAll('[data-select-option="true"]');
+      if (items[highlightedIndex]) {
+        items[highlightedIndex].scrollIntoView({
+          block: 'nearest'
+        });
+      }
     }
   }, [highlightedIndex, isOpen]);
 
@@ -84,28 +102,26 @@ export function SearchableSelect({
   const handleKeyDown = (e) => {
     if (disabled) return;
 
+    const itemCount = flatSelectableItems.length;
+
     if (e.key === 'ArrowDown') {
       e.preventDefault();
       if (!isOpen) {
         setIsOpen(true);
-      } else {
-        setHighlightedIndex(prev => 
-          prev < filteredOptions.length - 1 ? prev + 1 : 0
-        );
+      } else if (itemCount > 0) {
+        setHighlightedIndex(prev => (prev < itemCount - 1 ? prev + 1 : 0));
       }
     } else if (e.key === 'ArrowUp') {
       e.preventDefault();
       if (!isOpen) {
         setIsOpen(true);
-      } else {
-        setHighlightedIndex(prev => 
-          prev > 0 ? prev - 1 : filteredOptions.length - 1
-        );
+      } else if (itemCount > 0) {
+        setHighlightedIndex(prev => (prev > 0 ? prev - 1 : itemCount - 1));
       }
     } else if (e.key === 'Enter') {
       e.preventDefault();
-      if (isOpen && filteredOptions.length > 0) {
-        handleSelect(filteredOptions[highlightedIndex] || filteredOptions[0]);
+      if (isOpen && itemCount > 0) {
+        handleSelect(flatSelectableItems[highlightedIndex] || flatSelectableItems[0]);
       }
     } else if (e.key === 'Escape') {
       setIsOpen(false);
@@ -115,6 +131,9 @@ export function SearchableSelect({
 
   // Display value in input when closed or focused
   const displayValue = isOpen ? searchQuery : (value || '');
+
+  // Keep running index for sectioned render to map to flatSelectableItems
+  let runningItemIndex = 0;
 
   return (
     <div ref={containerRef} className={`relative ${className}`}>
@@ -183,38 +202,115 @@ export function SearchableSelect({
       {isOpen && !disabled && (
         <div
           ref={listRef}
-          className="absolute z-50 left-0 right-0 mt-1.5 max-h-56 overflow-y-auto bg-slate-900/98 backdrop-blur-xl border border-slate-700/90 rounded-2xl shadow-2xl py-1 text-sm scrollbar-thin scrollbar-thumb-slate-700 divide-y divide-slate-800/40"
+          className="absolute z-50 left-0 right-0 mt-1.5 max-h-60 overflow-y-auto bg-slate-900/98 backdrop-blur-xl border border-slate-700/90 rounded-2xl shadow-2xl py-1 text-sm scrollbar-thin scrollbar-thumb-slate-700"
         >
-          {filteredOptions.length > 0 ? (
-            filteredOptions.map((opt, idx) => {
-              const isSelected = opt.toLowerCase() === (value || '').toLowerCase();
-              const isHighlighted = idx === highlightedIndex;
+          {isSearchActive ? (
+            // Full catalogue search results: flat list deduplicated across sections
+            filteredOptions.length > 0 ? (
+              filteredOptions.map((opt, idx) => {
+                const isSelected = opt.toLowerCase() === (value || '').toLowerCase();
+                const isHighlighted = idx === highlightedIndex;
 
-              return (
-                <button
-                  key={opt}
-                  type="button"
-                  onClick={() => handleSelect(opt)}
-                  onMouseEnter={() => setHighlightedIndex(idx)}
-                  className={`w-full text-left px-3.5 py-2.5 transition flex items-center justify-between cursor-pointer ${
-                    isSelected
-                      ? 'bg-emerald-500/20 text-emerald-300 font-semibold'
-                      : isHighlighted
-                      ? 'bg-slate-800/90 text-white'
-                      : 'text-slate-300 hover:bg-slate-800/60'
-                  }`}
-                >
-                  <span className="truncate">{opt}</span>
-                  {isSelected && (
-                    <Check className="w-4 h-4 text-emerald-400 shrink-0 ml-2" />
-                  )}
-                </button>
-              );
-            })
+                return (
+                  <button
+                    key={opt}
+                    data-select-option="true"
+                    type="button"
+                    onClick={() => handleSelect(opt)}
+                    onMouseEnter={() => setHighlightedIndex(idx)}
+                    className={`w-full text-left px-3.5 py-2.5 transition flex items-center justify-between cursor-pointer ${
+                      isSelected
+                        ? 'bg-emerald-500/20 text-emerald-300 font-semibold'
+                        : isHighlighted
+                        ? 'bg-slate-800/90 text-white'
+                        : 'text-slate-300 hover:bg-slate-800/60'
+                    }`}
+                  >
+                    <span className="truncate">{opt}</span>
+                    {isSelected && (
+                      <Check className="w-4 h-4 text-emerald-400 shrink-0 ml-2" />
+                    )}
+                  </button>
+                );
+              })
+            ) : (
+              <div className="px-4 py-3 text-xs text-slate-400 text-center">
+                No matching results for &ldquo;{searchQuery}&rdquo;
+              </div>
+            )
+          ) : sections && sections.length > 0 ? (
+            // Sectioned view (Popular brands, All brands)
+            sections.map((section, sIdx) => (
+              <div key={section.title || sIdx} className="border-b border-slate-800/40 last:border-b-0">
+                <div className="px-3.5 py-1.5 text-[11px] font-bold uppercase tracking-wider text-slate-400 bg-slate-950/90 sticky top-0 backdrop-blur-sm border-y border-slate-800/60 select-none z-10 flex items-center justify-between">
+                  <span>{section.title}</span>
+                  <span className="text-[10px] text-slate-500 font-normal">
+                    {section.options.length}
+                  </span>
+                </div>
+                {section.options.map((opt) => {
+                  const currentFlatIdx = runningItemIndex++;
+                  const isSelected = opt.toLowerCase() === (value || '').toLowerCase();
+                  const isHighlighted = currentFlatIdx === highlightedIndex;
+
+                  return (
+                    <button
+                      key={`${section.title}-${opt}-${currentFlatIdx}`}
+                      data-select-option="true"
+                      type="button"
+                      onClick={() => handleSelect(opt)}
+                      onMouseEnter={() => setHighlightedIndex(currentFlatIdx)}
+                      className={`w-full text-left px-3.5 py-2 transition flex items-center justify-between cursor-pointer ${
+                        isSelected
+                          ? 'bg-emerald-500/20 text-emerald-300 font-semibold'
+                          : isHighlighted
+                          ? 'bg-slate-800/90 text-white'
+                          : 'text-slate-300 hover:bg-slate-800/60'
+                      }`}
+                    >
+                      <span className="truncate">{opt}</span>
+                      {isSelected && (
+                        <Check className="w-4 h-4 text-emerald-400 shrink-0 ml-2" />
+                      )}
+                    </button>
+                  );
+                })}
+              </div>
+            ))
           ) : (
-            <div className="px-4 py-3 text-xs text-slate-400 text-center">
-              No matching results for &ldquo;{searchQuery}&rdquo;
-            </div>
+            // Standard flat list (e.g. Model selection)
+            flatSelectableItems.length > 0 ? (
+              flatSelectableItems.map((opt, idx) => {
+                const isSelected = opt.toLowerCase() === (value || '').toLowerCase();
+                const isHighlighted = idx === highlightedIndex;
+
+                return (
+                  <button
+                    key={opt}
+                    data-select-option="true"
+                    type="button"
+                    onClick={() => handleSelect(opt)}
+                    onMouseEnter={() => setHighlightedIndex(idx)}
+                    className={`w-full text-left px-3.5 py-2.5 transition flex items-center justify-between cursor-pointer ${
+                      isSelected
+                        ? 'bg-emerald-500/20 text-emerald-300 font-semibold'
+                        : isHighlighted
+                        ? 'bg-slate-800/90 text-white'
+                        : 'text-slate-300 hover:bg-slate-800/60'
+                    }`}
+                  >
+                    <span className="truncate">{opt}</span>
+                    {isSelected && (
+                      <Check className="w-4 h-4 text-emerald-400 shrink-0 ml-2" />
+                    )}
+                  </button>
+                );
+              })
+            ) : (
+              <div className="px-4 py-3 text-xs text-slate-400 text-center">
+                No options available
+              </div>
+            )
           )}
         </div>
       )}

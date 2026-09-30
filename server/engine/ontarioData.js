@@ -243,9 +243,21 @@ export const VEHICLE_RISK_MAP = {
   'BMW_5 SERIES': { factor: 1.40, category: 'Executive Sedan', highTheft: false, highRepairCost: true },
   'BMW_X3': { factor: 1.34, category: 'Luxury Compact SUV', highTheft: false, highRepairCost: true },
   'BMW_X5': { factor: 1.46, category: 'Luxury Midsize SUV', highTheft: false, highRepairCost: true },
+  'AUDI_A3': { factor: 1.24, category: 'Entry Luxury Sedan', highTheft: false, highRepairCost: true },
   'AUDI_A4': { factor: 1.30, category: 'Luxury Sedan', highTheft: false, highRepairCost: true },
+  'AUDI_A5': { factor: 1.32, category: 'Luxury Coupe/Sportback', highTheft: false, highRepairCost: true },
+  'AUDI_A6': { factor: 1.38, category: 'Executive Sedan', highTheft: false, highRepairCost: true },
+  'AUDI_A7': { factor: 1.44, category: 'Executive Sportback', highTheft: false, highRepairCost: true },
+  'AUDI_A8': { factor: 1.50, category: 'Flagship Luxury Sedan', highTheft: false, highRepairCost: true },
+  'AUDI_S8': { factor: 1.55, category: 'Performance Luxury Sedan', highTheft: false, highRepairCost: true },
+  'AUDI_E-TRON': { factor: 1.42, category: 'Luxury EV SUV', highTheft: false, highRepairCost: true },
+  'AUDI_E-TRON GT': { factor: 1.52, category: 'Luxury EV Sedan', highTheft: false, highRepairCost: true },
+  'AUDI_Q3': { factor: 1.26, category: 'Subcompact Luxury SUV', highTheft: false, highRepairCost: true },
   'AUDI_Q5': { factor: 1.32, category: 'Luxury Compact SUV', highTheft: false, highRepairCost: true },
+  'AUDI_SQ5': { factor: 1.40, category: 'Performance Luxury SUV', highTheft: false, highRepairCost: true },
   'AUDI_Q7': { factor: 1.44, category: 'Luxury 3-Row SUV', highTheft: false, highRepairCost: true },
+  'AUDI_Q8': { factor: 1.48, category: 'Luxury Midsize SUV', highTheft: false, highRepairCost: true },
+  'AUDI_R8': { factor: 1.70, category: 'Exotic Sports Car', highTheft: false, highRepairCost: true },
   'MERCEDES-BENZ_C-CLASS': { factor: 1.34, category: 'Luxury Sedan', highTheft: false, highRepairCost: true },
   'MERCEDES-BENZ_GLC': { factor: 1.36, category: 'Luxury Compact SUV', highTheft: false, highRepairCost: true },
   'MERCEDES-BENZ_GLE': { factor: 1.48, category: 'Luxury Midsize SUV', highTheft: false, highRepairCost: true },
@@ -263,9 +275,9 @@ export const VEHICLE_RISK_MAP = {
 };
 
 export const POPULAR_MAKES = [
-  'Volvo', 'Volkswagen', 'Toyota', 'Tesla', 'Subaru', 'Rivian', 'RAM',
-  'Porsche', 'Polestar', 'Nissan', 'Mitsubishi', 'MINI', 'Mercedes-Benz',
-  'Mazda', 'Lincoln', 'Lexus', 'Land Rover', 'Kia', 'Jeep', 'Jaguar',
-  'Infiniti', 'Hyundai', 'Honda', 'GMC', 'Genesis', 'Ford', 'Dodge',
-  'Chrysler', 'Chevrolet', 'Cadillac', 'Buick', 'BMW', 'Audi', 'Alfa Romeo', 'Acura'
+  'Acura', 'Alfa Romeo', 'Audi', 'BMW', 'Buick', 'Cadillac', 'Chevrolet', 'Chrysler',
+  'Dodge', 'Ferrari', 'Ford', 'Genesis', 'GMC', 'Honda', 'Hyundai', 'Infiniti',
+  'Jaguar', 'Jeep', 'Kia', 'Lamborghini', 'Land Rover', 'Lexus', 'Lincoln', 'Maserati',
+  'Mazda', 'Mercedes-Benz', 'MINI', 'Mitsubishi', 'Nissan', 'Porsche', 'RAM',
+  'Subaru', 'Tesla', 'Toyota', 'Volkswagen', 'Volvo'
 ];
