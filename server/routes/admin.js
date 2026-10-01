@@ -316,3 +316,23 @@ adminRouter.delete('/feedback/:id', requireAdmin, (req, res) => {
     res.status(500).json({ success: false, error: err.message });
   }
 });
+
+// Update Platform Stats
+adminRouter.patch('/stats', requireAdmin, (req, res) => {
+  try {
+    const { total_checks_run, total_money_saved, avg_monthly_overpay } = req.body;
+    if (total_checks_run !== undefined) {
+      db.prepare("INSERT INTO platform_stats (key, value) VALUES ('total_checks_run', ?) ON CONFLICT(key) DO UPDATE SET value = ?").run(Number(total_checks_run), Number(total_checks_run));
+    }
+    if (total_money_saved !== undefined) {
+      db.prepare("INSERT INTO platform_stats (key, value) VALUES ('total_money_saved', ?) ON CONFLICT(key) DO UPDATE SET value = ?").run(Number(total_money_saved), Number(total_money_saved));
+    }
+    if (avg_monthly_overpay !== undefined) {
+      db.prepare("INSERT INTO platform_stats (key, value) VALUES ('avg_monthly_overpay', ?) ON CONFLICT(key) DO UPDATE SET value = ?").run(Number(avg_monthly_overpay), Number(avg_monthly_overpay));
+    }
+    const updated = db.prepare('SELECT * FROM platform_stats').all();
+    res.json({ success: true, data: updated });
+  } catch (err) {
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
