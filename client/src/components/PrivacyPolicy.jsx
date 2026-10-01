@@ -120,13 +120,13 @@ export function PrivacyPolicy({ onBack }) {
 
           <div className="space-y-2">
             <h3 className="font-semibold text-white text-xs uppercase tracking-wider text-slate-300">
-              If you contact us or request a broker referral
+              If you contact us or register for launch notifications
             </h3>
             <p className="text-xs text-slate-400">We may also collect:</p>
             <ul className="list-disc list-inside space-y-1 text-xs text-slate-300 pl-2">
-              <li>Name</li>
-              <li>Email address</li>
-              <li>Phone number (optional)</li>
+              <li>Name (if submitting contact or feedback requests)</li>
+              <li>Email address (for support contact or broker launch notifications)</li>
+              <li>Phone number (optional, only when voluntarily submitted)</li>
               <li>Message or other information you choose to provide</li>
             </ul>
           </div>
@@ -173,16 +173,16 @@ export function PrivacyPolicy({ onBack }) {
             <span className="text-emerald-400">4.</span> Community Insurance Data
           </h2>
           <p>
-            One of the purposes of InsurCheck is to build a better understanding of real-world insurance pricing. If you voluntarily choose to share your insurance information with us, we may use that information to improve our community pricing data and benchmarks.
+            One of the purposes of InsurCheck is to build a better understanding of real-world insurance pricing in Ontario. If you voluntarily choose to share your insurance parameters with us, we may include those rate details anonymously in our open Community Rates database and benchmark analytics.
           </p>
           <p>
-            Where appropriate, we aggregate or anonymize information so that published statistics and benchmarks do not identify individual users. For example, we may use submitted information to calculate statistics such as:
+            Shared rate details may appear anonymously in Community Rates. Public rate records expose only non-identifying parameters:
           </p>
-          <blockquote className="p-3 bg-slate-950/80 border-l-2 border-emerald-400 text-xs text-slate-300 italic rounded-r-xl">
-            Average insurance premium for similar vehicles and drivers in a particular area.
+          <blockquote className="p-3 bg-slate-950/80 border-l-2 border-emerald-400 text-xs text-slate-300 rounded-r-xl">
+            Vehicle year, make, and model; 3-character postal-code prefix (FSA); driver age and licensing experience years; insurer name; coverage tier; monthly premium; and driving-record category (clean vs. prior tickets/claims).
           </blockquote>
           <p className="text-xs text-slate-400">
-            We do not publicly display your name, email address, phone number, or other information that directly identifies you as part of a community pricing submission. We may use information submitted by users to improve our models, analytics, products, and services.
+            We do not collect or publicly display your name, email address, phone number, or full street address with your community rate submission. Your private contact details are never displayed with your rate.
           </p>
         </section>
 
@@ -195,18 +195,18 @@ export function PrivacyPolicy({ onBack }) {
             We do not sell your personal information simply because you use our calculator.
           </p>
           <p>
-            We may share information with service providers that help us operate InsurCheck, such as providers of website hosting, database and cloud services, analytics, security, email and communications, customer support, data processing, and other technical infrastructure. These service providers process information on our behalf and are expected to handle it appropriately.
+            We may share information with service providers that help us operate InsurCheck, such as providers of website hosting, database and cloud services, analytics, security, email communications, and technical infrastructure. These service providers process information strictly on our behalf under confidentiality standards.
           </p>
 
           <div className="space-y-2 pt-2">
             <h3 className="font-semibold text-white text-xs uppercase tracking-wider text-slate-300">
-              Insurance brokers and providers
+              Future Broker Matching & Launch Notification Waitlist
             </h3>
             <p>
-              If InsurCheck offers a quote or broker referral service and you choose to request contact or quotes, we may share the information necessary to provide that service with the relevant broker, insurer, or insurance service provider.
+              There is currently no operational broker partner, and InsurCheck does not currently request quotes on your behalf.
             </p>
             <p className="text-xs text-slate-400">
-              This may include your name, phone number, email address, postal code, vehicle information, and other information necessary to obtain or discuss an insurance quote. You are not required to request a broker or insurance quote simply to use the InsurCheck calculator.
+              If you choose to join our launch waitlist ("Notify me at launch"), we store only your email address to notify you when broker matching becomes available. We do not attach your calculator profile to this registration, nor send your information to brokers or trigger quote-request workflows prior to launch.
             </p>
           </div>
 

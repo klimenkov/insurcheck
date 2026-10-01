@@ -1,55 +1,35 @@
 import React from 'react';
-import { AlertTriangle } from 'lucide-react';
+import { ShieldCheck } from 'lucide-react';
 
 export function HeroBanner({ stats }) {
-  // Set to 'TBD' until broker partnerships are live as requested
-  const totalSaved = 'TBD';
-
   const checksRun = (stats?.total_checks_run !== undefined && stats?.total_checks_run !== null)
     ? stats.total_checks_run.toLocaleString()
     : '0';
 
-  const avgOverpay = (stats?.avg_monthly_overpay && stats.avg_monthly_overpay > 0)
-    ? `$${stats.avg_monthly_overpay}/mo`
-    : 'TBD';
-
   return (
-    <div className="relative overflow-hidden pt-8 pb-12">
+    <div className="relative overflow-hidden pt-2 pb-6">
       {/* Background glow gradient */}
-      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[300px] bg-emerald-500/10 blur-[120px] pointer-events-none -z-10 rounded-full"></div>
+      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[240px] bg-emerald-500/10 blur-[100px] pointer-events-none -z-10 rounded-full"></div>
 
       <div className="max-w-4xl mx-auto text-center px-4 sm:px-6">
-        <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-amber-500/10 border border-amber-500/20 text-amber-300 text-xs font-semibold mb-6">
-          <AlertTriangle className="w-3.5 h-3.5" />
-          <span>Ontario drivers pay Canada's highest premiums</span>
-        </div>
-
-        <h1 className="text-4xl sm:text-5xl font-black tracking-tight text-white leading-tight">
+        <h1 className="text-3xl sm:text-5xl font-black tracking-tight text-white leading-tight">
           Are you getting ripped off on{' '}
           <span className="bg-gradient-to-r from-emerald-400 via-teal-300 to-cyan-400 bg-clip-text text-transparent">
             Ontario auto insurance?
           </span>
         </h1>
 
-        <p className="mt-4 text-base sm:text-lg text-slate-300 max-w-2xl mx-auto leading-relaxed">
-          Skip the 40-step questionnaires and spam broker phone calls. Answer{' '}
-          <strong className="text-emerald-400 font-semibold">5 basic questions</strong> to instantly benchmark your rate against real Ontario crowdsourced data.
+        <p className="mt-3 text-sm sm:text-base text-slate-300 max-w-2xl mx-auto leading-relaxed">
+          Compare your premium with InsurCheck’s Ontario insurance model and help build a community database of real driver rates. Answer{' '}
+          <strong className="text-emerald-400 font-semibold">a few details</strong> to benchmark your rate.
         </p>
 
-        {/* Live Metrics Row */}
-        <div className="mt-8 grid grid-cols-3 gap-3 sm:gap-6 max-w-2xl mx-auto">
-          <div className="bg-slate-900/80 border border-slate-800/80 rounded-2xl p-4 text-center backdrop-blur-sm shadow-sm">
-            <div className="text-xl sm:text-2xl font-black text-emerald-400">{totalSaved}</div>
-            <div className="text-xs text-slate-400 mt-1">Identified Savings</div>
-          </div>
-          <div className="bg-slate-900/80 border border-slate-800/80 rounded-2xl p-4 text-center backdrop-blur-sm shadow-sm">
-            <div className="text-xl sm:text-2xl font-black text-cyan-400">{checksRun}</div>
-            <div className="text-xs text-slate-400 mt-1">Ontario Checks Run</div>
-          </div>
-          <div className="bg-slate-900/80 border border-slate-800/80 rounded-2xl p-4 text-center backdrop-blur-sm shadow-sm">
-            <div className="text-xl sm:text-2xl font-black text-amber-400">{avgOverpay}</div>
-            <div className="text-xs text-slate-400 mt-1">Avg Overpayment</div>
-          </div>
+        {/* Secondary checks count badge outside the main hero/form entry area */}
+        <div className="mt-3 flex items-center justify-center">
+          <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-slate-900/80 border border-slate-800 text-slate-400 text-xs font-medium shadow-sm">
+            <ShieldCheck className="w-3.5 h-3.5 text-emerald-400" />
+            <span>Over <strong className="text-white font-semibold">{checksRun}</strong> Ontario sanity checks performed</span>
+          </span>
         </div>
       </div>
     </div>

@@ -149,6 +149,12 @@ CREATE TABLE IF NOT EXISTS check_events (
   vehicle TEXT,
   is_estimating INTEGER DEFAULT 0
 );
+
+CREATE TABLE IF NOT EXISTS broker_launch_waitlist (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  created_at TEXT NOT NULL,
+  email TEXT UNIQUE NOT NULL
+);
 `);
 
 // Migration helper for new rating dimensions

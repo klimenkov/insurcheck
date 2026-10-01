@@ -155,10 +155,10 @@ export function TerritoryHeatMap({ onOpenContribute }) {
             <div className="flex items-center gap-2">
               <span className="px-2.5 py-1 rounded-full text-[11px] font-bold tracking-wider uppercase bg-indigo-500/20 text-indigo-300 border border-indigo-500/30 flex items-center gap-1.5">
                 <Compass className="w-3.5 h-3.5 text-indigo-400" />
-                FSRA Territorial Actuarial Matrix
+                InsurCheck Territorial Pricing Index
               </span>
               <span className="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-slate-800 text-slate-400 border border-slate-700">
-                142 Postal Regions
+                {territories.length || 143} Postal Regions
               </span>
             </div>
             <h1 className="text-2xl sm:text-3xl font-black text-white tracking-tight">
@@ -343,7 +343,7 @@ export function TerritoryHeatMap({ onOpenContribute }) {
 
           <div className="p-4 bg-slate-900/60 border border-slate-800 rounded-2xl flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-slate-400">
             <div>
-              💡 <strong>Tip:</strong> Click on any territory circle to inspect its exact FSRA rating, variance against Ontario neutral rate, and risk factors.
+              💡 <strong>Tip:</strong> Click on any territory circle to inspect its InsurCheck territorial index, variance against Ontario neutral rate, and risk factors.
             </div>
             <button
               onClick={() => setViewMode('grid')}
@@ -622,7 +622,7 @@ export function TerritoryHeatMap({ onOpenContribute }) {
                 </p>
                 <div className="pt-2 text-[11px] text-slate-400 border-t border-slate-800/60 flex items-center justify-between">
                   <span>Regulatory Code: ON-FSA-{activeFsaModal.fsa}</span>
-                  <span>Source: FSRA Territorial Matrix</span>
+                  <span>Source: InsurCheck Territorial Index</span>
                 </div>
               </div>
             </div>

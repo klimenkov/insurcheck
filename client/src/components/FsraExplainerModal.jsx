@@ -35,14 +35,14 @@ export function FsraExplainerModal({ isOpen, onClose }) {
             <div>
               <div className="flex items-center gap-2">
                 <h3 className="text-xl font-bold text-white tracking-tight">
-                  What is the FSRA Fair Rate Benchmark?
+                  How InsurCheck calculates your benchmark
                 </h3>
                 <span className="px-2 py-0.5 text-[10px] font-extrabold uppercase tracking-wider rounded-md bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">
-                  Actuarial Standard
+                  Pricing Model
                 </span>
               </div>
               <p className="text-xs text-slate-400 mt-1">
-                Ontario Financial Services Regulatory Authority (FSRA) Actuarial Methodology
+                InsurCheck Ontario Insurance Pricing Model & Methodology
               </p>
             </div>
           </div>
@@ -107,14 +107,19 @@ export function FsraExplainerModal({ isOpen, onClose }) {
         <div className="p-6 overflow-y-auto space-y-6 text-sm text-slate-300 flex-1">
           {activeSection === 'formula' && (
             <div className="space-y-5 animate-in fade-in duration-150">
-              <div className="p-4 bg-emerald-950/20 border border-emerald-500/20 rounded-2xl">
-                <h4 className="text-sm font-bold text-emerald-300 mb-1 flex items-center gap-2">
+              <div className="p-4 bg-emerald-950/20 border border-emerald-500/20 rounded-2xl space-y-2">
+                <h4 className="text-sm font-bold text-emerald-300 flex items-center gap-2">
                   <ShieldAlert className="w-4 h-4 text-emerald-400" />
-                  The Pure Mathematical Cost of Risk
+                  How the pricing model works
                 </h4>
                 <p className="text-xs text-slate-300 leading-relaxed">
-                  In Ontario, insurance companies cannot arbitrarily set prices. Under the <em>Insurance Act</em>, every carrier must file their rating algorithms with <strong>FSRA (Financial Services Regulatory Authority of Ontario)</strong>. InsurCheck calculates the actuarial pure-cost baseline using standardized regulatory loss metrics.
+                  InsurCheck calculates an insurance benchmark for your vehicle, area, and driver profile using an Ontario pricing model developed from three distinct data sources:
                 </p>
+                <ul className="text-xs text-slate-300 space-y-1 pl-1">
+                  <li>• <strong className="text-white">Model-building quotes:</strong> Insurer quotes generated across systematic permutations of vehicle, postal code, and driver profiles. These are used to calibrate pricing relativity indexes, not treated as purchased policies or community submissions.</li>
+                  <li>• <strong className="text-white">Community submissions:</strong> Insurance rates voluntarily contributed by Ontario drivers to validate real-world pricing.</li>
+                  <li>• <strong className="text-white">Reference inputs:</strong> Documented territorial boundaries, CLEAR loss ratings, and regulatory filings used by our model.</li>
+                </ul>
               </div>
 
               {/* Mathematical Formula Banner */}
@@ -143,7 +148,7 @@ export function FsraExplainerModal({ isOpen, onClose }) {
                     1. Base Rate ($175/mo)
                   </span>
                   <p className="text-slate-400">
-                    The Ontario province-wide neutral rate for a mature adult driver (G license) with standard mandatory coverage ($2M Liability, Comprehensive & Collision $1,000 deductible, DCPD, and Statutory Accident Benefits).
+                    The baseline used by InsurCheck’s model for a mature adult driver (full G license) with standard coverage ($1M Liability, Comprehensive & Collision $1,000 deductible, DCPD, and Statutory Accident Benefits).
                   </p>
                 </div>
 
@@ -359,7 +364,7 @@ export function FsraExplainerModal({ isOpen, onClose }) {
                   <div>
                     <h5 className="font-bold text-white text-sm">How to Challenge an Unfair Renewal</h5>
                     <p className="text-slate-400 mt-1 leading-relaxed">
-                      If your renewal rate exceeds InsurCheck's FSRA Fair Rate by more than <strong>15%</strong>, your insurer is likely applying legacy inertia pricing. Call your carrier or broker with your benchmark calculation to negotiate or switch 30 days prior to renewal with zero penalties.
+                      If your renewal rate exceeds InsurCheck's benchmark by more than <strong>15%</strong>, your insurer is likely applying legacy inertia pricing. Call your carrier or broker with your benchmark calculation to negotiate or switch 30 days prior to renewal with zero penalties.
                     </p>
                   </div>
                 </div>
@@ -370,7 +375,7 @@ export function FsraExplainerModal({ isOpen, onClose }) {
 
         {/* Footer */}
         <div className="p-4 bg-slate-950 border-t border-slate-800 flex items-center justify-between text-xs text-slate-400">
-          <span>Source: FSRA Automobile Insurance Rate Approvals Database</span>
+          <span>Source: InsurCheck Pricing Model & FSRA Regulatory Reference Data</span>
           <button
             onClick={onClose}
             className="px-5 py-2 bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold rounded-xl transition shadow-lg shadow-emerald-500/20"

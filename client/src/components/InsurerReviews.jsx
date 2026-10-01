@@ -160,11 +160,19 @@ export function InsurerReviews() {
                     </div>
 
                     <div className="text-right shrink-0">
-                      <div className="text-xs font-black text-amber-400 flex items-center gap-1 justify-end">
-                        <Star className="w-3.5 h-3.5 fill-amber-400" />
-                        <span>{overall.toFixed(1)}</span>
-                      </div>
-                      <span className="text-[10px] text-slate-500">{ins.total_reviews} reviews</span>
+                      {ins.total_reviews > 0 && ins.overall_rating ? (
+                        <>
+                          <div className="text-xs font-black text-amber-400 flex items-center gap-1 justify-end">
+                            <Star className="w-3.5 h-3.5 fill-amber-400" />
+                            <span>{ins.overall_rating.toFixed(1)}</span>
+                          </div>
+                          <span className="text-[10px] text-slate-500">
+                            {ins.total_reviews} {ins.total_reviews === 1 ? 'review' : 'reviews'}
+                          </span>
+                        </>
+                      ) : (
+                        <div className="text-[11px] text-slate-500 italic">No ratings yet</div>
+                      )}
                     </div>
                   </div>
                 </div>
@@ -207,14 +215,24 @@ export function InsurerReviews() {
                 </div>
 
                 <div className="flex items-center gap-3">
-                  <div className="bg-slate-950 px-4 py-3 rounded-2xl border border-slate-800 text-center">
-                    <div className="text-[10px] uppercase tracking-wider text-slate-400 font-bold">Overall Score</div>
-                    <div className="text-2xl font-black text-amber-400 flex items-center justify-center gap-1 mt-0.5">
-                      <Star className="w-5 h-5 fill-amber-400" />
-                      <span>{(selectedInsurer.overall_rating || selectedInsurer.claims_rating || 4.0).toFixed(1)}</span>
-                      <span className="text-xs text-slate-500 font-normal">/ 5.0</span>
-                    </div>
-                    <div className="text-[10px] text-slate-500 mt-0.5">{selectedInsurer.total_reviews} ratings</div>
+                  <div className="bg-slate-950 px-4 py-3 rounded-2xl border border-slate-800 text-center min-w-[130px]">
+                    <div className="text-[10px] uppercase tracking-wider text-slate-400 font-bold">Overall rating</div>
+                    {selectedInsurer.total_reviews > 0 && selectedInsurer.overall_rating ? (
+                      <>
+                        <div className="text-2xl font-black text-amber-400 flex items-center justify-center gap-1 mt-0.5">
+                          <Star className="w-5 h-5 fill-amber-400" />
+                          <span>{selectedInsurer.overall_rating.toFixed(1)}</span>
+                          <span className="text-xs text-slate-500 font-normal">/ 5.0</span>
+                        </div>
+                        <div className="text-[10px] text-slate-500 mt-0.5">
+                          {selectedInsurer.total_reviews} {selectedInsurer.total_reviews === 1 ? 'review' : 'reviews'}
+                        </div>
+                      </>
+                    ) : (
+                      <div className="text-xs font-semibold text-slate-400 mt-1.5 py-1">
+                        No ratings yet
+                      </div>
+                    )}
                   </div>
                 </div>
               </div>
@@ -236,16 +254,23 @@ export function InsurerReviews() {
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   {PARAMETERS_INFO.map((param) => {
-                    const score = selectedInsurer[param.key] || selectedInsurer.claims_rating || 4.0;
-                    const percent = Math.min(100, Math.max(0, (score / 5) * 100));
+                    const hasScore = selectedInsurer.total_reviews > 0 && selectedInsurer[param.key];
+                    const score = hasScore ? selectedInsurer[param.key] : null;
+                    const percent = score ? Math.min(100, Math.max(0, (score / 5) * 100)) : 0;
 
                     return (
                       <div key={param.key} className="bg-slate-900/80 border border-slate-800/60 rounded-xl p-3.5">
                         <div className="flex justify-between items-center mb-1">
                           <span className="text-xs font-bold text-white">{param.title}</span>
                           <span className="text-xs font-extrabold text-amber-400 flex items-center gap-1">
-                            <Star className="w-3 h-3 fill-amber-400" />
-                            {Number(score).toFixed(1)}
+                            {score ? (
+                              <>
+                                <Star className="w-3 h-3 fill-amber-400" />
+                                {Number(score).toFixed(1)}
+                              </>
+                            ) : (
+                              <span className="text-[11px] text-slate-500 font-normal">No ratings yet</span>
+                            )}
                           </span>
                         </div>
                         <p className="text-[10px] text-slate-400 mb-2">{param.desc}</p>
@@ -281,7 +306,7 @@ export function InsurerReviews() {
               <div>
                 <div className="flex items-center justify-between mb-4">
                   <h4 className="text-sm font-bold uppercase tracking-wider text-slate-300">
-                    Driver Ratings & Experience Reports ({reviews.length})
+                    Driver Ratings & Experience Reports ({reviews.length} {reviews.length === 1 ? 'review' : 'reviews'})
                   </h4>
                   <button
                     onClick={() => setReviewModalOpen(true)}

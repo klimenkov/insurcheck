@@ -14,23 +14,89 @@ import { ContactUs } from './components/ContactUs.jsx';
 import { AdminDashboard } from './components/AdminDashboard.jsx';
 import { TermsOfUse } from './components/TermsOfUse.jsx';
 import { PrivacyPolicy } from './components/PrivacyPolicy.jsx';
+import { AlertCircle } from 'lucide-react';
+
+const pathToTab = (pathname) => {
+  if (!pathname) return 'checker';
+  if (pathname.startsWith('/admin')) return 'admin';
+  if (pathname.startsWith('/terms')) return 'terms';
+  if (pathname.startsWith('/privacy')) return 'privacy';
+  if (pathname.startsWith('/rates') || pathname.startsWith('/quotes')) return 'quotes';
+  if (pathname.startsWith('/map') || pathname.startsWith('/heatmap')) return 'heatmap';
+  if (pathname.startsWith('/reviews') || pathname.startsWith('/insurers')) return 'insurers';
+  if (pathname.startsWith('/contact')) return 'contact';
+  return 'checker';
+};
+
+const tabToPath = (tab) => {
+  switch (tab) {
+    case 'quotes': return '/rates';
+    case 'heatmap': return '/map';
+    case 'insurers': return '/reviews';
+    case 'contact': return '/contact';
+    case 'terms': return '/terms';
+    case 'privacy': return '/privacy';
+    case 'admin': return '/admin';
+    default: return '/';
+  }
+};
 
 export default function App() {
   const [activeTab, setActiveTab] = useState(() => {
     if (typeof window !== 'undefined') {
-      const path = window.location.pathname;
-      if (path.startsWith('/admin')) return 'admin';
-      if (path.startsWith('/terms')) return 'terms';
-      if (path.startsWith('/privacy')) return 'privacy';
+      return pathToTab(window.location.pathname);
     }
     return 'checker';
   });
+
   const [stats, setStats] = useState(null);
-  const [checkResult, setCheckResult] = useState(null);
   const [loading, setLoading] = useState(false);
   const [leadModalOpen, setLeadModalOpen] = useState(false);
   const [contributeModalOpen, setContributeModalOpen] = useState(false);
   const [fsraModalOpen, setFsraModalOpen] = useState(false);
+
+  // Lifted Calculator State (INS-61 Item 1)
+  const [calculatorFormData, setCalculatorFormData] = useState({
+    coverageLevel: '',
+    postalCode: '',
+    vehicleMake: '',
+    vehicleModel: '',
+    vehicleYear: '',
+    isEstimating: false,
+    currentPremium: '',
+    insuranceCompany: '',
+    customInsuranceCompany: '',
+    driverAge: '',
+    yearsLicensed: '',
+    cleanRecord: true,
+    numberOfDrivers: 1,
+    numberOfVehicles: 1,
+    shareAnonymously: false
+  });
+  const [calculatorSnapshot, setCalculatorSnapshot] = useState(null);
+  const [checkResult, setCheckResult] = useState(null);
+
+  // Stale result detection (INS-61 Item 1)
+  const isResultStale = Boolean(
+    checkResult &&
+    calculatorSnapshot &&
+    (
+      calculatorFormData.isEstimating !== calculatorSnapshot.isEstimating ||
+      calculatorFormData.coverageLevel !== calculatorSnapshot.coverageLevel ||
+      calculatorFormData.postalCode !== calculatorSnapshot.postalCode ||
+      calculatorFormData.vehicleMake !== calculatorSnapshot.vehicleMake ||
+      calculatorFormData.vehicleModel !== calculatorSnapshot.vehicleModel ||
+      calculatorFormData.vehicleYear !== calculatorSnapshot.vehicleYear ||
+      calculatorFormData.driverAge !== calculatorSnapshot.driverAge ||
+      calculatorFormData.yearsLicensed !== calculatorSnapshot.yearsLicensed ||
+      calculatorFormData.cleanRecord !== calculatorSnapshot.cleanRecord ||
+      (!calculatorFormData.isEstimating && (
+        calculatorFormData.currentPremium !== calculatorSnapshot.currentPremium ||
+        calculatorFormData.insuranceCompany !== calculatorSnapshot.insuranceCompany ||
+        calculatorFormData.customInsuranceCompany !== calculatorSnapshot.customInsuranceCompany
+      ))
+    )
+  );
 
   const fetchStats = async () => {
     try {
@@ -52,15 +118,7 @@ export default function App() {
       .catch(console.error);
 
     const handlePopState = () => {
-      const path = window.location.pathname;
-      if (path.startsWith('/admin')) setActiveTab('admin');
-      else if (path.startsWith('/terms')) setActiveTab('terms');
-      else if (path.startsWith('/privacy')) setActiveTab('privacy');
-      else if (path.startsWith('/quotes')) setActiveTab('quotes');
-      else if (path.startsWith('/heatmap')) setActiveTab('heatmap');
-      else if (path.startsWith('/insurers')) setActiveTab('insurers');
-      else if (path.startsWith('/contact')) setActiveTab('contact');
-      else setActiveTab('checker');
+      setActiveTab(pathToTab(window.location.pathname));
     };
     window.addEventListener('popstate', handlePopState);
 
@@ -70,11 +128,14 @@ export default function App() {
     };
   }, []);
 
-  const navigateTab = (tab, path) => {
+  const navigateTab = (tab, explicitPath) => {
     setActiveTab(tab);
     trackEvent('tab_viewed', { tab });
+    const targetPath = explicitPath || tabToPath(tab);
     if (typeof window !== 'undefined') {
-      window.history.pushState({}, '', path || (tab === 'checker' ? '/' : `/${tab}`));
+      if (window.location.pathname !== targetPath) {
+        window.history.pushState({}, '', targetPath);
+      }
       window.scrollTo({ top: 0, behavior: 'smooth' });
     }
   };
@@ -84,7 +145,7 @@ export default function App() {
     trackEvent('sanity_check_submitted', {
       vehicle_make: formData.vehicleMake,
       vehicle_model: formData.vehicleModel,
-      is_estimating: Boolean(formData.isEstimating || formData.noCurrentInsurance)
+      is_estimating: Boolean(formData.isEstimating)
     });
     try {
       const res = await fetch('/api/check', {
@@ -95,6 +156,7 @@ export default function App() {
       const json = await res.json();
       if (json.success) {
         setCheckResult(json.data);
+        setCalculatorSnapshot({ ...calculatorFormData });
         trackEvent('sanity_check_completed', {
           city: json.data?.locationInfo?.city,
           verdict: json.data?.verdict,
@@ -104,6 +166,16 @@ export default function App() {
         fetchStats(); // update live counter
         if (typeof window !== 'undefined') {
           window.dispatchEvent(new CustomEvent('insurcheck:submission-created'));
+
+          // Mobile auto-scroll to result (INS-61 Item 11)
+          if (window.innerWidth < 1024) {
+            setTimeout(() => {
+              const resultEl = document.getElementById('sanity-check-result');
+              if (resultEl) {
+                resultEl.scrollIntoView({ behavior: 'smooth' });
+              }
+            }, 150);
+          }
         }
       }
     } catch (err) {
@@ -113,12 +185,22 @@ export default function App() {
     }
   };
 
+  const handleEditDetails = () => {
+    if (typeof window !== 'undefined') {
+      const formEl = document.getElementById('sanity-checker-form');
+      if (formEl) {
+        formEl.scrollIntoView({ behavior: 'smooth' });
+      }
+    }
+  };
+
   return (
     <div className="min-h-screen bg-slate-950 text-slate-100 flex flex-col justify-between">
       <div>
         <Navbar
           activeTab={activeTab}
           setActiveTab={setActiveTab}
+          navigateTab={navigateTab}
           onOpenContribute={() => setContributeModalOpen(true)}
           totalSaved={stats?.total_money_saved}
         />
@@ -128,10 +210,37 @@ export default function App() {
             <HeroBanner stats={stats} />
 
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-start">
-              <SanityChecker onCalculate={handleCalculate} loading={loading} />
+              <SanityChecker
+                formData={calculatorFormData}
+                setFormData={setCalculatorFormData}
+                onCalculate={handleCalculate}
+                loading={loading}
+              />
 
               <div>
-                {checkResult ? (
+                {isResultStale ? (
+                  <div className="bg-amber-950/20 border border-amber-500/40 rounded-3xl p-6 sm:p-8 text-center space-y-4 shadow-xl backdrop-blur-xl">
+                    <div className="w-12 h-12 rounded-2xl bg-amber-500/20 text-amber-300 flex items-center justify-center mx-auto">
+                      <AlertCircle className="w-6 h-6" />
+                    </div>
+                    <h3 className="text-lg font-black text-amber-200">
+                      Your details have changed. Recalculate to update your result.
+                    </h3>
+                    <p className="text-xs sm:text-sm text-slate-400 max-w-md mx-auto leading-relaxed">
+                      You modified vehicle, location, coverage, or driver details since this estimate was generated. Recalculate to view your updated Ontario benchmark.
+                    </p>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        const form = document.getElementById('sanity-checker-form');
+                        if (form) form.requestSubmit();
+                      }}
+                      className="px-6 py-3 bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-black rounded-xl text-sm transition shadow-lg shadow-emerald-500/20 cursor-pointer"
+                    >
+                      Recalculate Benchmark
+                    </button>
+                  </div>
+                ) : checkResult ? (
                   <ResultCard
                     result={checkResult}
                     onConnectBroker={() => {
@@ -139,6 +248,7 @@ export default function App() {
                       setLeadModalOpen(true);
                     }}
                     onOpenFsraExplainer={() => setFsraModalOpen(true)}
+                    onEditDetails={handleEditDetails}
                   />
                 ) : (
                   <div className="border border-dashed border-slate-800 rounded-3xl p-8 text-center text-slate-500 bg-slate-900/30">
@@ -147,7 +257,7 @@ export default function App() {
                     </div>
                     <h3 className="text-base font-bold text-slate-300">Your Sanity Check Results Will Appear Here</h3>
                     <p className="text-xs text-slate-500 mt-1 max-w-xs mx-auto">
-                      Fill out the 5 basic inputs on the left to see if your Ontario insurer is charging a fair market price.
+                      Fill out a few details on the left to see if your Ontario insurer is charging a fair market price.
                     </p>
                   </div>
                 )}

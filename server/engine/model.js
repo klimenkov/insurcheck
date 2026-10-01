@@ -226,6 +226,11 @@ export function evaluateInsurance(params) {
       year: vehicleYear,
       ...vehicleInfo
     },
+    driver: {
+      age,
+      yearsLicensed,
+      cleanRecord: Boolean(cleanRecord)
+    },
     reliabilityScore: reliability,
     riskHighlights
   };

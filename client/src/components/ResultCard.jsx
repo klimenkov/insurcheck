@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
-import { CheckCircle2, ArrowRight, ShieldCheck, Sparkles, Building2, HelpCircle } from 'lucide-react';
+import { CheckCircle2, ArrowRight, ShieldCheck, Sparkles, Building2, HelpCircle, Info, Edit3, UserCheck, MapPin, Car, Shield } from 'lucide-react';
 
-export function ResultCard({ result, onConnectBroker, onOpenFsraExplainer }) {
+export function ResultCard({ result, onConnectBroker, onOpenFsraExplainer, onEditDetails }) {
   if (!result) return null;
 
   const {
@@ -13,10 +13,13 @@ export function ResultCard({ result, onConnectBroker, onOpenFsraExplainer }) {
     coverageTiers,
     location,
     vehicle,
+    driver,
     reliabilityScore,
     riskHighlights,
     companyBaseline
   } = result;
+
+  const [showConfidenceInfo, setShowConfidenceInfo] = useState(false);
 
   // Validation & Testing instrument state (INS-38)
   const [rating, setRating] = useState(0);
@@ -62,97 +65,198 @@ export function ResultCard({ result, onConnectBroker, onOpenFsraExplainer }) {
   };
 
   return (
-    <div className="space-y-6">
+    <div id="sanity-check-result" className="space-y-6 scroll-mt-24">
       {/* 1. Main Benchmark Card */}
       <div className="rounded-3xl p-6 sm:p-8 backdrop-blur-xl border border-emerald-500/40 bg-slate-900/90 shadow-2xl relative overflow-hidden">
+        {/* Compact Profile Summary (INS-61 Item 1) */}
+        <div className="mb-5 pb-4 border-b border-slate-800 flex flex-wrap items-center justify-between gap-3 text-xs text-slate-300">
+          <div className="flex flex-wrap items-center gap-2">
+            <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-slate-950 border border-slate-800 text-white font-medium">
+              <Car className="w-3.5 h-3.5 text-emerald-400" />
+              {vehicle?.year} {vehicle?.make} {vehicle?.model}
+            </span>
+            <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-slate-950 border border-slate-800 text-slate-300">
+              <MapPin className="w-3.5 h-3.5 text-cyan-400" />
+              {location?.fsa} ({location?.city || 'Ontario'})
+            </span>
+            <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-slate-950 border border-slate-800 text-emerald-300 font-semibold">
+              <ShieldCheck className="w-3.5 h-3.5 text-emerald-400" />
+              {result.selectedCoverageName || 'Standard Package'}
+            </span>
+            {driver && (
+              <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-slate-950 border border-slate-800 text-slate-300">
+                <UserCheck className="w-3.5 h-3.5 text-indigo-400" />
+                Age {driver.age} · {driver.yearsLicensed} yrs lic. · {driver.cleanRecord ? 'Clean record' : 'Prior claims/tickets'}
+              </span>
+            )}
+          </div>
+
+          {onEditDetails && (
+            <button
+              type="button"
+              onClick={onEditDetails}
+              className="inline-flex items-center gap-1 text-emerald-400 hover:text-emerald-300 font-semibold text-xs transition cursor-pointer hover:underline"
+            >
+              <Edit3 className="w-3.5 h-3.5" />
+              <span>Edit details</span>
+            </button>
+          )}
+        </div>
+
+        {/* Header with Title and Model Confidence */}
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 pb-6 border-b border-slate-800/80">
           <div>
             <div className="flex items-center gap-2 mb-1.5">
               <span className="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-pulse"></span>
               <span className="text-xs font-bold uppercase tracking-wider text-emerald-400">
-                Ontario Fair Market Estimate
+                Model-based estimate
               </span>
             </div>
             <h3 className="text-2xl sm:text-3xl font-black text-white">
               Estimated benchmark: <span className="text-emerald-400">${fairMonthlyStandard}/month</span>
             </h3>
             <p className="text-xs sm:text-sm text-slate-300 mt-1 max-w-xl leading-relaxed">
-              Based on the information you provided and our current Ontario insurance data for {location?.city || 'Ontario'} ({vehicle?.year} {vehicle?.make} {vehicle?.model}).{' '}
+              Based on the information you provided and InsurCheck’s Ontario insurance pricing model for {location?.city || 'Ontario'} ({vehicle?.year} {vehicle?.make} {vehicle?.model}).{' '}
               <span className="text-slate-400">Not an insurance quote. Actual rates vary by insurer and individual circumstances.</span>
             </p>
           </div>
 
-          {/* Model Confidence */}
-          <div className="px-3.5 py-2 bg-slate-950/80 border border-slate-800 rounded-2xl text-right shrink-0">
-            <div className="text-[11px] text-slate-400 font-medium">FSRA Model Density</div>
-            <div className="text-sm font-black text-emerald-400 flex items-center justify-end gap-1.5">
-              <span className="w-2 h-2 rounded-full bg-emerald-400"></span>
-              {reliabilityScore || 94}% Reliable
+          {/* Model Confidence Score (INS-61 Item 4) */}
+          <div className="relative shrink-0">
+            <div className="px-3.5 py-2 bg-slate-950/80 border border-slate-800 rounded-2xl text-right">
+              <div className="flex items-center justify-end gap-1 text-[11px] text-slate-400 font-medium">
+                <span>Model confidence score</span>
+                <button
+                  type="button"
+                  onClick={() => setShowConfidenceInfo(!showConfidenceInfo)}
+                  className="text-slate-400 hover:text-emerald-400 transition cursor-pointer p-0.5"
+                  aria-label="Explain confidence score"
+                >
+                  <Info className="w-3 h-3" />
+                </button>
+              </div>
+              <div className="text-sm font-black text-emerald-400 flex items-center justify-end gap-1.5 mt-0.5">
+                <span className="w-2 h-2 rounded-full bg-emerald-400"></span>
+                {reliabilityScore || 94}%
+              </div>
             </div>
+
+            {showConfidenceInfo && (
+              <div className="absolute right-0 top-full mt-2 w-72 p-3 bg-slate-950 border border-slate-700 rounded-xl text-left shadow-2xl z-30 text-xs text-slate-300 space-y-1.5 animate-in fade-in duration-150">
+                <div className="flex justify-between items-start font-bold text-white">
+                  <span>How confidence is calculated</span>
+                  <button onClick={() => setShowConfidenceInfo(false)} className="text-slate-400 hover:text-white">✕</button>
+                </div>
+                <p className="text-[11px] text-slate-400 leading-relaxed">
+                  This internal score measures the resolution of our Ontario postal territory risk mapping, vehicle classification, and driver profile inputs. It is not a measured percentage of accurate predictions.
+                </p>
+              </div>
+            )}
           </div>
         </div>
 
-        {/* Breakdown Comparison */}
+        {/* Model-only disclaimer (INS-61 Item 5) */}
+        <div className="mt-4 p-3 bg-slate-950/50 border border-slate-800/80 rounded-xl text-xs text-slate-400">
+          This estimate comes from InsurCheck’s pricing model, not a comparison of community submissions.
+        </div>
+
+        {/* Breakdown Comparison Grid (INS-61 Item 11: no duplicate price cards) */}
         <div className="my-6 grid grid-cols-1 sm:grid-cols-3 gap-4">
-          <div className="bg-slate-950/70 border border-slate-800/90 rounded-2xl p-4">
-            <div className="text-xs text-slate-400 font-semibold">
-              {isEstimating ? 'Estimated Monthly Benchmark' : 'Your Current Premium'}
-            </div>
-            <div className="text-2xl sm:text-3xl font-black text-white mt-1">
-              {isEstimating ? (
-                <span className="text-emerald-400">${fairMonthlyStandard} <span className="text-xs font-normal text-slate-400">/ mo</span></span>
-              ) : (
-                <span>${currentPremium} <span className="text-xs font-normal text-slate-400">/ mo</span></span>
-              )}
-            </div>
-            <div className="text-[11px] text-slate-500 mt-1">
-              {isEstimating ? 'Standard coverage tier baseline' : `$${((currentPremium || 0) * 12).toLocaleString()} / year`}
-            </div>
-          </div>
+          {!isEstimating ? (
+            <>
+              {/* Card 1: Your Current Premium */}
+              <div className="bg-slate-950/70 border border-slate-800/90 rounded-2xl p-4">
+                <div className="text-xs text-slate-400 font-semibold">Your Current Premium</div>
+                <div className="text-2xl sm:text-3xl font-black text-white mt-1">
+                  ${currentPremium} <span className="text-xs font-normal text-slate-400">/ mo</span>
+                </div>
+                <div className="text-[11px] text-slate-500 mt-1">
+                  ${((currentPremium || 0) * 12).toLocaleString()} / year
+                </div>
+              </div>
 
-          <div className="bg-slate-950/70 border border-slate-800/90 rounded-2xl p-4">
-            <div className="flex items-center justify-between">
-              <span className="text-xs text-slate-400 font-semibold">Estimated Benchmark</span>
-              <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-300 border border-emerald-500/20">
-                {result.selectedCoverageName || 'Standard'}
-              </span>
-            </div>
-            <div className="text-2xl sm:text-3xl font-black text-emerald-400 mt-1">
-              ${fairMonthlyStandard} <span className="text-xs font-normal text-slate-400">/ mo</span>
-            </div>
-            <div className="flex items-center justify-between text-[11px] text-slate-500 mt-1">
-              <span>${(fairMonthlyStandard * 12).toLocaleString()} / year</span>
-              {onOpenFsraExplainer && (
-                <button
-                  type="button"
-                  onClick={onOpenFsraExplainer}
-                  className="text-emerald-400 hover:text-emerald-300 underline font-semibold transition cursor-pointer"
-                >
-                  Actuarial Model ℹ️
-                </button>
-              )}
-            </div>
-          </div>
+              {/* Card 2: Estimated Benchmark */}
+              <div className="bg-slate-950/70 border border-slate-800/90 rounded-2xl p-4">
+                <div className="flex items-center justify-between">
+                  <span className="text-xs text-slate-400 font-semibold">Estimated Benchmark</span>
+                  <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-300 border border-emerald-500/20">
+                    {result.selectedCoverageName || 'Standard'}
+                  </span>
+                </div>
+                <div className="text-2xl sm:text-3xl font-black text-emerald-400 mt-1">
+                  ${fairMonthlyStandard} <span className="text-xs font-normal text-slate-400">/ mo</span>
+                </div>
+                <div className="flex items-center justify-between text-[11px] text-slate-500 mt-1">
+                  <span>${(fairMonthlyStandard * 12).toLocaleString()} / year</span>
+                  {onOpenFsraExplainer && (
+                    <button
+                      type="button"
+                      onClick={onOpenFsraExplainer}
+                      className="text-emerald-400 hover:text-emerald-300 underline font-semibold transition cursor-pointer"
+                    >
+                      Pricing Model ℹ️
+                    </button>
+                  )}
+                </div>
+              </div>
 
-          <div className="bg-slate-950/70 border border-slate-800/90 rounded-2xl p-4">
-            <div className="text-xs font-semibold text-slate-300">
-              {isEstimating ? 'Ontario Market Range' : monthlySavings > 0 ? 'Difference vs Benchmark' : 'Benchmark Status'}
-            </div>
-            <div className={`text-2xl sm:text-3xl font-black mt-1 ${!isEstimating && monthlySavings > 0 ? 'text-amber-400' : 'text-emerald-400'}`}>
-              {isEstimating
-                ? `$${coverageTiers?.minimum?.rate || 0} - $${coverageTiers?.comprehensive?.rate || 0}`
-                : monthlySavings > 0
-                ? `+$${monthlySavings}/mo`
-                : 'Competitive Rate'}
-            </div>
-            <div className="text-[11px] text-slate-400 mt-1">
-              {isEstimating
-                ? 'Basic to Full Protection tiers'
-                : monthlySavings > 0
-                ? `~$${annualSavings?.toLocaleString()}/year over expected benchmark`
-                : 'Within fair Ontario pricing'}
-            </div>
-          </div>
+              {/* Card 3: Difference vs Benchmark */}
+              <div className="bg-slate-950/70 border border-slate-800/90 rounded-2xl p-4">
+                <div className="text-xs font-semibold text-slate-300">
+                  {monthlySavings > 0 ? 'Difference vs Benchmark' : 'Benchmark Status'}
+                </div>
+                <div className={`text-2xl sm:text-3xl font-black mt-1 ${monthlySavings > 0 ? 'text-amber-400' : 'text-emerald-400'}`}>
+                  {monthlySavings > 0 ? `+$${monthlySavings}/mo` : 'Competitive Rate'}
+                </div>
+                <div className="text-[11px] text-slate-400 mt-1">
+                  {monthlySavings > 0
+                    ? `~$${annualSavings?.toLocaleString()}/year over expected benchmark`
+                    : 'Within fair Ontario pricing'}
+                </div>
+              </div>
+            </>
+          ) : (
+            <>
+              {/* Estimating Mode: Card 1 - Prominent Selected Benchmark */}
+              <div className="bg-slate-950/70 border border-slate-800/90 rounded-2xl p-4 sm:col-span-2">
+                <div className="flex items-center justify-between">
+                  <span className="text-xs text-slate-400 font-semibold">Estimated Monthly Benchmark</span>
+                  <span className="text-[10px] font-bold px-2.5 py-0.5 rounded-full bg-emerald-500/10 text-emerald-300 border border-emerald-500/20">
+                    {result.selectedCoverageName || 'Standard Package'}
+                  </span>
+                </div>
+                <div className="text-2xl sm:text-4xl font-black text-emerald-400 mt-1.5">
+                  ${fairMonthlyStandard} <span className="text-sm font-normal text-slate-400">/ month</span>
+                </div>
+                <div className="flex items-center justify-between text-xs text-slate-400 mt-2">
+                  <span>≈ ${(fairMonthlyStandard * 12).toLocaleString()} / year estimated base cost</span>
+                  {onOpenFsraExplainer && (
+                    <button
+                      type="button"
+                      onClick={onOpenFsraExplainer}
+                      className="text-emerald-400 hover:text-emerald-300 underline font-semibold transition cursor-pointer"
+                    >
+                      How model works ℹ️
+                    </button>
+                  )}
+                </div>
+              </div>
+
+              {/* Estimating Mode: Card 2 - Estimated prices by coverage level */}
+              <div className="bg-slate-950/70 border border-slate-800/90 rounded-2xl p-4">
+                <div className="text-xs font-semibold text-slate-300">
+                  Estimated prices by coverage level
+                </div>
+                <div className="text-xl sm:text-2xl font-black text-white mt-1.5">
+                  ${coverageTiers?.minimum?.rate || 0} – ${coverageTiers?.comprehensive?.rate || 0}
+                  <span className="text-xs font-normal text-slate-400"> / mo</span>
+                </div>
+                <div className="text-[11px] text-slate-400 mt-2">
+                  From Basic Liability (1M) to Full Protection
+                </div>
+              </div>
+            </>
+          )}
         </div>
 
         {/* Coverage Levels Comparison Matrix */}
@@ -204,7 +308,7 @@ export function ResultCard({ result, onConnectBroker, onOpenFsraExplainer }) {
               })}
             </div>
 
-            {/* Discounts Note (INS-40) */}
+            {/* Discounts Note (INS-40 / INS-61) */}
             <div className="mt-4 p-4 bg-slate-950/70 border border-slate-800 rounded-2xl space-y-3">
               <div>
                 <h5 className="text-xs font-bold uppercase tracking-wider text-emerald-400 mb-1.5 flex items-center gap-1.5">
@@ -350,10 +454,10 @@ export function ResultCard({ result, onConnectBroker, onOpenFsraExplainer }) {
                 {/* Question 2 */}
                 <div>
                   <label className="block text-xs sm:text-sm font-semibold text-slate-200 mb-2">
-                    Does it match what you know about your insurance?
+                    Does it match what you know about Ontario car insurance prices?
                   </label>
                   <div className="flex flex-wrap gap-2">
-                    {['Yes', 'Not sure', 'No'].map((opt) => (
+                    {['Yes', 'Somewhat', 'No'].map((opt) => (
                       <button
                         key={opt}
                         type="button"
@@ -373,7 +477,7 @@ export function ResultCard({ result, onConnectBroker, onOpenFsraExplainer }) {
                 {/* Question 3 */}
                 <div>
                   <label className="block text-xs sm:text-sm font-semibold text-slate-200 mb-2">
-                    Would you use this before renewing your insurance?
+                    Would you use this before renewing your insurance policy?
                   </label>
                   <div className="flex flex-wrap gap-2">
                     {['Yes', 'Maybe', 'No'].map((opt) => (
@@ -396,7 +500,7 @@ export function ResultCard({ result, onConnectBroker, onOpenFsraExplainer }) {
                 {/* Question 4 */}
                 <div>
                   <label className="block text-xs sm:text-sm font-semibold text-slate-200 mb-2">
-                    Would you use this before buying a car?
+                    Would you use this before buying a new or used vehicle?
                   </label>
                   <div className="flex flex-wrap gap-2">
                     {['Yes', 'Maybe', 'No'].map((opt) => (
@@ -444,38 +548,23 @@ export function ResultCard({ result, onConnectBroker, onOpenFsraExplainer }) {
         )}
       </div>
 
-      {/* 3. Optional Broker Match (Secondary bridge - INS-39) */}
-      {(() => {
-        let brokerTitle = "Lock In Your Best Insurance Price";
-        let brokerDesc = "An independent Ontario broker compares 30+ insurers to find your lowest available rate. Free, no obligation.";
-
-        if (!isEstimating) {
-          if (annualSavings > 0) {
-            brokerTitle = `Save Up to $${annualSavings.toLocaleString()}/year`;
-            brokerDesc = "An independent Ontario broker compares 30+ insurers to find your lowest available rate. Free, no obligation.";
-          } else {
-            brokerTitle = "See If You Can Find a Better Rate";
-            brokerDesc = "Even with a competitive rate, brokers often find unlisted discounts across 30+ insurers. Free, no obligation.";
-          }
-        }
-
-        return (
-          <div className="p-4 sm:p-5 bg-slate-900/60 border border-slate-800/80 rounded-2xl flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-slate-400">
-            <div>
-              <span className="text-white font-semibold block sm:inline mr-1.5">{brokerTitle}:</span>
-              <span>{brokerDesc}</span>
-            </div>
-            <button
-              type="button"
-              onClick={onConnectBroker}
-              className="px-4 py-2.5 bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold rounded-xl transition shadow-md shadow-emerald-500/10 whitespace-nowrap cursor-pointer flex items-center gap-1.5 shrink-0"
-            >
-              <span>Get Official Quotes</span>
-              <ArrowRight className="w-3.5 h-3.5" />
-            </button>
-          </div>
-        );
-      })()}
+      {/* 3. Launch Notification Flow (INS-61 Item 7) */}
+      <div className="p-4 sm:p-5 bg-slate-900/60 border border-slate-800/80 rounded-2xl flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-slate-400">
+        <div>
+          <span className="text-white font-semibold block sm:inline mr-1.5">
+            Interested in help finding insurance?
+          </span>
+          <span>Broker matching is coming soon. Get notified when it becomes available.</span>
+        </div>
+        <button
+          type="button"
+          onClick={onConnectBroker}
+          className="px-4 py-2.5 bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold rounded-xl transition shadow-md shadow-emerald-500/10 whitespace-nowrap cursor-pointer flex items-center gap-1.5 shrink-0"
+        >
+          <span>Notify me at launch</span>
+          <ArrowRight className="w-3.5 h-3.5" />
+        </button>
+      </div>
     </div>
   );
 }

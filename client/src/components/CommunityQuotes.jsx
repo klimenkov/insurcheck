@@ -350,10 +350,10 @@ export function CommunityQuotes({ onOpenContribute, onOpenFsraExplainer }) {
               <button
                 type="button"
                 onClick={onOpenFsraExplainer}
-                className="flex items-center gap-1.5 px-3.5 py-2 bg-slate-800 hover:bg-slate-700 text-emerald-400 hover:text-emerald-300 rounded-xl text-xs font-semibold border border-slate-700 transition shrink-0 shadow-sm"
+                className="flex items-center gap-1.5 px-3.5 py-2 bg-slate-800 hover:bg-slate-700 text-emerald-400 hover:text-emerald-300 rounded-xl text-xs font-semibold border border-slate-700 transition shrink-0 shadow-sm cursor-pointer"
               >
                 <Scale className="w-4 h-4" />
-                <span>What is FSRA Fair Rate?</span>
+                <span>How benchmark is calculated</span>
               </button>
             )}
           </div>
@@ -674,7 +674,7 @@ export function CommunityQuotes({ onOpenContribute, onOpenFsraExplainer }) {
                         <div>
                           <div className="text-[10px] uppercase font-bold tracking-wider text-slate-400 flex items-center gap-1">
                             <Scale className="w-3 h-3 text-cyan-400" />
-                            <span>FSRA Actuarial Fair Rate</span>
+                            <span>InsurCheck Benchmark Rate</span>
                           </div>
                           <div className="font-bold text-white mt-0.5">
                             ${sq.benchmark_premium}/mo

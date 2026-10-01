@@ -4,8 +4,13 @@ import { VEHICLE_OPTIONS, POPULAR_MAKES, ALL_MAKES, getModelsForMake, getYearsFo
 import { SearchableSelect } from './SearchableSelect.jsx';
 import { parseAndValidatePostalCode } from '../utils/postalCode.js';
 
-export function SanityChecker({ onCalculate, loading }) {
-  const [formData, setFormData] = useState({
+export function SanityChecker({
+  formData: externalFormData,
+  setFormData: externalSetFormData,
+  onCalculate,
+  loading
+}) {
+  const [internalFormData, setInternalFormData] = useState({
     coverageLevel: '',
     postalCode: '',
     vehicleMake: '',
@@ -22,6 +27,9 @@ export function SanityChecker({ onCalculate, loading }) {
     numberOfVehicles: 1,
     shareAnonymously: false
   });
+
+  const formData = externalFormData || internalFormData;
+  const setFormData = externalSetFormData || setInternalFormData;
 
   const [householdOpen, setHouseholdOpen] = useState(false);
   const [coverageInfoOpen, setCoverageInfoOpen] = useState(false);
@@ -141,6 +149,34 @@ export function SanityChecker({ onCalculate, loading }) {
     <div className="bg-slate-900/90 border border-slate-800 rounded-3xl p-6 sm:p-8 backdrop-blur-xl shadow-2xl relative overflow-hidden">
       <div className="absolute top-0 right-0 w-80 h-80 bg-emerald-500/5 rounded-full blur-3xl pointer-events-none -z-10"></div>
 
+      {/* Mode Selection Tabs (INS-61 Item 11) */}
+      <div className="grid grid-cols-2 gap-2 p-1.5 bg-slate-950/80 rounded-2xl border border-slate-800 mb-6">
+        <button
+          type="button"
+          onClick={() => setFormData(prev => ({ ...prev, isEstimating: false }))}
+          className={`py-3 px-4 rounded-xl text-xs sm:text-sm font-bold transition flex items-center justify-center gap-2 cursor-pointer ${
+            !formData.isEstimating
+              ? 'bg-emerald-500 text-slate-950 shadow-md'
+              : 'text-slate-400 hover:text-white hover:bg-slate-900/50'
+          }`}
+        >
+          <DollarSign className="w-4 h-4" />
+          <span>Check my current premium</span>
+        </button>
+        <button
+          type="button"
+          onClick={() => setFormData(prev => ({ ...prev, isEstimating: true }))}
+          className={`py-3 px-4 rounded-xl text-xs sm:text-sm font-bold transition flex items-center justify-center gap-2 cursor-pointer ${
+            formData.isEstimating
+              ? 'bg-emerald-500 text-slate-950 shadow-md'
+              : 'text-slate-400 hover:text-white hover:bg-slate-900/50'
+          }`}
+        >
+          <Sparkles className="w-4 h-4" />
+          <span>Estimate insurance for a car</span>
+        </button>
+      </div>
+
       <div className="flex items-center justify-between pb-6 border-b border-slate-800/80 mb-6">
         <div>
           <h2 className="text-xl sm:text-2xl font-black text-white flex items-center gap-2.5">
@@ -148,15 +184,15 @@ export function SanityChecker({ onCalculate, loading }) {
             Tell us about your insurance
           </h2>
           <p className="text-xs sm:text-sm text-slate-400 mt-0.5">
-            We'll use this to compare your rate with similar Ontario drivers. Nothing is shared publicly.
+            Compare your premium with InsurCheck’s Ontario insurance model and help build a community database of real driver rates.
           </p>
         </div>
-        <span className="hidden sm:inline-flex text-xs font-semibold px-2.5 py-1 bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 rounded-lg">
-          Zero Personal Info
+        <span className="hidden sm:inline-flex text-xs font-semibold px-2.5 py-1 bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 rounded-lg shrink-0">
+          No name or email needed
         </span>
       </div>
 
-      <form onSubmit={handleSubmit} className="space-y-6">
+      <form id="sanity-checker-form" onSubmit={handleSubmit} className="space-y-6">
         {/* Household / Multi-driver Toggle */}
         <div className="bg-slate-950/70 rounded-2xl border border-slate-800 overflow-hidden">
           <button
@@ -562,32 +598,16 @@ export function SanityChecker({ onCalculate, loading }) {
           </div>
         </div>
 
-        {/* Step 4: Monthly Premium & Estimating Checkbox */}
-        <div className="p-4 bg-slate-950/70 rounded-2xl border border-slate-800">
-          {/* Checkmark: I'm estimating insurance */}
-          <div className="mb-3">
-            <label className="flex items-center gap-2.5 cursor-pointer group">
-              <input
-                type="checkbox"
-                checked={formData.isEstimating}
-                onChange={(e) => setFormData({ ...formData, isEstimating: e.target.checked })}
-                className="w-4 h-4 rounded border-slate-700 text-emerald-500 focus:ring-emerald-500 focus:ring-offset-slate-900 accent-emerald-500 cursor-pointer"
-              />
-              <span className="text-xs sm:text-sm font-semibold text-slate-300 group-hover:text-emerald-300 transition">
-                I'm estimating insurance (I don't have a current premium)
-              </span>
-            </label>
-          </div>
-
-          {formData.isEstimating ? (
-            <div className="p-3.5 bg-emerald-950/30 border border-emerald-500/30 rounded-xl flex items-start gap-2.5 text-xs text-emerald-300 leading-relaxed">
-              <Sparkles className="w-4 h-4 text-emerald-400 shrink-0 mt-0.5" />
-              <div>
-                <strong>Estimating Mode Active:</strong> We'll compute the official Ontario actuarial benchmark for this vehicle and postal code, so you know exactly what quotes to target from insurers without getting overcharged.
-              </div>
+        {/* Step 4: Monthly Premium or Estimating Mode */}
+        {formData.isEstimating ? (
+          <div className="p-4 bg-emerald-950/30 border border-emerald-500/30 rounded-2xl flex items-start gap-3 text-xs text-emerald-300 leading-relaxed">
+            <Sparkles className="w-5 h-5 text-emerald-400 shrink-0 mt-0.5" />
+            <div>
+              <strong>Estimating Mode:</strong> We’ll estimate an insurance benchmark for your vehicle, area, and driver profile using InsurCheck’s pricing model. Use it to compare quotes. Actual prices depend on the insurer and your circumstances.
             </div>
-          ) : (
-            <div className="space-y-3">
+          </div>
+        ) : (
+          <div className="p-4 bg-slate-950/70 rounded-2xl border border-slate-800 space-y-3">
               <div>
                 <label className="block text-xs font-bold uppercase tracking-wider text-emerald-400 mb-1 flex items-center gap-1.5">
                   <DollarSign className="w-4 h-4" />
@@ -734,7 +754,6 @@ export function SanityChecker({ onCalculate, loading }) {
               </div>
             </div>
           )}
-        </div>
 
         {/* Step 5: Driver Age & Experience */}
         <div>
@@ -842,9 +861,9 @@ export function SanityChecker({ onCalculate, loading }) {
 
         {/* Anonymous Contribution Consent (Required when not estimating) */}
         {!formData.isEstimating && (
-          <div className="space-y-1.5 pt-1">
+          <div className="space-y-2 pt-1">
             <label
-              className={`flex items-start gap-2.5 cursor-pointer group p-3 rounded-xl border transition ${
+              className={`flex items-start gap-2.5 cursor-pointer group p-3.5 rounded-xl border transition ${
                 attemptedSubmit && isConsentMissing
                   ? 'bg-rose-950/20 border-rose-500/40 ring-1 ring-rose-500/30'
                   : 'bg-slate-950/40 border-slate-800/80 hover:border-slate-700'
@@ -853,17 +872,20 @@ export function SanityChecker({ onCalculate, loading }) {
               <input
                 type="checkbox"
                 checked={formData.shareAnonymously}
-                onChange={(e) => setFormData({ ...formData, shareAnonymously: e.target.checked })}
+                onChange={(e) => setFormData(prev => ({ ...prev, shareAnonymously: e.target.checked }))}
                 className="w-4 h-4 mt-0.5 rounded border-slate-700 text-emerald-500 focus:ring-emerald-500 focus:ring-offset-slate-900 accent-emerald-500 cursor-pointer shrink-0"
               />
               <span className="text-xs text-slate-300 group-hover:text-emerald-300 transition leading-relaxed">
-                I agree to share my anonymous rate parameters to help build Ontario's open driver benchmark (zero personal data saved)
+                I agree to share my rate details anonymously in Community Rates and help improve InsurCheck’s benchmarks.
               </span>
             </label>
+            <p className="text-[11px] text-slate-400 pl-1 leading-snug">
+              Shared details can include your vehicle, postal-code prefix, age, licence experience, insurer, coverage, premium, and driving-record category.
+            </p>
             {attemptedSubmit && isConsentMissing && (
               <p className="text-xs text-rose-400 flex items-center gap-1.5 px-1 font-medium">
                 <AlertCircle className="w-3.5 h-3.5 shrink-0" />
-                <span>Please agree to share anonymous rate parameters to proceed.</span>
+                <span>Please agree to share anonymous rate details to proceed.</span>
               </p>
             )}
           </div>
@@ -871,6 +893,7 @@ export function SanityChecker({ onCalculate, loading }) {
 
         {/* Submit CTA */}
         <button
+          id="sanity-checker-submit"
           type="submit"
           disabled={loading || (attemptedSubmit && !isFormValid)}
           className="w-full py-4 px-6 rounded-2xl font-extrabold text-base text-slate-950 bg-gradient-to-r from-emerald-400 via-teal-300 to-emerald-400 hover:opacity-95 transition shadow-lg shadow-emerald-500/25 flex items-center justify-center gap-2 cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed"
