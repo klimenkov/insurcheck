@@ -1,5 +1,6 @@
 import express from 'express';
 import { db } from '../db.js';
+import { sendToGoogleSheets } from '../services/googleSheetsWebhook.js';
 
 export const contactRouter = express.Router();
 
@@ -23,11 +24,20 @@ contactRouter.post('/', (req, res) => {
       return res.status(400).json({ success: false, error: 'All fields are required' });
     }
 
+    const dateStr = new Date().toISOString();
     const stmt = db.prepare(`
       INSERT INTO contact_messages (created_at, name, email, message)
       VALUES (?, ?, ?, ?)
     `);
-    stmt.run(new Date().toISOString(), name, email, message);
+    const result = stmt.run(dateStr, name, email, message);
+
+    sendToGoogleSheets('contact', {
+      id: result.lastInsertRowid,
+      created_at: dateStr,
+      name,
+      email,
+      message
+    }, `Contact message from ${name} (${email})`).catch(() => {});
 
     res.json({ success: true });
   } catch (err) {

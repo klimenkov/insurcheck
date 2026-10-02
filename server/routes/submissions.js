@@ -2,6 +2,7 @@ import express from 'express';
 import { db } from '../db.js';
 import { FSA_RISK_MAP } from '../engine/ontarioData.js';
 import { normalizeInsurerName, validateMonthlyPremium } from '../engine/normalizer.js';
+import { sendToGoogleSheets } from '../services/googleSheetsWebhook.js';
 
 export const submissionsRouter = express.Router();
 
@@ -69,11 +70,30 @@ submissionsRouter.post('/', (req, res) => {
     const age = parseInt(driverAge, 10) || 30;
     const profile = age < 25 ? 'young' : (age >= 65 ? 'senior' : 'experienced');
 
-    stmt.run(
+    const result = stmt.run(
       dateStr, fsa, location.city, vehicleMake, vehicleModel, parseInt(vehicleYear, 10) || 2022,
       age, profile, parseInt(yearsLicensed, 10) || 5, cleanRecord ? 1 : 0,
       normalizedProvider, validPremium, coverageType || 'Standard', comment || ''
     );
+
+    // Non-blocking append-only backup to Google Sheets
+    sendToGoogleSheets('submission', {
+      id: result.lastInsertRowid,
+      created_at: dateStr,
+      fsa,
+      city: location.city,
+      vehicle_make: vehicleMake,
+      vehicle_model: vehicleModel,
+      vehicle_year: parseInt(vehicleYear, 10) || 2022,
+      driver_age: age,
+      driver_profile: profile,
+      years_licensed: parseInt(yearsLicensed, 10) || 5,
+      clean_record: cleanRecord ? 1 : 0,
+      provider_name: normalizedProvider,
+      monthly_premium: validPremium,
+      coverage_type: coverageType || 'Standard',
+      comment: comment || ''
+    }, `${parseInt(vehicleYear, 10) || 2022} ${vehicleMake} ${vehicleModel} in ${fsa} (${location.city}) - $${validPremium}/mo (${normalizedProvider})`).catch(() => {});
 
     res.json({ success: true, message: 'Rate submitted successfully!' });
   } catch (err) {

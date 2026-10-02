@@ -1,5 +1,6 @@
 import express from 'express';
 import { db } from '../db.js';
+import { sendToGoogleSheets } from '../services/googleSheetsWebhook.js';
 
 export const leadsRouter = express.Router();
 
@@ -14,11 +15,23 @@ leadsRouter.post('/', (req, res) => {
 
     const dateStr = new Date().toISOString();
     const savings = parseInt(estimatedSavings, 10) || 0;
-    stmt.run(dateStr, name, email, phone, vehicle || '', postalCode || '', parseInt(currentPremium, 10) || 0, savings);
+    const result = stmt.run(dateStr, name, email, phone, vehicle || '', postalCode || '', parseInt(currentPremium, 10) || 0, savings);
 
     if (savings > 0) {
       db.prepare("UPDATE platform_stats SET value = value + ? WHERE key = 'total_money_saved'").run(savings);
     }
+
+    sendToGoogleSheets('lead', {
+      id: result.lastInsertRowid,
+      created_at: dateStr,
+      name,
+      email,
+      phone,
+      vehicle: vehicle || '',
+      postal_code: postalCode || '',
+      current_premium: parseInt(currentPremium, 10) || 0,
+      estimated_savings: savings
+    }, `Broker quote lead from ${name} (${email}) - ${vehicle || 'Vehicle'}`).catch(() => {});
 
     res.json({ success: true, message: 'Request received. A licensed Ontario broker will contact you with matched quotes.' });
   } catch (err) {
@@ -49,7 +62,13 @@ leadsRouter.post('/waitlist', (req, res) => {
       INSERT INTO broker_launch_waitlist (created_at, email)
       VALUES (?, ?)
     `);
-    stmt.run(dateStr, normalizedEmail);
+    const result = stmt.run(dateStr, normalizedEmail);
+
+    sendToGoogleSheets('waitlist', {
+      id: result.lastInsertRowid,
+      created_at: dateStr,
+      email: normalizedEmail
+    }, `Broker launch waitlist: ${normalizedEmail}`).catch(() => {});
 
     res.json({
       success: true,

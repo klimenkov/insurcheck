@@ -1,5 +1,6 @@
 import express from 'express';
 import { db } from '../db.js';
+import { sendToGoogleSheets } from '../services/googleSheetsWebhook.js';
 
 export const insurersRouter = express.Router();
 
@@ -59,24 +60,51 @@ insurersRouter.post('/:id/reviews', (req, res) => {
       ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     `);
 
-    stmt.run(
+    const dateStr = new Date().toISOString();
+    const finalTitle = title ? String(title).trim() : (body ? 'Ontario Driver Review' : 'Rating without comment');
+    const finalBody = body ? String(body).trim() : '';
+    const finalCity = author_city ? String(author_city).trim() : 'Ontario';
+    const finalVehicle = vehicle ? String(vehicle).trim() : 'Passenger Vehicle';
+    const finalPremium = parseInt(monthly_premium, 10) || 0;
+
+    const result = stmt.run(
       id,
-      new Date().toISOString(),
+      dateStr,
       overall,
       valRating,
       claimsRating,
       supportRating,
       renewalRating,
       easeRating,
-      title ? String(title).trim() : (body ? 'Ontario Driver Review' : 'Rating without comment'),
-      body ? String(body).trim() : '',
+      finalTitle,
+      finalBody,
       had_accident ? 1 : 0,
       claims_experience ? String(claims_experience).trim() : null,
       payout_speed ? String(payout_speed).trim() : null,
-      author_city ? String(author_city).trim() : 'Ontario',
-      vehicle ? String(vehicle).trim() : 'Passenger Vehicle',
-      parseInt(monthly_premium, 10) || 0
+      finalCity,
+      finalVehicle,
+      finalPremium
     );
+
+    sendToGoogleSheets('review', {
+      id: result.lastInsertRowid,
+      insurer_id: id,
+      created_at: dateStr,
+      rating: overall,
+      rating_value: valRating,
+      rating_claims: claimsRating,
+      rating_support: supportRating,
+      rating_renewal: renewalRating,
+      rating_ease: easeRating,
+      title: finalTitle,
+      body: finalBody,
+      had_accident: had_accident ? 1 : 0,
+      claims_experience: claims_experience ? String(claims_experience).trim() : null,
+      payout_speed: payout_speed ? String(payout_speed).trim() : null,
+      author_city: finalCity,
+      vehicle: finalVehicle,
+      monthly_premium: finalPremium
+    }, `${overall}★ review for ${id}: "${finalTitle}" (${finalCity})`).catch(() => {});
 
     // Recalculate average rating across all 5 dimensions
     const stats = db.prepare(`
