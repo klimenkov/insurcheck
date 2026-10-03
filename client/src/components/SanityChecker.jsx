@@ -10,7 +10,8 @@ export function SanityChecker({
   onCalculate,
   loading,
   onOpenMethodology,
-  onOpenPrivacy
+  onOpenPrivacy,
+  onNavigateReviews
 }) {
   const [internalFormData, setInternalFormData] = useState({
     coverageLevel: '',
@@ -689,10 +690,22 @@ export function SanityChecker({
 
               {/* Standardized Ontario Insurers Dropdown - Sorted A–Z */}
               <div className="pt-2 border-t border-slate-900">
-                <label className="block text-xs font-semibold text-slate-300 mb-1 flex items-center gap-1.5">
-                  <Building2 className="w-3.5 h-3.5 text-emerald-400" />
-                  Insurance company <span className="text-rose-400 font-bold">*</span>
-                </label>
+                <div className="flex items-center justify-between mb-1">
+                  <label className="text-xs font-semibold text-slate-300 flex items-center gap-1.5">
+                    <Building2 className="w-3.5 h-3.5 text-emerald-400" />
+                    <span>Insurance company</span>
+                    <span className="text-rose-400 font-bold">*</span>
+                  </label>
+                  {formData.insuranceCompany && formData.insuranceCompany !== 'Other' && (
+                    <button
+                      type="button"
+                      onClick={() => onNavigateReviews?.(formData.insuranceCompany)}
+                      className="text-[11px] text-emerald-400 hover:text-emerald-300 hover:underline font-semibold cursor-pointer"
+                    >
+                      Read reviews & profile →
+                    </button>
+                  )}
+                </div>
                 <select
                   required={!formData.isEstimating}
                   value={formData.insuranceCompany}

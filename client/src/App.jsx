@@ -140,6 +140,21 @@ export default function App() {
     }
   };
 
+  const navigateToInsurerReview = (insurerNameOrSlug) => {
+    if (!insurerNameOrSlug) {
+      navigateTab('insurers', '/reviews');
+      return;
+    }
+    const clean = String(insurerNameOrSlug).toLowerCase().trim()
+      .replace(/^caa insurance$/, 'caa')
+      .replace(/^square one insurance$/, 'squareone')
+      .replace(/^td insurance$/, 'td')
+      .replace(/^co-operators$/, 'cooperators')
+      .replace(/^facility.*$/, 'facility')
+      .replace(/\s+/g, '-');
+    navigateTab('insurers', `/reviews/${clean}`);
+  };
+
   const handleCalculate = async (formData) => {
     setLoading(true);
     trackEvent('sanity_check_submitted', {
@@ -217,6 +232,7 @@ export default function App() {
                 loading={loading}
                 onOpenMethodology={() => setFsraModalOpen(true)}
                 onOpenPrivacy={() => navigateTab('privacy')}
+                onNavigateReviews={navigateToInsurerReview}
               />
 
               <div>
@@ -245,12 +261,14 @@ export default function App() {
                 ) : checkResult ? (
                   <ResultCard
                     result={checkResult}
+                    formData={calculatorFormData}
                     onConnectBroker={() => {
                       trackEvent('broker_cta_clicked', { verdict: checkResult?.verdict });
                       setLeadModalOpen(true);
                     }}
                     onOpenFsraExplainer={() => setFsraModalOpen(true)}
                     onEditDetails={handleEditDetails}
+                    onNavigateReviews={navigateToInsurerReview}
                   />
                 ) : (
                   <div className="border border-dashed border-slate-800 rounded-3xl p-8 text-center text-slate-500 bg-slate-900/30">
@@ -272,6 +290,7 @@ export default function App() {
           <CommunityQuotes
             onOpenContribute={() => setContributeModalOpen(true)}
             onOpenFsraExplainer={() => setFsraModalOpen(true)}
+            onNavigateReviews={navigateToInsurerReview}
           />
         )}
 
@@ -280,7 +299,17 @@ export default function App() {
         )}
 
         {activeTab === 'insurers' && (
-          <InsurerReviews />
+          <InsurerReviews
+            onNavigate={(tab, path) => navigateTab(tab, path)}
+            onPreselectInsurer={(insurerName) => {
+              setCalculatorFormData(prev => ({
+                ...prev,
+                insuranceCompany: insurerName,
+                isEstimating: false
+              }));
+              navigateTab('checker', '/');
+            }}
+          />
         )}
 
         {activeTab === 'contact' && (

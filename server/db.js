@@ -155,9 +155,43 @@ CREATE TABLE IF NOT EXISTS broker_launch_waitlist (
   created_at TEXT NOT NULL,
   email TEXT UNIQUE NOT NULL
 );
+
+CREATE TABLE IF NOT EXISTS insurer_discussions (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  insurer_id TEXT NOT NULL,
+  created_at TEXT NOT NULL,
+  user_email TEXT NOT NULL,
+  display_name TEXT NOT NULL,
+  title TEXT NOT NULL,
+  body TEXT NOT NULL,
+  helpful_count INTEGER DEFAULT 0,
+  status TEXT DEFAULT 'published',
+  FOREIGN KEY (insurer_id) REFERENCES insurers(id)
+);
+
+CREATE TABLE IF NOT EXISTS discussion_replies (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  discussion_id INTEGER NOT NULL,
+  created_at TEXT NOT NULL,
+  user_email TEXT NOT NULL,
+  display_name TEXT NOT NULL,
+  body TEXT NOT NULL,
+  is_staff INTEGER DEFAULT 0,
+  status TEXT DEFAULT 'published',
+  FOREIGN KEY (discussion_id) REFERENCES insurer_discussions(id)
+);
+
+CREATE TABLE IF NOT EXISTS review_votes (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  target_type TEXT NOT NULL,
+  target_id INTEGER NOT NULL,
+  voter_key TEXT NOT NULL,
+  created_at TEXT NOT NULL,
+  UNIQUE(target_type, target_id, voter_key)
+);
 `);
 
-// Migration helper for new rating dimensions
+// Migration helper for new rating dimensions and verified profiles (INS-62)
 const addCol = (table, col, typeDef) => {
   try {
     db.exec(`ALTER TABLE ${table} ADD COLUMN ${col} ${typeDef};`);
@@ -166,18 +200,60 @@ const addCol = (table, col, typeDef) => {
   }
 };
 
-addCol('insurers', 'overall_rating', 'REAL DEFAULT 4.0');
-addCol('insurers', 'rating_value', 'REAL DEFAULT 4.0');
-addCol('insurers', 'rating_claims', 'REAL DEFAULT 4.0');
-addCol('insurers', 'rating_support', 'REAL DEFAULT 4.0');
-addCol('insurers', 'rating_renewal', 'REAL DEFAULT 4.0');
-addCol('insurers', 'rating_ease', 'REAL DEFAULT 4.0');
+addCol('insurers', 'overall_rating', 'REAL DEFAULT NULL');
+addCol('insurers', 'rating_value', 'REAL DEFAULT NULL');
+addCol('insurers', 'rating_claims', 'REAL DEFAULT NULL');
+addCol('insurers', 'rating_support', 'REAL DEFAULT NULL');
+addCol('insurers', 'rating_renewal', 'REAL DEFAULT NULL');
+addCol('insurers', 'rating_ease', 'REAL DEFAULT NULL');
 
-addCol('reviews', 'rating_value', 'REAL DEFAULT 4.0');
-addCol('reviews', 'rating_claims', 'REAL DEFAULT 4.0');
-addCol('reviews', 'rating_support', 'REAL DEFAULT 4.0');
-addCol('reviews', 'rating_renewal', 'REAL DEFAULT 4.0');
-addCol('reviews', 'rating_ease', 'REAL DEFAULT 4.0');
+addCol('insurers', 'fy2025_revenue_cad', 'REAL DEFAULT NULL');
+addCol('insurers', 'revenue_formatted', 'TEXT DEFAULT NULL');
+addCol('insurers', 'revenue_metric', 'TEXT DEFAULT NULL');
+addCol('insurers', 'revenue_source_url', 'TEXT DEFAULT NULL');
+addCol('insurers', 'revenue_date', 'TEXT DEFAULT NULL');
+addCol('insurers', 'customer_count', 'TEXT DEFAULT NULL');
+addCol('insurers', 'customer_count_scope', 'TEXT DEFAULT NULL');
+addCol('insurers', 'customer_source_url', 'TEXT DEFAULT NULL');
+addCol('insurers', 'parent_group', 'TEXT DEFAULT NULL');
+addCol('insurers', 'underwriting_entity', 'TEXT DEFAULT NULL');
+addCol('insurers', 'distribution_channel', 'TEXT DEFAULT NULL');
+addCol('insurers', 'editorial_score', 'REAL DEFAULT NULL');
+addCol('insurers', 'editorial_claims', 'REAL DEFAULT NULL');
+addCol('insurers', 'editorial_service', 'REAL DEFAULT NULL');
+addCol('insurers', 'editorial_coverage', 'REAL DEFAULT NULL');
+addCol('insurers', 'editorial_transparency', 'REAL DEFAULT NULL');
+addCol('insurers', 'editorial_digital', 'REAL DEFAULT NULL');
+addCol('insurers', 'verdict', 'TEXT DEFAULT NULL');
+addCol('insurers', 'who_should_consider', 'TEXT DEFAULT NULL');
+addCol('insurers', 'who_should_avoid', 'TEXT DEFAULT NULL');
+addCol('insurers', 'strengths', 'TEXT DEFAULT NULL');
+addCol('insurers', 'limitations', 'TEXT DEFAULT NULL');
+addCol('insurers', 'claims_procedure', 'TEXT DEFAULT NULL');
+addCol('insurers', 'discounts_telematics', 'TEXT DEFAULT NULL');
+addCol('insurers', 'is_residual_market', 'INTEGER DEFAULT 0');
+addCol('insurers', 'last_reviewed_date', 'TEXT DEFAULT NULL');
+addCol('insurers', 'slug', 'TEXT DEFAULT NULL');
+
+addCol('reviews', 'rating_value', 'REAL DEFAULT NULL');
+addCol('reviews', 'rating_claims', 'REAL DEFAULT NULL');
+addCol('reviews', 'rating_support', 'REAL DEFAULT NULL');
+addCol('reviews', 'rating_renewal', 'REAL DEFAULT NULL');
+addCol('reviews', 'rating_ease', 'REAL DEFAULT NULL');
+addCol('reviews', 'user_email', 'TEXT DEFAULT NULL');
+addCol('reviews', 'display_name', 'TEXT DEFAULT NULL');
+addCol('reviews', 'author_name', 'TEXT DEFAULT NULL');
+addCol('reviews', 'author_email', 'TEXT DEFAULT NULL');
+addCol('reviews', 'author_display_name', 'TEXT DEFAULT NULL');
+addCol('reviews', 'is_verified_customer', 'INTEGER DEFAULT 0');
+addCol('reviews', 'is_verified_email', 'INTEGER DEFAULT 1');
+addCol('reviews', 'status', 'TEXT DEFAULT "published"');
+addCol('reviews', 'helpful_count', 'INTEGER DEFAULT 0');
+
+addCol('insurer_discussions', 'author_name', 'TEXT DEFAULT NULL');
+addCol('insurer_discussions', 'author_email', 'TEXT DEFAULT NULL');
+addCol('discussion_replies', 'author_name', 'TEXT DEFAULT NULL');
+addCol('discussion_replies', 'author_email', 'TEXT DEFAULT NULL');
 
 // Safe, non-destructive platform stats initialization
 export function ensureStatsInitialized() {

@@ -18,7 +18,7 @@ import {
   History
 } from 'lucide-react';
 
-export function CommunityQuotes({ onOpenContribute, onOpenFsraExplainer }) {
+export function CommunityQuotes({ onOpenContribute, onOpenFsraExplainer, onNavigateReviews }) {
   // Mode: 'crowdsourced' vs 'scraped'
   const [activeMode, setActiveMode] = useState('crowdsourced');
 
@@ -265,9 +265,14 @@ export function CommunityQuotes({ onOpenContribute, onOpenFsraExplainer }) {
 
                     {/* Badges */}
                     <div className="flex flex-wrap gap-1.5 mt-3">
-                      <span className="px-2 py-0.5 rounded-md bg-slate-950 text-slate-300 text-[11px] font-medium border border-slate-800">
-                        Insurer: {q.provider_name}
-                      </span>
+                      <button
+                        type="button"
+                        onClick={() => onNavigateReviews?.(q.provider_name)}
+                        className="px-2 py-0.5 rounded-md bg-slate-950 text-slate-300 hover:text-emerald-400 hover:border-emerald-500/40 text-[11px] font-medium border border-slate-800 transition cursor-pointer"
+                        title={`View ${q.provider_name} profile & reviews`}
+                      >
+                        Insurer: {q.provider_name} ↗
+                      </button>
                       <span className="px-2 py-0.5 rounded-md bg-slate-950 text-slate-300 text-[11px] font-medium border border-slate-800">
                         {q.driver_age} yrs old ({q.years_licensed} yrs G)
                       </span>

@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
-import { CheckCircle2, ArrowRight, ShieldCheck, Sparkles, Building2, HelpCircle, Info, Edit3, UserCheck, MapPin, Car, Shield } from 'lucide-react';
+import { CheckCircle2, ArrowRight, ShieldCheck, Sparkles, Building2, HelpCircle, Info, Edit3, UserCheck, MapPin, Car, Shield, Star } from 'lucide-react';
 
-export function ResultCard({ result, onConnectBroker, onOpenFsraExplainer, onEditDetails }) {
+export function ResultCard({ result, formData, onConnectBroker, onOpenFsraExplainer, onEditDetails, onNavigateReviews }) {
   if (!result) return null;
 
   const {
@@ -546,6 +546,33 @@ export function ResultCard({ result, onConnectBroker, onOpenFsraExplainer, onEdi
             )}
           </div>
         )}
+      </div>
+
+      {/* Insurer Research & Driver Reviews Entry Point */}
+      <div className="p-4 sm:p-5 bg-gradient-to-r from-slate-900 to-slate-900/60 border border-slate-800 rounded-2xl flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 text-xs text-slate-300">
+        <div className="flex items-start gap-3">
+          <div className="w-9 h-9 rounded-xl bg-amber-500/15 text-amber-400 flex items-center justify-center shrink-0 mt-0.5 border border-amber-500/20">
+            <Star className="w-5 h-5 fill-amber-400" />
+          </div>
+          <div>
+            <div className="font-bold text-white text-sm">
+              {formData?.insuranceCompany && formData.insuranceCompany !== 'Other'
+                ? `How does ${formData.insuranceCompany} treat Ontario drivers?`
+                : 'Research 17 Ontario Insurance Providers'}
+            </div>
+            <p className="text-slate-400 mt-0.5">
+              Explore audited FY2025 revenue scale, independent claims ratings, and verified community discussions.
+            </p>
+          </div>
+        </div>
+        <button
+          type="button"
+          onClick={() => onNavigateReviews?.(formData?.insuranceCompany)}
+          className="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-white font-bold rounded-xl transition border border-slate-700 flex items-center gap-1.5 shrink-0 cursor-pointer"
+        >
+          <span>Read Insurer Reviews</span>
+          <ArrowRight className="w-3.5 h-3.5" />
+        </button>
       </div>
 
       {/* 3. Launch Notification Flow (INS-61 Item 7) */}

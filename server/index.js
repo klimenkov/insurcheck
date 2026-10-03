@@ -7,7 +7,7 @@ import { fileURLToPath } from 'node:url';
 
 import { checkRouter } from './routes/check.js';
 import { submissionsRouter } from './routes/submissions.js';
-import { insurersRouter } from './routes/insurers.js';
+import { insurersRouter, reviewsRouter, discussionsRouter } from './routes/insurers.js';
 import { leadsRouter } from './routes/leads.js';
 import { statsRouter } from './routes/stats.js';
 import { scrapedQuotesRouter } from './routes/scrapedQuotes.js';
@@ -47,6 +47,8 @@ app.use('/api/submissions', submissionsRouter);
 app.use('/api/scraped-quotes', scrapedQuotesRouter);
 app.use('/api/territories', territoriesRouter);
 app.use('/api/insurers', insurersRouter);
+app.use('/api/reviews', reviewsRouter);
+app.use('/api/discussions', discussionsRouter);
 app.use('/api/leads', leadsRouter);
 app.use('/api/stats', statsRouter);
 app.use('/api/contact', contactRouter);
