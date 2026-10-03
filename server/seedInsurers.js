@@ -1039,9 +1039,51 @@ export function ensureSubmissionsPopulated() {
       sub.comment
     );
   }
+  console.log(`Ensured all ${initialSubmissions.length} driver submissions exist.`);
+}
+
+export function ensureFeedbackPopulated() {
+  if (!initialFeedback || initialFeedback.length === 0) return;
+  const insertFb = db.prepare(`
+    INSERT OR IGNORE INTO benchmark_feedback (
+      id, created_at, rating, is_reasonable, matches_knowledge, use_before_renew,
+      use_before_buy, trust_comment, postal_code, vehicle, benchmark_rate, current_premium
+    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+  `);
+
+  for (const fb of initialFeedback) {
+    insertFb.run(
+      fb.id, fb.created_at, fb.rating, fb.is_reasonable, fb.matches_knowledge, fb.use_before_renew,
+      fb.use_before_buy, fb.trust_comment, fb.postal_code, fb.vehicle, fb.benchmark_rate, fb.current_premium
+    );
+  }
+  console.log(`Ensured all ${initialFeedback.length} benchmark feedback entries exist.`);
+}
+
+export function ensureLeadsPopulated() {
+  if (!initialLeads || initialLeads.length === 0) return;
+  const insertLead = db.prepare(`
+    INSERT OR IGNORE INTO leads (
+      id, created_at, name, email, phone, vehicle, postal_code,
+      current_premium, estimated_savings, status
+    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+  `);
+
+  for (const l of initialLeads) {
+    insertLead.run(
+      l.id, l.created_at, l.name, l.email, l.phone, l.vehicle, l.postal_code,
+      l.current_premium, l.estimated_savings, l.status
+    );
+  }
+  console.log(`Ensured all ${initialLeads.length} broker leads exist.`);
 }
 
 export function seedAll() {
   ensureInsurersPopulated();
+  ensureReviewsPopulated();
+  ensureDiscussionsPopulated();
   ensureSubmissionsPopulated();
+  ensureFeedbackPopulated();
+  ensureLeadsPopulated();
 }
+

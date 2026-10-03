@@ -20,6 +20,8 @@ import { dbPath } from './db.js';
 import { ensureQuotesPopulated } from './seedQuotes.js';
 import {
   ensureInsurersPopulated,
+  ensureReviewsPopulated,
+  ensureDiscussionsPopulated,
   ensureSubmissionsPopulated,
   ensureFeedbackPopulated,
   ensureLeadsPopulated
@@ -28,9 +30,11 @@ import {
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-// Ensure insurers, quotes, submissions, feedback, leads and rate dynamics are populated in SQLite
+// Ensure insurers, quotes, reviews, discussions, submissions, feedback, leads and rate dynamics are populated in SQLite
 ensureInsurersPopulated();
 ensureQuotesPopulated();
+ensureReviewsPopulated();
+ensureDiscussionsPopulated();
 ensureSubmissionsPopulated();
 ensureFeedbackPopulated();
 ensureLeadsPopulated();
