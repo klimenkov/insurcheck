@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { ShieldAlert, PlusCircle, Menu, X } from 'lucide-react';
+import { PlusCircle, Menu, X } from 'lucide-react';
 
 export function Navbar({ activeTab, setActiveTab, navigateTab, onOpenContribute }) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -19,8 +19,8 @@ export function Navbar({ activeTab, setActiveTab, navigateTab, onOpenContribute 
         <div className="flex items-center justify-between h-16">
           {/* Brand */}
           <div className="flex items-center gap-3 cursor-pointer" onClick={() => handleNavClick('checker')}>
-            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-emerald-400 to-teal-600 flex items-center justify-center text-slate-950 font-black shadow-lg shadow-emerald-500/20">
-              <ShieldAlert className="w-6 h-6 text-slate-950" />
+            <div className="w-10 h-10 rounded-xl bg-slate-900 border border-slate-800 flex items-center justify-center p-2 shadow-lg shadow-purple-500/10 hover:border-slate-700 transition">
+              <img src="/favicon.svg" alt="InsurCheck Logo" className="w-full h-full object-contain" />
             </div>
             <div>
               <span className="text-xl font-extrabold tracking-tight bg-gradient-to-r from-white via-slate-200 to-emerald-400 bg-clip-text text-transparent">

@@ -8,7 +8,9 @@ export function SanityChecker({
   formData: externalFormData,
   setFormData: externalSetFormData,
   onCalculate,
-  loading
+  loading,
+  onOpenMethodology,
+  onOpenPrivacy
 }) {
   const [internalFormData, setInternalFormData] = useState({
     coverageLevel: '',
@@ -177,19 +179,45 @@ export function SanityChecker({
         </button>
       </div>
 
-      <div className="flex items-center justify-between pb-6 border-b border-slate-800/80 mb-6">
-        <div>
+      <div className="pb-6 border-b border-slate-800/80 mb-6">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
           <h2 className="text-xl sm:text-2xl font-black text-white flex items-center gap-2.5">
-            <Sparkles className="w-5 h-5 text-emerald-400" />
-            Tell us about your insurance
+            <Sparkles className="w-5 h-5 text-emerald-400 shrink-0" />
+            <span>
+              {formData.isEstimating
+                ? 'What could insurance cost for this car?'
+                : 'How does your premium compare?'}
+            </span>
           </h2>
-          <p className="text-xs sm:text-sm text-slate-400 mt-0.5">
-            Compare your premium with InsurCheck’s Ontario insurance model and help build a community database of real driver rates.
-          </p>
+          <span className="self-start sm:self-center inline-flex text-xs font-semibold px-2.5 py-1 bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 rounded-lg shrink-0">
+            No name or email needed
+          </span>
         </div>
-        <span className="hidden sm:inline-flex text-xs font-semibold px-2.5 py-1 bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 rounded-lg shrink-0">
-          No name or email needed
-        </span>
+
+        <p className="text-base leading-6 text-slate-400 mt-2">
+          {formData.isEstimating
+            ? 'Enter the car, location, and driving details to get an estimate from InsurCheck’s pricing model. Actual quotes may differ.'
+            : 'Enter your current premium and insurance details to compare your price with InsurCheck’s estimate.'}
+        </p>
+
+        {/* Methodology & Privacy Links (INS-63 Item 2) */}
+        <div className="pt-3 pb-3 flex items-center flex-wrap gap-x-2 text-sm leading-5">
+          <button
+            type="button"
+            onClick={onOpenMethodology}
+            className="text-teal-400 underline hover:text-teal-300 transition cursor-pointer"
+          >
+            How we calculate your estimate
+          </button>
+          <span className="text-slate-500 select-none">·</span>
+          <button
+            type="button"
+            onClick={onOpenPrivacy}
+            className="text-teal-400 underline hover:text-teal-300 transition cursor-pointer"
+          >
+            Privacy Policy
+          </button>
+        </div>
       </div>
 
       <form id="sanity-checker-form" onSubmit={handleSubmit} className="space-y-6">
@@ -598,15 +626,8 @@ export function SanityChecker({
           </div>
         </div>
 
-        {/* Step 4: Monthly Premium or Estimating Mode */}
-        {formData.isEstimating ? (
-          <div className="p-4 bg-emerald-950/30 border border-emerald-500/30 rounded-2xl flex items-start gap-3 text-xs text-emerald-300 leading-relaxed">
-            <Sparkles className="w-5 h-5 text-emerald-400 shrink-0 mt-0.5" />
-            <div>
-              <strong>Estimating Mode:</strong> We’ll estimate an insurance benchmark for your vehicle, area, and driver profile using InsurCheck’s pricing model. Use it to compare quotes. Actual prices depend on the insurer and your circumstances.
-            </div>
-          </div>
-        ) : (
+        {/* Step 4: Monthly Premium (Only shown when not estimating) */}
+        {!formData.isEstimating && (
           <div className="p-4 bg-slate-950/70 rounded-2xl border border-slate-800 space-y-3">
               <div>
                 <label className="block text-xs font-bold uppercase tracking-wider text-emerald-400 mb-1 flex items-center gap-1.5">

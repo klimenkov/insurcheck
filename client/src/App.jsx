@@ -215,6 +215,8 @@ export default function App() {
                 setFormData={setCalculatorFormData}
                 onCalculate={handleCalculate}
                 loading={loading}
+                onOpenMethodology={() => setFsraModalOpen(true)}
+                onOpenPrivacy={() => navigateTab('privacy')}
               />
 
               <div>
