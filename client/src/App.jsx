@@ -15,13 +15,16 @@ import { AdminDashboard } from './components/AdminDashboard.jsx';
 import { TermsOfUse } from './components/TermsOfUse.jsx';
 import { PrivacyPolicy } from './components/PrivacyPolicy.jsx';
 import { AlertCircle } from 'lucide-react';
+import { FEATURES } from './config.js';
 
 const pathToTab = (pathname) => {
   if (!pathname) return 'checker';
   if (pathname.startsWith('/admin')) return 'admin';
   if (pathname.startsWith('/terms')) return 'terms';
   if (pathname.startsWith('/privacy')) return 'privacy';
-  if (pathname.startsWith('/rates') || pathname.startsWith('/quotes')) return 'quotes';
+  if (pathname.startsWith('/rates') || pathname.startsWith('/quotes')) {
+    return FEATURES.COMMUNITY_RATES_VISIBLE ? 'quotes' : 'checker';
+  }
   if (pathname.startsWith('/map') || pathname.startsWith('/heatmap')) return 'heatmap';
   if (pathname.startsWith('/reviews') || pathname.startsWith('/insurers')) return 'insurers';
   if (pathname.startsWith('/contact')) return 'contact';
@@ -30,7 +33,7 @@ const pathToTab = (pathname) => {
 
 const tabToPath = (tab) => {
   switch (tab) {
-    case 'quotes': return '/rates';
+    case 'quotes': return FEATURES.COMMUNITY_RATES_VISIBLE ? '/rates' : '/';
     case 'heatmap': return '/map';
     case 'insurers': return '/reviews';
     case 'contact': return '/contact';
@@ -55,7 +58,7 @@ export default function App() {
   const [contributeModalOpen, setContributeModalOpen] = useState(false);
   const [fsraModalOpen, setFsraModalOpen] = useState(false);
 
-  // Lifted Calculator State (INS-61 Item 1)
+  // Lifted Calculator State (INS-61 & INS-64)
   const [calculatorFormData, setCalculatorFormData] = useState({
     coverageLevel: '',
     postalCode: '',
@@ -71,12 +74,15 @@ export default function App() {
     cleanRecord: true,
     numberOfDrivers: 1,
     numberOfVehicles: 1,
-    shareAnonymously: false
+    shareAnonymously: false,
+    discounts: [],
+    discountStatus: '',
+    otherDiscountDescription: ''
   });
   const [calculatorSnapshot, setCalculatorSnapshot] = useState(null);
   const [checkResult, setCheckResult] = useState(null);
 
-  // Stale result detection (INS-61 Item 1)
+  // Stale result detection (INS-61 & INS-64)
   const isResultStale = Boolean(
     checkResult &&
     calculatorSnapshot &&
@@ -90,6 +96,8 @@ export default function App() {
       calculatorFormData.driverAge !== calculatorSnapshot.driverAge ||
       calculatorFormData.yearsLicensed !== calculatorSnapshot.yearsLicensed ||
       calculatorFormData.cleanRecord !== calculatorSnapshot.cleanRecord ||
+      JSON.stringify(calculatorFormData.discounts || []) !== JSON.stringify(calculatorSnapshot.discounts || []) ||
+      calculatorFormData.discountStatus !== calculatorSnapshot.discountStatus ||
       (!calculatorFormData.isEstimating && (
         calculatorFormData.currentPremium !== calculatorSnapshot.currentPremium ||
         calculatorFormData.insuranceCompany !== calculatorSnapshot.insuranceCompany ||
@@ -110,6 +118,12 @@ export default function App() {
 
   useEffect(() => {
     let ignore = false;
+    if (typeof window !== 'undefined' && !FEATURES.COMMUNITY_RATES_VISIBLE) {
+      if (window.location.pathname.startsWith('/rates') || window.location.pathname.startsWith('/quotes')) {
+        window.history.replaceState({}, '', '/');
+      }
+    }
+
     fetch('/api/stats')
       .then(res => res.json())
       .then(json => {
@@ -286,7 +300,7 @@ export default function App() {
           </main>
         )}
 
-        {activeTab === 'quotes' && (
+        {activeTab === 'quotes' && FEATURES.COMMUNITY_RATES_VISIBLE && (
           <CommunityQuotes
             onOpenContribute={() => setContributeModalOpen(true)}
             onOpenFsraExplainer={() => setFsraModalOpen(true)}

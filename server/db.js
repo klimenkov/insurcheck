@@ -255,6 +255,15 @@ addCol('insurer_discussions', 'author_email', 'TEXT DEFAULT NULL');
 addCol('discussion_replies', 'author_name', 'TEXT DEFAULT NULL');
 addCol('discussion_replies', 'author_email', 'TEXT DEFAULT NULL');
 
+// Submissions Discount Normalization Columns (INS-64)
+addCol('submissions', 'discounts', 'TEXT DEFAULT "[]"');
+addCol('submissions', 'discount_status', 'TEXT DEFAULT "legacy_unknown"');
+addCol('submissions', 'other_discount_description', 'TEXT DEFAULT NULL');
+addCol('submissions', 'estimated_premium_before_discounts', 'REAL DEFAULT NULL');
+addCol('submissions', 'normalization_status', 'TEXT DEFAULT "legacy_assumed_base"');
+addCol('submissions', 'calculation_version', 'TEXT DEFAULT NULL');
+addCol('submissions', 'applied_discount_factors', 'TEXT DEFAULT NULL');
+
 // Safe, non-destructive platform stats initialization
 export function ensureStatsInitialized() {
   const initStat = db.prepare(`

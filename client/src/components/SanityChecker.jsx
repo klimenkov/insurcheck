@@ -3,6 +3,7 @@ import { Car, MapPin, User, Shield, DollarSign, ArrowRight, Loader2, Sparkles, S
 import { VEHICLE_OPTIONS, POPULAR_MAKES, ALL_MAKES, getModelsForMake, getYearsForModel, POPULAR_FSAS } from '../data/vehicles.js';
 import { SearchableSelect } from './SearchableSelect.jsx';
 import { parseAndValidatePostalCode } from '../utils/postalCode.js';
+import { DiscountSelector } from './DiscountSelector.jsx';
 
 export function SanityChecker({
   formData: externalFormData,
@@ -28,7 +29,10 @@ export function SanityChecker({
     cleanRecord: true,
     numberOfDrivers: 1,
     numberOfVehicles: 1,
-    shareAnonymously: false
+    shareAnonymously: false,
+    discounts: [],
+    discountStatus: '',
+    otherDiscountDescription: ''
   });
 
   const formData = externalFormData || internalFormData;
@@ -92,11 +96,17 @@ export function SanityChecker({
   // Consent validation
   const isConsentMissing = !formData.isEstimating && !formData.shareAnonymously;
 
+  // Discount validation (INS-64 Section 2: Require at least one discount, "No discounts", or "Not sure")
+  const isDiscountMissing =
+    !formData.discountStatus &&
+    (!Array.isArray(formData.discounts) || formData.discounts.length === 0);
+
   // Overall validity
   const isFormValid =
     !isCoverageMissing &&
     postalValidation.isValid &&
     !isVehicleIncomplete &&
+    !isDiscountMissing &&
     (!formData.isEstimating ? (!isPremiumInvalid && !isCompanyMissing && !isConsentMissing) : true) &&
     !isAgeInvalid &&
     !isYearsInvalid;
@@ -627,6 +637,25 @@ export function SanityChecker({
           </div>
         </div>
 
+        {/* Estimating Mode: Discounts to include (INS-64 Section 4) */}
+        {formData.isEstimating && (
+          <DiscountSelector
+            selectedDiscounts={formData.discounts || []}
+            discountStatus={formData.discountStatus || ''}
+            otherDescription={formData.otherDiscountDescription || ''}
+            onChange={({ discounts, discountStatus, otherDescription }) =>
+              setFormData((prev) => ({
+                ...prev,
+                discounts,
+                discountStatus,
+                otherDiscountDescription: otherDescription
+              }))
+            }
+            isEstimating={true}
+            showError={attemptedSubmit && isDiscountMissing}
+          />
+        )}
+
         {/* Step 4: Monthly Premium (Only shown when not estimating) */}
         {!formData.isEstimating && (
           <div className="p-4 bg-slate-950/70 rounded-2xl border border-slate-800 space-y-3">
@@ -683,8 +712,8 @@ export function SanityChecker({
                   </div>
                 )}
 
-                <span className="text-[11px] text-slate-500 mt-1 block">
-                  Your current monthly car insurance cost before tax
+                <span className="text-[11px] text-slate-400 mt-1 block">
+                  Enter the price for this vehicle, including its discounts. (Your current monthly cost before tax)
                 </span>
               </div>
 
@@ -788,6 +817,25 @@ export function SanityChecker({
               </div>
             </div>
           )}
+
+        {/* Step 4b: Discounts included in your price (INS-64 Section 2) */}
+        {!formData.isEstimating && (
+          <DiscountSelector
+            selectedDiscounts={formData.discounts || []}
+            discountStatus={formData.discountStatus || ''}
+            otherDescription={formData.otherDiscountDescription || ''}
+            onChange={({ discounts, discountStatus, otherDescription }) =>
+              setFormData((prev) => ({
+                ...prev,
+                discounts,
+                discountStatus,
+                otherDiscountDescription: otherDescription
+              }))
+            }
+            isEstimating={false}
+            showError={attemptedSubmit && isDiscountMissing}
+          />
+        )}
 
         {/* Step 5: Driver Age & Experience */}
         <div>
@@ -914,7 +962,7 @@ export function SanityChecker({
               </span>
             </label>
             <p className="text-[11px] text-slate-400 pl-1 leading-snug">
-              Shared details can include your vehicle, postal-code prefix, age, licence experience, insurer, coverage, premium, and driving-record category.
+              Shared details can include your vehicle, postal-code prefix, age, licence experience, insurer, coverage, premium, selected discounts, and driving-record category.
             </p>
             {attemptedSubmit && isConsentMissing && (
               <p className="text-xs text-rose-400 flex items-center gap-1.5 px-1 font-medium">

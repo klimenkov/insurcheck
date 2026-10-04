@@ -15,12 +15,38 @@ import {
   ChevronDown,
   ChevronUp,
   Clock,
-  History
+  History,
+  Snowflake,
+  Home,
+  Car,
+  Smartphone,
+  Gauge,
+  ShieldAlert,
+  GraduationCap,
+  BadgeCheck,
+  Plus,
+  Tag
 } from 'lucide-react';
+import { getDiscountItem } from '../data/discounts.js';
+
+const DISCOUNT_ICONS = {
+  Snowflake,
+  Home,
+  Car,
+  Users,
+  Smartphone,
+  Gauge,
+  ShieldAlert,
+  GraduationCap,
+  BadgeCheck,
+  Plus,
+  Tag
+};
 
 export function CommunityQuotes({ onOpenContribute, onOpenFsraExplainer, onNavigateReviews }) {
   // Mode: 'crowdsourced' vs 'scraped'
   const [activeMode, setActiveMode] = useState('crowdsourced');
+  const [showAllDiscounts, setShowAllDiscounts] = useState({});
 
   // Crowdsourced state
   const [quotes, setQuotes] = useState([]);
@@ -263,8 +289,68 @@ export function CommunityQuotes({ onOpenContribute, onOpenFsraExplainer, onNavig
                       </div>
                     </div>
 
+                    {/* Discounts Section (INS-64 Item 10) */}
+                    <div className="mt-2.5 mb-1">
+                      {q.discount_status === 'none_reported' ? (
+                        <div className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-slate-950 text-slate-400 text-[10px] font-medium border border-slate-800">
+                          <span>No discounts reported</span>
+                        </div>
+                      ) : q.discount_status === 'unsure' ? (
+                        <div className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-slate-950 text-cyan-400/90 text-[10px] font-medium border border-slate-800">
+                          <span>Discounts unknown</span>
+                        </div>
+                      ) : q.discount_status === 'legacy_unknown' || !q.discount_status ? (
+                        <div className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-slate-950 text-slate-500 text-[10px] font-medium border border-slate-800">
+                          <span>Discounts not recorded</span>
+                        </div>
+                      ) : Array.isArray(q.discounts) && q.discounts.length > 0 ? (
+                        <div>
+                          <div className="flex flex-wrap items-center gap-1">
+                            {(() => {
+                              const visible = showAllDiscounts[q.id] ? q.discounts : q.discounts.slice(0, 3);
+                              const remaining = q.discounts.length - 3;
+                              return (
+                                <>
+                                  {visible.map((dId) => {
+                                    const item = getDiscountItem(dId);
+                                    const Icon = DISCOUNT_ICONS[item.iconName] || Tag;
+                                    const label = dId === 'other' ? 'Other discount' : item.label;
+                                    return (
+                                      <span
+                                        key={dId}
+                                        className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-emerald-950/40 text-emerald-300 text-[10px] font-medium border border-emerald-500/30"
+                                      >
+                                        <Icon className="w-2.5 h-2.5 text-emerald-400 shrink-0" />
+                                        <span>{label}</span>
+                                      </span>
+                                    );
+                                  })}
+                                  {!showAllDiscounts[q.id] && remaining > 0 && (
+                                    <button
+                                      type="button"
+                                      onClick={() => setShowAllDiscounts((prev) => ({ ...prev, [q.id]: true }))}
+                                      className="px-1.5 py-0.5 rounded-md bg-slate-800 hover:bg-slate-700 text-slate-300 text-[10px] font-bold border border-slate-700 cursor-pointer"
+                                    >
+                                      +{remaining} more
+                                    </button>
+                                  )}
+                                </>
+                              );
+                            })()}
+                          </div>
+                          <span className="text-[10px] text-slate-400 italic block mt-0.5">
+                            Discounts reported by the driver
+                          </span>
+                        </div>
+                      ) : (
+                        <div className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-slate-950 text-slate-500 text-[10px] font-medium border border-slate-800">
+                          <span>Discounts not recorded</span>
+                        </div>
+                      )}
+                    </div>
+
                     {/* Badges */}
-                    <div className="flex flex-wrap gap-1.5 mt-3">
+                    <div className="flex flex-wrap gap-1.5 mt-2">
                       <button
                         type="button"
                         onClick={() => onNavigateReviews?.(q.provider_name)}

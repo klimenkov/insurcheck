@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { PlusCircle, Menu, X } from 'lucide-react';
+import { FEATURES } from '../config.js';
 
 export function Navbar({ activeTab, setActiveTab, navigateTab, onOpenContribute }) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -44,16 +45,18 @@ export function Navbar({ activeTab, setActiveTab, navigateTab, onOpenContribute 
             >
               Sanity Check
             </button>
-            <button
-              onClick={() => handleNavClick('quotes')}
-              className={`px-3.5 py-1.5 rounded-lg text-sm font-medium transition-all cursor-pointer ${
-                activeTab === 'quotes'
-                  ? 'bg-emerald-500 text-slate-950 shadow-md font-semibold'
-                  : 'text-slate-400 hover:text-white hover:bg-slate-800/50'
-              }`}
-            >
-              Community Rates
-            </button>
+            {FEATURES.COMMUNITY_RATES_VISIBLE && (
+              <button
+                onClick={() => handleNavClick('quotes')}
+                className={`px-3.5 py-1.5 rounded-lg text-sm font-medium transition-all cursor-pointer ${
+                  activeTab === 'quotes'
+                    ? 'bg-emerald-500 text-slate-950 shadow-md font-semibold'
+                    : 'text-slate-400 hover:text-white hover:bg-slate-800/50'
+                }`}
+              >
+                Community Rates
+              </button>
+            )}
             <button
               onClick={() => handleNavClick('heatmap')}
               className={`px-3.5 py-1.5 rounded-lg text-sm font-medium transition-all flex items-center gap-1.5 cursor-pointer ${
@@ -126,16 +129,18 @@ export function Navbar({ activeTab, setActiveTab, navigateTab, onOpenContribute 
           >
             🚗 Sanity Check
           </button>
-          <button
-            onClick={() => handleNavClick('quotes')}
-            className={`w-full text-left px-4 py-2.5 rounded-xl text-sm font-medium transition-all cursor-pointer ${
-              activeTab === 'quotes'
-                ? 'bg-emerald-500 text-slate-950 font-semibold shadow-sm'
-                : 'text-slate-300 hover:bg-slate-900 hover:text-white'
-            }`}
-          >
-            📊 Community Rates
-          </button>
+          {FEATURES.COMMUNITY_RATES_VISIBLE && (
+            <button
+              onClick={() => handleNavClick('quotes')}
+              className={`w-full text-left px-4 py-2.5 rounded-xl text-sm font-medium transition-all cursor-pointer ${
+                activeTab === 'quotes'
+                  ? 'bg-emerald-500 text-slate-950 font-semibold shadow-sm'
+                  : 'text-slate-300 hover:bg-slate-900 hover:text-white'
+              }`}
+            >
+              📊 Community Rates
+            </button>
+          )}
           <button
             onClick={() => handleNavClick('heatmap')}
             className={`w-full text-left px-4 py-2.5 rounded-xl text-sm font-medium transition-all flex items-center justify-between cursor-pointer ${

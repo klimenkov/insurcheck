@@ -1016,8 +1016,11 @@ export function ensureSubmissionsPopulated() {
     INSERT OR IGNORE INTO submissions (
       id, created_at, fsa, city, vehicle_make, vehicle_model, vehicle_year,
       driver_age, driver_profile, years_licensed, clean_record,
-      provider_name, monthly_premium, coverage_type, comment
-    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+      provider_name, monthly_premium, coverage_type, comment,
+      discounts, discount_status, other_discount_description,
+      estimated_premium_before_discounts, normalization_status,
+      calculation_version, applied_discount_factors
+    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
   `);
 
   for (const sub of initialSubmissions) {
@@ -1036,7 +1039,14 @@ export function ensureSubmissionsPopulated() {
       sub.provider_name,
       sub.monthly_premium,
       sub.coverage_type,
-      sub.comment
+      sub.comment,
+      typeof sub.discounts === 'string' ? sub.discounts : JSON.stringify(sub.discounts || []),
+      sub.discount_status || 'legacy_unknown',
+      sub.other_discount_description || null,
+      sub.estimated_premium_before_discounts !== undefined ? sub.estimated_premium_before_discounts : null,
+      sub.normalization_status || 'legacy_assumed_base',
+      sub.calculation_version || null,
+      typeof sub.applied_discount_factors === 'string' ? sub.applied_discount_factors : (sub.applied_discount_factors ? JSON.stringify(sub.applied_discount_factors) : null)
     );
   }
   console.log(`Ensured all ${initialSubmissions.length} driver submissions exist.`);

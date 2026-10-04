@@ -1,4 +1,9 @@
 import { FSA_RISK_MAP, VEHICLE_RISK_MAP } from './ontarioData.js';
+import {
+  parseDiscountSelection,
+  calculateCompositeDiscount,
+  normalizeSubmittedPremium
+} from './discounts.js';
 
 /**
  * Normalizes vehicle keys to match VEHICLE_RISK_MAP variations.
@@ -130,12 +135,31 @@ export function evaluateInsurance(params) {
     }
   };
 
-  // Determine target benchmark based on user's chosen coverage package
+  // Determine base benchmark rate before discounts
   const selectedLevel = (params.coverageLevel && coverageTiers[params.coverageLevel])
     ? params.coverageLevel
     : 'standard';
-  const targetRate = coverageTiers[selectedLevel].rate;
+  const baseRateBeforeDiscounts = coverageTiers[selectedLevel].rate;
   const targetName = coverageTiers[selectedLevel].name;
+
+  // 5. Discount Processing (INS-64)
+  const discountState = parseDiscountSelection(
+    params.discounts,
+    params.discountStatus,
+    params.otherDiscountDescription
+  );
+
+  const discountCalc = calculateCompositeDiscount(discountState.discounts);
+
+  // When discounts are selected and supported, apply the composite discount factor to the benchmark
+  let effectiveTargetRate = baseRateBeforeDiscounts;
+  if (discountState.status === 'selected' && discountCalc.compositeRate > 0) {
+    effectiveTargetRate = Math.round(baseRateBeforeDiscounts * (1 - discountCalc.compositeRate));
+  }
+
+  const targetRate = effectiveTargetRate;
+  const targetRateBeforeDiscounts = baseRateBeforeDiscounts;
+  const discountSavingsAmount = Math.max(0, targetRateBeforeDiscounts - targetRate);
 
   const isEstimating = Boolean(params.isEstimating || params.noCurrentInsurance);
   const insuranceCompany = params.insuranceCompany ? String(params.insuranceCompany).trim() : null;
@@ -145,10 +169,19 @@ export function evaluateInsurance(params) {
   const monthlyDifference = isEstimating ? 0 : Math.round(current - targetRate);
   const annualDifference = monthlyDifference * 12;
 
+  // Normalization of current paid premium
+  const normalization = normalizeSubmittedPremium(current, discountState);
+
   let verdict = 'FAIR_RATE';
   let verdictTitle = 'Fair Market Price';
   let verdictMessage = `Your rate of $${current}/mo is closely aligned with Ontario benchmarks for ${targetName} ($${targetRate}/mo actuarial baseline).`;
   let verdictColor = 'emerald';
+
+  if (discountState.status === 'unsure') {
+    verdictMessage = `Your discounts are unknown, so this comparison does not account for them. Actuarial baseline for ${targetName} is ~$${targetRate}/mo.`;
+  } else if (discountState.status === 'none_reported') {
+    verdictMessage = `Estimated price without selected discounts is ~$${targetRate}/mo for ${targetName}.`;
+  }
 
   const ratio = isEstimating ? 1.0 : (current / targetRate);
 
@@ -213,6 +246,16 @@ export function evaluateInsurance(params) {
     verdictColor,
     currentPremium: current,
     fairMonthlyStandard: targetRate,
+    fairMonthlyBeforeDiscounts: targetRateBeforeDiscounts,
+    discountSavingsAmount,
+    discounts: discountState.discounts,
+    discountStatus: discountState.status,
+    otherDiscountDescription: discountState.otherDescription,
+    discountCompositeRate: discountCalc.compositeRate,
+    pricedDiscounts: discountCalc.priced,
+    unpricedDiscounts: discountCalc.unpriced,
+    isFullyPriced: discountCalc.isFullyPriced,
+    normalization,
     selectedCoverage: selectedLevel,
     selectedCoverageName: targetName,
     monthlySavings: Math.max(0, monthlyDifference),

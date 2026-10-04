@@ -4,6 +4,7 @@ import { db } from '../db.js';
 import { normalizeInsurerName, validateMonthlyPremium } from '../engine/normalizer.js';
 
 import { FSA_RISK_MAP } from '../engine/ontarioData.js';
+import { sendToGoogleSheets } from '../services/googleSheetsWebhook.js';
 
 export const checkRouter = express.Router();
 
@@ -65,19 +66,59 @@ checkRouter.post('/', (req, res) => {
         const yearsLic = parseInt(req.body.yearsLicensed, 10) || (age > 25 ? 8 : 2);
         const dateStr = new Date().toISOString().split('T')[0];
 
+        const discountsJson = JSON.stringify(result.discounts || []);
+        const discountStatus = result.discountStatus || 'legacy_unknown';
+        const otherDesc = result.otherDiscountDescription || null;
+        const estBefore = result.normalization?.estimatedBeforeDiscounts ?? null;
+        const normStatus = result.normalization?.normalizationStatus || 'legacy_assumed_base';
+        const calcVersion = result.normalization?.calculationVersion || null;
+        const factorsJson = result.normalization?.appliedFactors ? JSON.stringify(result.normalization.appliedFactors) : null;
+
         const insertSub = db.prepare(`
           INSERT INTO submissions (
             created_at, fsa, city, vehicle_make, vehicle_model, vehicle_year,
             driver_age, driver_profile, years_licensed, clean_record,
-            provider_name, monthly_premium, coverage_type, comment
-          ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            provider_name, monthly_premium, coverage_type, comment,
+            discounts, discount_status, other_discount_description,
+            estimated_premium_before_discounts, normalization_status,
+            calculation_version, applied_discount_factors
+          ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         `);
 
-        insertSub.run(
+        const subRes = insertSub.run(
           dateStr, fsa, location.city, make, model, year,
           age, profile, yearsLic, cleanRec,
-          provider, req.body.currentPremium, cov, 'Submitted via Sanity Check'
+          provider, req.body.currentPremium, cov, 'Submitted via Sanity Check',
+          discountsJson, discountStatus, otherDesc,
+          estBefore, normStatus, calcVersion, factorsJson
         );
+
+        // Send to Google Sheets webhook with discount context
+        const discountListStr = (result.discounts && result.discounts.length > 0)
+          ? result.discounts.join(', ')
+          : (discountStatus === 'none_reported' ? 'None' : (discountStatus === 'unsure' ? 'Unsure' : 'None'));
+
+        sendToGoogleSheets('submission', {
+          id: subRes.lastInsertRowid,
+          created_at: dateStr,
+          fsa,
+          city: location.city,
+          vehicle_make: make,
+          vehicle_model: model,
+          vehicle_year: year,
+          driver_age: age,
+          driver_profile: profile,
+          years_licensed: yearsLic,
+          clean_record: cleanRec,
+          provider_name: provider,
+          monthly_premium: req.body.currentPremium,
+          coverage_type: cov,
+          discounts: result.discounts || [],
+          discount_status: discountStatus,
+          estimated_before_discounts: estBefore,
+          normalization_status: normStatus,
+          comment: `Sanity Check (Discounts: ${discountListStr})`
+        }, `${year} ${make} ${model} in ${fsa} (${location.city}) - $${req.body.currentPremium}/mo (${provider}) [Discounts: ${discountListStr}]`).catch(() => {});
       } catch (subErr) {
         console.warn('Could not insert submission from check:', subErr.message);
       }

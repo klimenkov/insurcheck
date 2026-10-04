@@ -8,7 +8,9 @@ import {
   UserCheck,
   FileText,
   AlertTriangle,
-  HelpCircle
+  HelpCircle,
+  Sparkles,
+  CheckCircle2
 } from 'lucide-react';
 
 export function FsraExplainerModal({ isOpen, onClose }) {
@@ -100,6 +102,17 @@ export function FsraExplainerModal({ isOpen, onClose }) {
           >
             <FileText className="w-3.5 h-3.5" />
             <span>Driver Rights & Filing Cycles</span>
+          </button>
+          <button
+            onClick={() => setActiveSection('discounts')}
+            className={`pb-3 border-b-2 flex items-center gap-1.5 transition-all whitespace-nowrap ${
+              activeSection === 'discounts'
+                ? 'border-emerald-400 text-emerald-400'
+                : 'border-transparent text-slate-400 hover:text-slate-200'
+            }`}
+          >
+            <Sparkles className="w-3.5 h-3.5" />
+            <span>Discounts & Normalization</span>
           </button>
         </div>
 
@@ -367,6 +380,82 @@ export function FsraExplainerModal({ isOpen, onClose }) {
                       If your renewal rate exceeds InsurCheck's benchmark by more than <strong>15%</strong>, your insurer is likely applying legacy inertia pricing. Call your carrier or broker with your benchmark calculation to negotiate or switch 30 days prior to renewal with zero penalties.
                     </p>
                   </div>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {activeSection === 'discounts' && (
+            <div className="space-y-4 animate-in fade-in duration-150">
+              <div className="p-4 bg-emerald-950/20 border border-emerald-500/20 rounded-2xl space-y-2">
+                <h4 className="text-sm font-bold text-emerald-300 flex items-center gap-2">
+                  <Sparkles className="w-4 h-4 text-emerald-400" />
+                  Discounts & Model Normalization Methodology (INS-64)
+                </h4>
+                <p className="text-xs text-slate-300 leading-relaxed">
+                  How InsurCheck records user discounts, estimates undiscounted premiums for model calibration, and preserves submitted pricing data with full transparency.
+                </p>
+              </div>
+
+              <div className="space-y-3 text-xs">
+                <div className="p-3.5 bg-slate-800/40 border border-slate-700/50 rounded-xl space-y-1">
+                  <span className="font-bold text-white flex items-center gap-1.5">
+                    <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" />
+                    1. Preservation of Actual Submitted Premiums
+                  </span>
+                  <p className="text-slate-400 leading-relaxed">
+                    Reported premiums remain permanently stored as submitted. We never rewrite, falsify, or replace what a driver actually pays with an estimated number.
+                  </p>
+                </div>
+
+                <div className="p-3.5 bg-slate-800/40 border border-slate-700/50 rounded-xl space-y-1">
+                  <span className="font-bold text-white flex items-center gap-1.5">
+                    <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" />
+                    2. Discount Capture & Validation
+                  </span>
+                  <p className="text-slate-400 leading-relaxed">
+                    New paid-rate submissions collect driver-reported discount choices (e.g. winter tires, home + auto bundling, telematics apps, multi-vehicle) alongside the policy premium.
+                  </p>
+                </div>
+
+                <div className="p-3.5 bg-slate-800/40 border border-slate-700/50 rounded-xl space-y-1">
+                  <span className="font-bold text-white flex items-center gap-1.5">
+                    <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" />
+                    3. Actuarial Normalization for Model Calibration
+                  </span>
+                  <p className="text-slate-400 leading-relaxed">
+                    Supported adjustments produce separate estimated prices before discounts for internal model use. This ensures model benchmarks reflect base risk profiles without distortion from bundled or promotional discounts.
+                  </p>
+                </div>
+
+                <div className="p-3.5 bg-slate-800/40 border border-slate-700/50 rounded-xl space-y-1">
+                  <span className="font-bold text-white flex items-center gap-1.5">
+                    <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" />
+                    4. Transparency on Priced vs Unpriced Discounts
+                  </span>
+                  <p className="text-slate-400 leading-relaxed">
+                    Results explicitly identify which discounts were included in the calculation and which could not be priced (such as custom "Other" discounts). If an unpriced discount is present, normalization remains unavailable rather than inventing an arbitrary deduction.
+                  </p>
+                </div>
+
+                <div className="p-3.5 bg-slate-800/40 border border-slate-700/50 rounded-xl space-y-1">
+                  <span className="font-bold text-white flex items-center gap-1.5">
+                    <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" />
+                    5. Treatment of Historical Records
+                  </span>
+                  <p className="text-slate-400 leading-relaxed">
+                    Historical submissions retain their original prices and are marked internally with unknown discounts (<em>legacy assumed base</em>). They are never retroactively altered or classified as verified undiscounted policies.
+                  </p>
+                </div>
+
+                <div className="p-3.5 bg-slate-800/40 border border-slate-700/50 rounded-xl space-y-1">
+                  <span className="font-bold text-white flex items-center gap-1.5">
+                    <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" />
+                    6. Nature of Adjustments
+                  </span>
+                  <p className="text-slate-400 leading-relaxed">
+                    Adjustments are regulatory actuarial estimates and may not reproduce an individual insurer's exact internal calculation. Community prices, when displayed, always represent actual submitted premiums rather than normalized estimates.
+                  </p>
                 </div>
               </div>
             </div>

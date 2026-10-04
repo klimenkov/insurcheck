@@ -61,6 +61,33 @@ function formatReviewDate(dateStr) {
   }
 }
 
+function CarrierLogoBadge({ insurer, size = 'sm' }) {
+  const [hasError, setHasError] = useState(false);
+  const initials = (insurer?.name || '').slice(0, 2).toUpperCase();
+  const isLg = size === 'lg';
+
+  return (
+    <div
+      className={`${
+        isLg ? 'w-16 h-16 sm:w-20 sm:h-20 text-2xl' : 'w-11 h-11 text-sm'
+      } rounded-2xl flex items-center justify-center font-black text-white shadow-sm shrink-0 border border-white/10 overflow-hidden relative bg-slate-950`}
+      style={{ backgroundColor: hasError ? insurer?.logo_color : undefined }}
+    >
+      {!hasError ? (
+        <img
+          src={`/logos/${insurer?.id}.svg`}
+          alt=""
+          aria-hidden="true"
+          className="w-full h-full object-contain p-1.5 transition-opacity"
+          onError={() => setHasError(true)}
+        />
+      ) : (
+        <span>{initials}</span>
+      )}
+    </div>
+  );
+}
+
 export function InsurerReviews({ onNavigate, onPreselectInsurer }) {
   const [insurers, setInsurers] = useState([]);
   const [loadingInsurers, setLoadingInsurers] = useState(true);
@@ -328,12 +355,7 @@ export function InsurerReviews({ onNavigate, onPreselectInsurer }) {
         <div className="bg-slate-900 border border-slate-800 rounded-3xl p-6 sm:p-8">
           <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-6 pb-6 border-b border-slate-800/80">
             <div className="flex items-start sm:items-center gap-4">
-              <div
-                className="w-16 h-16 sm:w-20 sm:h-20 rounded-2xl flex items-center justify-center font-black text-white text-2xl shadow-xl shrink-0 border border-white/10"
-                style={{ backgroundColor: insurer.logo_color }}
-              >
-                {insurer.name.slice(0, 2).toUpperCase()}
-              </div>
+              <CarrierLogoBadge insurer={insurer} size="lg" />
 
               <div>
                 <div className="flex flex-wrap items-center gap-2 mb-1">
@@ -1063,12 +1085,7 @@ export function InsurerReviews({ onNavigate, onPreselectInsurer }) {
                   {/* Card Top: Logo & Titles */}
                   <div className="flex items-start justify-between gap-3 pb-3 border-b border-slate-800/80">
                     <div className="flex items-center gap-3">
-                      <div
-                        className="w-11 h-11 rounded-2xl flex items-center justify-center font-black text-white text-sm shadow-sm shrink-0 border border-white/10"
-                        style={{ backgroundColor: ins.logo_color }}
-                      >
-                        {ins.name.slice(0, 2).toUpperCase()}
-                      </div>
+                      <CarrierLogoBadge insurer={ins} size="sm" />
                       <div>
                         <h3 className="text-base font-black text-white group-hover:text-emerald-400 transition-colors">
                           {ins.name}

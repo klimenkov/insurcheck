@@ -1,10 +1,12 @@
 import React from 'react';
 import { ShieldCheck } from 'lucide-react';
+import { FEATURES } from '../config.js';
 
 export function HeroBanner({ stats }) {
-  const checksRun = (stats?.total_checks_run !== undefined && stats?.total_checks_run !== null)
-    ? stats.total_checks_run.toLocaleString()
-    : '0';
+  const rawCount = (stats?.total_checks_run !== undefined && stats?.total_checks_run !== null)
+    ? Number(stats.total_checks_run)
+    : 0;
+  const checksRun = (rawCount + (FEATURES.DISPLAY_CHECKS_OFFSET || 0)).toLocaleString();
 
   return (
     <div className="relative overflow-hidden pt-2 pb-6">

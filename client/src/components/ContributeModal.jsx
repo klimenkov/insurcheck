@@ -1,10 +1,12 @@
 import React, { useState } from 'react';
 import { X, CheckCircle2, Loader2, AlertCircle, User, Shield, Sparkles } from 'lucide-react';
 import { VEHICLE_OPTIONS } from '../data/vehicles.js';
+import { DiscountSelector } from './DiscountSelector.jsx';
 
 export function ContributeModal({ isOpen, onClose }) {
   const [submitted, setSubmitted] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [attemptedSubmit, setAttemptedSubmit] = useState(false);
   const [error, setError] = useState(null);
   const [formData, setFormData] = useState({
     postalCode: 'M5V',
@@ -18,7 +20,10 @@ export function ContributeModal({ isOpen, onClose }) {
     monthlyPremium: 210,
     coverageType: 'Standard',
     comment: '',
-    shareAnonymously: true
+    shareAnonymously: true,
+    discounts: [],
+    discountStatus: '',
+    otherDiscountDescription: ''
   });
 
   if (!isOpen) return null;
@@ -28,9 +33,12 @@ export function ContributeModal({ isOpen, onClose }) {
   const isTooHigh = !isNaN(premiumVal) && premiumVal > 2500;
   const isPremiumInvalid = isNaN(premiumVal) || isTooLow || isTooHigh;
 
+  const isDiscountMissing = !formData.discountStatus && (!Array.isArray(formData.discounts) || formData.discounts.length === 0);
+
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (isPremiumInvalid) return;
+    setAttemptedSubmit(true);
+    if (isPremiumInvalid || isDiscountMissing) return;
     setLoading(true);
     setError(null);
     try {
@@ -178,8 +186,29 @@ export function ContributeModal({ isOpen, onClose }) {
                     }`}
                     required
                   />
+                  <span className="text-[10px] text-slate-400 block mt-1">
+                    Enter the price for this vehicle, including its discounts.
+                  </span>
                 </div>
               </div>
+
+              {/* Discounts Included (INS-64 Section 2) */}
+              <DiscountSelector
+                selectedDiscounts={formData.discounts || []}
+                discountStatus={formData.discountStatus || ''}
+                otherDescription={formData.otherDiscountDescription || ''}
+                onChange={({ discounts, discountStatus, otherDescription }) =>
+                  setFormData((prev) => ({
+                    ...prev,
+                    discounts,
+                    discountStatus,
+                    otherDiscountDescription: otherDescription
+                  }))
+                }
+                isEstimating={false}
+                showError={attemptedSubmit && isDiscountMissing}
+                compact={true}
+              />
 
               {/* Coverage Level */}
               <div>
@@ -328,7 +357,7 @@ export function ContributeModal({ isOpen, onClose }) {
                   className="w-4 h-4 mt-0.5 rounded border-slate-700 text-emerald-500 focus:ring-emerald-500 focus:ring-offset-slate-900 accent-emerald-500 cursor-pointer"
                 />
                 <span className="text-xs text-slate-300 group-hover:text-emerald-300 transition leading-relaxed">
-                  Share my rate anonymously to help improve the InsurCheck benchmark
+                  Share my rate and selected discounts anonymously to help improve the InsurCheck benchmark
                 </span>
               </label>
 

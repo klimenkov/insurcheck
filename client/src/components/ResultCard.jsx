@@ -1,5 +1,49 @@
-import React, { useState } from 'react';
-import { CheckCircle2, ArrowRight, ShieldCheck, Sparkles, Building2, HelpCircle, Info, Edit3, UserCheck, MapPin, Car, Shield, Star } from 'lucide-react';
+import React, { useState, useEffect, useMemo } from 'react';
+import {
+  CheckCircle2,
+  ArrowRight,
+  ShieldCheck,
+  Sparkles,
+  Building2,
+  HelpCircle,
+  Info,
+  Edit3,
+  UserCheck,
+  MapPin,
+  Car,
+  Shield,
+  Star,
+  Snowflake,
+  Home,
+  Users,
+  Smartphone,
+  Gauge,
+  ShieldAlert,
+  GraduationCap,
+  BadgeCheck,
+  Plus,
+  Tag,
+  ChevronDown,
+  ChevronUp,
+  SlidersHorizontal,
+  X
+} from 'lucide-react';
+import { getDiscountItem, calculateScenarioPricing } from '../data/discounts.js';
+import { DiscountSelector } from './DiscountSelector.jsx';
+
+const DISCOUNT_ICONS = {
+  Snowflake,
+  Home,
+  Car,
+  Users,
+  Smartphone,
+  Gauge,
+  ShieldAlert,
+  GraduationCap,
+  BadgeCheck,
+  Plus,
+  Tag
+};
 
 export function ResultCard({ result, formData, onConnectBroker, onOpenFsraExplainer, onEditDetails, onNavigateReviews }) {
   if (!result) return null;
@@ -20,6 +64,45 @@ export function ResultCard({ result, formData, onConnectBroker, onOpenFsraExplai
   } = result;
 
   const [showConfidenceInfo, setShowConfidenceInfo] = useState(false);
+
+  // Discount Scenario State (INS-64)
+  const baseBenchmarkBeforeDiscounts = result.fairMonthlyBeforeDiscounts || result.fairMonthlyStandard;
+  const [scenarioDiscounts, setScenarioDiscounts] = useState(
+    () => result.discounts || formData?.discounts || []
+  );
+  const [scenarioStatus, setScenarioStatus] = useState(
+    () => result.discountStatus || formData?.discountStatus || (formData?.discounts?.length ? 'selected' : 'none_reported')
+  );
+  const [scenarioOtherDesc, setScenarioOtherDesc] = useState(
+    () => result.otherDiscountDescription || formData?.otherDiscountDescription || ''
+  );
+  const [isEditingDiscounts, setIsEditingDiscounts] = useState(false);
+  const [howDiscountsExpanded, setHowDiscountsExpanded] = useState(false);
+
+  useEffect(() => {
+    setScenarioDiscounts(result.discounts || formData?.discounts || []);
+    setScenarioStatus(result.discountStatus || formData?.discountStatus || (formData?.discounts?.length ? 'selected' : 'none_reported'));
+    setScenarioOtherDesc(result.otherDiscountDescription || formData?.otherDiscountDescription || '');
+  }, [result, formData]);
+
+  const scenarioCalc = useMemo(() => {
+    if (scenarioStatus === 'none_reported' || scenarioStatus === 'unsure' || scenarioDiscounts.length === 0) {
+      return {
+        rateWithDiscounts: baseBenchmarkBeforeDiscounts,
+        rateBeforeDiscounts: baseBenchmarkBeforeDiscounts,
+        difference: 0,
+        compositeRate: 0,
+        priced: [],
+        unpriced: [],
+        isFullyPriced: true
+      };
+    }
+    return calculateScenarioPricing(baseBenchmarkBeforeDiscounts, scenarioDiscounts);
+  }, [baseBenchmarkBeforeDiscounts, scenarioDiscounts, scenarioStatus]);
+
+  const activeBenchmarkRate = scenarioCalc.rateWithDiscounts;
+  const scenarioDifference = scenarioCalc.difference;
+  const currentDiff = isEstimating ? 0 : (currentPremium || 0) - activeBenchmarkRate;
 
   // Validation & Testing instrument state (INS-38)
   const [rating, setRating] = useState(0);
@@ -105,17 +188,92 @@ export function ResultCard({ result, formData, onConnectBroker, onOpenFsraExplai
 
         {/* Header with Title and Model Confidence */}
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 pb-6 border-b border-slate-800/80">
-          <div>
-            <div className="flex items-center gap-2 mb-1.5">
+          <div className="space-y-1.5 flex-1">
+            <div className="flex items-center gap-2 mb-1">
               <span className="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-pulse"></span>
               <span className="text-xs font-bold uppercase tracking-wider text-emerald-400">
                 Model-based estimate
               </span>
             </div>
-            <h3 className="text-2xl sm:text-3xl font-black text-white">
-              Estimated benchmark: <span className="text-emerald-400">${fairMonthlyStandard}/month</span>
-            </h3>
-            <p className="text-xs sm:text-sm text-slate-300 mt-1 max-w-xl leading-relaxed">
+
+            {/* Dynamic Headline Based on Discount Selection State (INS-64 Section 5) */}
+            {scenarioStatus === 'selected' && scenarioDiscounts.length > 0 ? (
+              <div>
+                <h3 className="text-2xl sm:text-3xl font-black text-white">
+                  {scenarioCalc.unpriced.length === 0
+                    ? 'Estimated price with your selected discounts: '
+                    : 'Estimate with the discounts we can account for: '}
+                  <span className="text-emerald-400">${activeBenchmarkRate}/month</span>
+                </h3>
+                <p className="text-xs sm:text-sm text-slate-300 mt-1 font-medium">
+                  Before these discounts: approximately <span className="text-white font-bold">${baseBenchmarkBeforeDiscounts}/month</span>
+                </p>
+
+                {/* Badges for Selected Discounts */}
+                <div className="mt-3 flex flex-wrap gap-2 items-center">
+                  {scenarioCalc.unpriced.length > 0 ? (
+                    <div className="space-y-1.5 w-full">
+                      <div className="flex flex-wrap items-center gap-1.5">
+                        <span className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider mr-1">Included in estimate:</span>
+                        {scenarioCalc.priced.map((d) => {
+                          const Icon = DISCOUNT_ICONS[d.iconName] || Tag;
+                          return (
+                            <span key={d.id} className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-emerald-950/60 border border-emerald-500/40 text-emerald-300 text-xs font-medium">
+                              <Icon className="w-3 h-3 text-emerald-400" />
+                              <span>{d.label}</span>
+                              <span className="text-emerald-400/80 text-[10px]">(-{Math.round(d.rate * 100)}%)</span>
+                            </span>
+                          );
+                        })}
+                      </div>
+                      <div className="flex flex-wrap items-center gap-1.5">
+                        <span className="text-[11px] font-semibold text-amber-400 uppercase tracking-wider mr-1">Reported, not yet priced:</span>
+                        {scenarioCalc.unpriced.map((d) => {
+                          const Icon = DISCOUNT_ICONS[d.iconName] || Plus;
+                          return (
+                            <span key={d.id} className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-amber-950/40 border border-amber-500/30 text-amber-300 text-xs font-medium">
+                              <Icon className="w-3 h-3 text-amber-400" />
+                              <span>{d.id === 'other' && scenarioOtherDesc ? `Other: ${scenarioOtherDesc}` : d.label}</span>
+                            </span>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  ) : (
+                    <>
+                      {scenarioCalc.priced.map((d) => {
+                        const Icon = DISCOUNT_ICONS[d.iconName] || Tag;
+                        return (
+                          <span key={d.id} className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-emerald-950/60 border border-emerald-500/40 text-emerald-300 text-xs font-medium">
+                            <Icon className="w-3 h-3 text-emerald-400" />
+                            <span>{d.label}</span>
+                            <span className="text-emerald-400/80 text-[10px]">(-{Math.round(d.rate * 100)}%)</span>
+                          </span>
+                        );
+                      })}
+                    </>
+                  )}
+                </div>
+              </div>
+            ) : scenarioStatus === 'none_reported' ? (
+              <div>
+                <h3 className="text-2xl sm:text-3xl font-black text-white">
+                  Estimated price without selected discounts: <span className="text-emerald-400">${baseBenchmarkBeforeDiscounts}/month</span>
+                </h3>
+              </div>
+            ) : (
+              <div>
+                <h3 className="text-2xl sm:text-3xl font-black text-white">
+                  Estimated benchmark: <span className="text-emerald-400">${baseBenchmarkBeforeDiscounts}/month</span>
+                </h3>
+                <p className="text-xs sm:text-sm text-cyan-300/90 mt-1 font-medium flex items-center gap-1.5">
+                  <HelpCircle className="w-4 h-4 shrink-0 text-cyan-400" />
+                  <span>Your discounts are unknown, so this comparison does not account for them.</span>
+                </p>
+              </div>
+            )}
+
+            <p className="text-xs sm:text-sm text-slate-300 mt-2 max-w-xl leading-relaxed">
               Based on the information you provided and InsurCheck’s Ontario insurance pricing model for {location?.city || 'Ontario'} ({vehicle?.year} {vehicle?.make} {vehicle?.model}).{' '}
               <span className="text-slate-400">Not an insurance quote. Actual rates vary by insurer and individual circumstances.</span>
             </p>
@@ -184,10 +342,10 @@ export function ResultCard({ result, formData, onConnectBroker, onOpenFsraExplai
                   </span>
                 </div>
                 <div className="text-2xl sm:text-3xl font-black text-emerald-400 mt-1">
-                  ${fairMonthlyStandard} <span className="text-xs font-normal text-slate-400">/ mo</span>
+                  ${activeBenchmarkRate} <span className="text-xs font-normal text-slate-400">/ mo</span>
                 </div>
                 <div className="flex items-center justify-between text-[11px] text-slate-500 mt-1">
-                  <span>${(fairMonthlyStandard * 12).toLocaleString()} / year</span>
+                  <span>${(activeBenchmarkRate * 12).toLocaleString()} / year</span>
                   {onOpenFsraExplainer && (
                     <button
                       type="button"
@@ -203,15 +361,19 @@ export function ResultCard({ result, formData, onConnectBroker, onOpenFsraExplai
               {/* Card 3: Difference vs Benchmark */}
               <div className="bg-slate-950/70 border border-slate-800/90 rounded-2xl p-4">
                 <div className="text-xs font-semibold text-slate-300">
-                  {monthlySavings > 0 ? 'Difference vs Benchmark' : 'Benchmark Status'}
+                  {currentDiff > 0 ? 'Difference vs Benchmark' : 'Benchmark Status'}
                 </div>
-                <div className={`text-2xl sm:text-3xl font-black mt-1 ${monthlySavings > 0 ? 'text-amber-400' : 'text-emerald-400'}`}>
-                  {monthlySavings > 0 ? `+$${monthlySavings}/mo` : 'Competitive Rate'}
+                <div className={`text-2xl sm:text-3xl font-black mt-1 ${currentDiff > 0 ? 'text-amber-400' : 'text-emerald-400'}`}>
+                  {currentDiff > 0 ? `+$${currentDiff}/mo` : 'Competitive Rate'}
                 </div>
                 <div className="text-[11px] text-slate-400 mt-1">
-                  {monthlySavings > 0
-                    ? `~$${annualSavings?.toLocaleString()}/year over expected benchmark`
-                    : 'Within fair Ontario pricing'}
+                  {scenarioStatus === 'unsure' ? (
+                    <span className="text-cyan-300/80">Discounts unknown — difference is approximate</span>
+                  ) : currentDiff > 0 ? (
+                    `~$${(currentDiff * 12).toLocaleString()}/year over expected benchmark`
+                  ) : (
+                    'Within fair Ontario pricing'
+                  )}
                 </div>
               </div>
             </>
@@ -226,10 +388,10 @@ export function ResultCard({ result, formData, onConnectBroker, onOpenFsraExplai
                   </span>
                 </div>
                 <div className="text-2xl sm:text-4xl font-black text-emerald-400 mt-1.5">
-                  ${fairMonthlyStandard} <span className="text-sm font-normal text-slate-400">/ month</span>
+                  ${activeBenchmarkRate} <span className="text-sm font-normal text-slate-400">/ month</span>
                 </div>
                 <div className="flex items-center justify-between text-xs text-slate-400 mt-2">
-                  <span>≈ ${(fairMonthlyStandard * 12).toLocaleString()} / year estimated base cost</span>
+                  <span>≈ ${(activeBenchmarkRate * 12).toLocaleString()} / year estimated base cost</span>
                   {onOpenFsraExplainer && (
                     <button
                       type="button"
@@ -308,53 +470,125 @@ export function ResultCard({ result, formData, onConnectBroker, onOpenFsraExplai
               })}
             </div>
 
-            {/* Discounts Note (INS-40 / INS-61) */}
-            <div className="mt-4 p-4 bg-slate-950/70 border border-slate-800 rounded-2xl space-y-3">
-              <div>
-                <h5 className="text-xs font-bold uppercase tracking-wider text-emerald-400 mb-1.5 flex items-center gap-1.5">
-                  <CheckCircle2 className="w-3.5 h-3.5" />
-                  Discounts included
-                </h5>
-                <ul className="text-xs text-slate-300 space-y-1">
-                  <li className="flex items-baseline gap-2">
-                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 shrink-0"></span>
-                    <span><strong className="text-white">Winter tires</strong> · 2%–5% discount for using approved winter tires</span>
-                  </li>
-                </ul>
+            {/* Expandable Discounts Effect & Scenario Editing Section (INS-64 Section 6) */}
+            <div className="mt-4 bg-slate-950/70 border border-slate-800 rounded-2xl overflow-hidden">
+              <div className="p-4 flex items-center justify-between gap-3">
+                <button
+                  type="button"
+                  onClick={() => setHowDiscountsExpanded(!howDiscountsExpanded)}
+                  className="flex items-center gap-2 text-left cursor-pointer group flex-1"
+                >
+                  <div className="w-8 h-8 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 flex items-center justify-center shrink-0">
+                    <Sparkles className="w-4 h-4" />
+                  </div>
+                  <div>
+                    <h5 className="text-xs sm:text-sm font-bold text-white group-hover:text-emerald-300 transition flex items-center gap-1.5">
+                      <span>How discounts affect this estimate</span>
+                      {howDiscountsExpanded ? (
+                        <ChevronUp className="w-4 h-4 text-slate-400" />
+                      ) : (
+                        <ChevronDown className="w-4 h-4 text-slate-400" />
+                      )}
+                    </h5>
+                    <p className="text-[11px] text-slate-400">
+                      {scenarioStatus === 'selected' && scenarioDiscounts.length > 0
+                        ? `${scenarioDiscounts.length} discount${scenarioDiscounts.length > 1 ? 's' : ''} applied · Save ~$${scenarioDifference}/mo`
+                        : scenarioStatus === 'none_reported'
+                        ? 'No discounts included in this estimate'
+                        : 'Discounts unknown · Baseline estimate shown'}
+                    </p>
+                  </div>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => setIsEditingDiscounts(true)}
+                  className="px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-emerald-300 border border-slate-700 font-bold text-xs flex items-center gap-1.5 transition cursor-pointer shrink-0"
+                >
+                  <SlidersHorizontal className="w-3.5 h-3.5" />
+                  <span>Edit discounts</span>
+                </button>
               </div>
 
-              <div className="pt-2.5 border-t border-slate-900">
-                <h5 className="text-xs font-bold uppercase tracking-wider text-slate-400 mb-1.5 flex items-center gap-1.5">
-                  <HelpCircle className="w-3.5 h-3.5 text-slate-500" />
-                  Discounts not included
-                </h5>
-                <ul className="grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-1.5 text-xs text-slate-300">
-                  <li className="flex items-baseline gap-2">
-                    <span className="w-1.5 h-1.5 rounded-full bg-slate-600 shrink-0"></span>
-                    <span><strong className="text-slate-200">Home + auto bundle</strong> · Up to 10% for combining home and auto insurance</span>
-                  </li>
-                  <li className="flex items-baseline gap-2">
-                    <span className="w-1.5 h-1.5 rounded-full bg-slate-600 shrink-0"></span>
-                    <span><strong className="text-slate-200">Multi-vehicle / multi-driver</strong> · Discount for insuring multiple vehicles or drivers</span>
-                  </li>
-                  <li className="flex items-baseline gap-2">
-                    <span className="w-1.5 h-1.5 rounded-full bg-slate-600 shrink-0"></span>
-                    <span><strong className="text-slate-200">Usage-based insurance</strong> · Discount for using an insurer's driving-tracking app</span>
-                  </li>
-                  <li className="flex items-baseline gap-2">
-                    <span className="w-1.5 h-1.5 rounded-full bg-slate-600 shrink-0"></span>
-                    <span><strong className="text-slate-200">Low mileage</strong> · Discount for driving fewer kilometres</span>
-                  </li>
-                  <li className="flex items-baseline gap-2">
-                    <span className="w-1.5 h-1.5 rounded-full bg-slate-600 shrink-0"></span>
-                    <span><strong className="text-slate-200">Anti-theft devices</strong> · Discount for eligible anti-theft or security systems</span>
-                  </li>
-                  <li className="flex items-baseline gap-2">
-                    <span className="w-1.5 h-1.5 rounded-full bg-slate-600 shrink-0"></span>
-                    <span><strong className="text-slate-200">Driver training</strong> · Discount for completing an approved driver-training course</span>
-                  </li>
-                </ul>
-              </div>
+              {howDiscountsExpanded && (
+                <div className="p-4 pt-0 border-t border-slate-900/80 space-y-4">
+                  {/* Scenario Table */}
+                  <div className="overflow-x-auto mt-3">
+                    <table className="w-full text-xs text-left border-collapse">
+                      <thead>
+                        <tr className="border-b border-slate-800 text-slate-400 uppercase tracking-wider text-[10px]">
+                          <th className="py-2 px-3 font-semibold">Scenario</th>
+                          <th className="py-2 px-3 font-semibold text-right">Monthly estimate</th>
+                          <th className="py-2 px-3 font-semibold text-right">Annual estimate</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-slate-800/60 text-slate-300">
+                        <tr>
+                          <td className="py-2.5 px-3 font-medium text-slate-300">Before selected discounts</td>
+                          <td className="py-2.5 px-3 text-right font-bold text-white">${baseBenchmarkBeforeDiscounts}/mo</td>
+                          <td className="py-2.5 px-3 text-right text-slate-400">${(baseBenchmarkBeforeDiscounts * 12).toLocaleString()}/yr</td>
+                        </tr>
+                        <tr>
+                          <td className="py-2.5 px-3 font-medium text-emerald-300">With selected discounts</td>
+                          <td className="py-2.5 px-3 text-right font-bold text-emerald-400">${activeBenchmarkRate}/mo</td>
+                          <td className="py-2.5 px-3 text-right text-emerald-400/80">${(activeBenchmarkRate * 12).toLocaleString()}/yr</td>
+                        </tr>
+                        <tr className="bg-emerald-950/20">
+                          <td className="py-2.5 px-3 font-bold text-emerald-400">Estimated difference</td>
+                          <td className="py-2.5 px-3 text-right font-extrabold text-emerald-300">
+                            {scenarioDifference > 0 ? `-$${scenarioDifference}/mo` : '$0/mo'}
+                          </td>
+                          <td className="py-2.5 px-3 text-right font-bold text-emerald-300">
+                            {scenarioDifference > 0 ? `-$${(scenarioDifference * 12).toLocaleString()}/yr` : '$0/yr'}
+                          </td>
+                        </tr>
+                      </tbody>
+                    </table>
+                  </div>
+
+                  {scenarioCalc.unpriced.length > 0 && (
+                    <div className="p-2.5 bg-amber-950/20 border border-amber-500/20 rounded-xl text-xs text-amber-300/90 flex items-start gap-2">
+                      <Info className="w-4 h-4 text-amber-400 shrink-0 mt-0.5" />
+                      <span>
+                        Note: This comparison covers only the priced discounts we can account for. Unpriced discounts ({scenarioCalc.unpriced.map(d => d.label).join(', ')}) are not included in the numerical difference.
+                      </span>
+                    </div>
+                  )}
+
+                  {/* Selected Discounts Breakdown */}
+                  {scenarioDiscounts.length > 0 && (
+                    <div className="pt-2">
+                      <span className="text-[11px] font-bold uppercase tracking-wider text-slate-400 block mb-2">
+                        Applied Discount Details:
+                      </span>
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs">
+                        {scenarioDiscounts.map(id => {
+                          const item = getDiscountItem(id);
+                          const Icon = DISCOUNT_ICONS[item.iconName] || Tag;
+                          return (
+                            <div key={id} className="p-2.5 rounded-xl bg-slate-900/80 border border-slate-800 flex items-start gap-2.5">
+                              <div className="p-1.5 rounded-lg bg-emerald-500/10 text-emerald-400 shrink-0">
+                                <Icon className="w-3.5 h-3.5" />
+                              </div>
+                              <div>
+                                <div className="font-bold text-white flex items-center gap-1.5">
+                                  <span>{item.label}</span>
+                                  {item.isPriced && (
+                                    <span className="text-[10px] px-1.5 py-0.2 rounded bg-emerald-500/20 text-emerald-300 font-semibold">
+                                      ~{Math.round(item.rate * 100)}%
+                                    </span>
+                                  )}
+                                </div>
+                                <p className="text-[11px] text-slate-400 mt-0.5 leading-tight">{item.explanation}</p>
+                              </div>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )}
             </div>
           </div>
         )}
@@ -592,6 +826,80 @@ export function ResultCard({ result, formData, onConnectBroker, onOpenFsraExplai
           <ArrowRight className="w-3.5 h-3.5" />
         </button>
       </div>
+
+      {/* 4. Edit Discounts Scenario Modal (INS-64 Section 6) */}
+      {isEditingDiscounts && (
+        <div
+          role="dialog"
+          aria-modal="true"
+          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-md animate-in fade-in duration-200"
+        >
+          <div
+            className="relative w-full max-w-xl bg-slate-900 border border-slate-700/80 rounded-3xl p-6 shadow-2xl space-y-5 max-h-[90vh] overflow-y-auto"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex items-start justify-between pb-3 border-b border-slate-800">
+              <div>
+                <h3 className="text-lg font-bold text-white flex items-center gap-2">
+                  <SlidersHorizontal className="w-5 h-5 text-emerald-400" />
+                  Edit Discounts Scenario
+                </h3>
+                <p className="text-xs text-slate-400 mt-0.5">
+                  Adjust discounts to see how they impact your estimated benchmark.
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={() => setIsEditingDiscounts(false)}
+                className="text-slate-400 hover:text-white p-1 rounded-lg hover:bg-slate-800 transition cursor-pointer"
+                aria-label="Close discount editor"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <DiscountSelector
+              selectedDiscounts={scenarioDiscounts}
+              discountStatus={scenarioStatus}
+              otherDescription={scenarioOtherDesc}
+              isEstimating={isEstimating}
+              onChange={(val) => {
+                setScenarioDiscounts(val.discounts);
+                setScenarioStatus(val.discountStatus);
+                setScenarioOtherDesc(val.otherDescription);
+              }}
+            />
+
+            {/* Live Scenario Impact Callout */}
+            <div className="p-3.5 bg-slate-950/80 rounded-2xl border border-slate-800 flex items-center justify-between text-xs">
+              <div>
+                <span className="text-slate-400 block text-[11px]">Updated benchmark estimate</span>
+                <span className="text-lg font-black text-emerald-400">${activeBenchmarkRate}/mo</span>
+              </div>
+              <div className="text-right">
+                <span className="text-slate-400 block text-[11px]">Estimated monthly savings</span>
+                <span className="text-sm font-bold text-emerald-300">
+                  {scenarioDifference > 0 ? `-$${scenarioDifference}/mo` : '$0/mo'}
+                </span>
+              </div>
+            </div>
+
+            <div className="p-3 bg-slate-950/50 rounded-xl border border-slate-800/80 text-[11px] text-slate-400 leading-relaxed">
+              Changing the estimate scenario recalculates the displayed model estimate. It does not alter your original submitted premium or reported discounts, and creates no additional community submission.
+            </div>
+
+            <div className="flex justify-end gap-3 pt-2 border-t border-slate-800">
+              <button
+                type="button"
+                onClick={() => setIsEditingDiscounts(false)}
+                className="px-5 py-2.5 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold text-xs transition cursor-pointer shadow-md shadow-emerald-500/20"
+              >
+                Apply to estimate
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
