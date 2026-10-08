@@ -15,9 +15,11 @@ import { territoriesRouter } from './routes/territories.js';
 import { contactRouter } from './routes/contact.js';
 import { adminRouter } from './routes/admin.js';
 import { feedbackRouter } from './routes/feedback.js';
+import { marketplaceRouter } from './routes/marketplace.js';
 import fs from 'node:fs';
 import { dbPath } from './db.js';
 import { ensureQuotesPopulated } from './seedQuotes.js';
+import { ensureMarketplacePopulated } from './seedMarketplace.js';
 import {
   ensureInsurersPopulated,
   ensureReviewsPopulated,
@@ -30,7 +32,7 @@ import {
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-// Ensure insurers, quotes, reviews, discussions, submissions, feedback, leads and rate dynamics are populated in SQLite
+// Ensure insurers, quotes, reviews, discussions, submissions, feedback, leads, marketplace and rate dynamics are populated in SQLite
 ensureInsurersPopulated();
 ensureQuotesPopulated();
 ensureReviewsPopulated();
@@ -38,6 +40,7 @@ ensureDiscussionsPopulated();
 ensureSubmissionsPopulated();
 ensureFeedbackPopulated();
 ensureLeadsPopulated();
+ensureMarketplacePopulated();
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -58,6 +61,7 @@ app.use('/api/stats', statsRouter);
 app.use('/api/contact', contactRouter);
 app.use('/api/admin', adminRouter);
 app.use('/api/feedback', feedbackRouter);
+app.use('/api/marketplace', marketplaceRouter);
 
 // Health check
 app.get('/api/health', (req, res) => {

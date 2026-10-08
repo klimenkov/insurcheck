@@ -12,6 +12,7 @@ import { ContributeModal } from './components/ContributeModal.jsx';
 import { FsraExplainerModal } from './components/FsraExplainerModal.jsx';
 import { ContactUs } from './components/ContactUs.jsx';
 import { AdminDashboard } from './components/AdminDashboard.jsx';
+import { BrokerPortal } from './components/BrokerPortal.jsx';
 import { TermsOfUse } from './components/TermsOfUse.jsx';
 import { PrivacyPolicy } from './components/PrivacyPolicy.jsx';
 import { AlertCircle } from 'lucide-react';
@@ -20,6 +21,7 @@ import { FEATURES } from './config.js';
 const pathToTab = (pathname) => {
   if (!pathname) return 'checker';
   if (pathname.startsWith('/admin')) return 'admin';
+  if (pathname.startsWith('/broker')) return 'broker';
   if (pathname.startsWith('/terms')) return 'terms';
   if (pathname.startsWith('/privacy')) return 'privacy';
   if (pathname.startsWith('/rates') || pathname.startsWith('/quotes')) {
@@ -40,6 +42,7 @@ const tabToPath = (tab) => {
     case 'terms': return '/terms';
     case 'privacy': return '/privacy';
     case 'admin': return '/admin';
+    case 'broker': return '/broker';
     default: return '/';
   }
 };
@@ -343,6 +346,12 @@ export default function App() {
             onExit={() => navigateTab('checker', '/')}
           />
         )}
+
+        {activeTab === 'broker' && (
+          <BrokerPortal
+            onExit={() => navigateTab('checker', '/')}
+          />
+        )}
       </div>
 
       {/* Footer */}
@@ -380,6 +389,14 @@ export default function App() {
             className="hover:text-slate-300 transition cursor-pointer"
           >
             Cookie Preferences
+          </button>
+          <span>·</span>
+          <button
+            type="button"
+            onClick={() => navigateTab('broker', '/broker')}
+            className="hover:text-emerald-400 text-slate-400 transition cursor-pointer font-medium"
+          >
+            Broker Portal
           </button>
           <span>·</span>
           <button

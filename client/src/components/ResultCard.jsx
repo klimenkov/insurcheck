@@ -30,6 +30,7 @@ import {
 } from 'lucide-react';
 import { getDiscountItem, calculateScenarioPricing } from '../data/discounts.js';
 import { DiscountSelector } from './DiscountSelector.jsx';
+import { BrokerRequestModal } from './BrokerRequestModal.jsx';
 
 const DISCOUNT_ICONS = {
   Snowflake,
@@ -64,6 +65,7 @@ export function ResultCard({ result, formData, onConnectBroker, onOpenFsraExplai
   } = result;
 
   const [showConfidenceInfo, setShowConfidenceInfo] = useState(false);
+  const [brokerModalOpen, setBrokerModalOpen] = useState(false);
 
   // Discount Scenario State (INS-64)
   const baseBenchmarkBeforeDiscounts = result.fairMonthlyBeforeDiscounts || result.fairMonthlyStandard;
@@ -809,23 +811,53 @@ export function ResultCard({ result, formData, onConnectBroker, onOpenFsraExplai
         </button>
       </div>
 
-      {/* 3. Launch Notification Flow (INS-61 Item 7) */}
-      <div className="p-4 sm:p-5 bg-slate-900/60 border border-slate-800/80 rounded-2xl flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-slate-400">
-        <div>
-          <span className="text-white font-semibold block sm:inline mr-1.5">
-            Interested in help finding insurance?
-          </span>
-          <span>Broker matching is coming soon. Get notified when it becomes available.</span>
+      {/* 3. Broker Marketplace Pilot (INS-65) */}
+      <div className="p-4 sm:p-5 bg-gradient-to-r from-emerald-950/40 via-slate-900/80 to-slate-900/80 border border-emerald-500/30 rounded-2xl flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-slate-300 shadow-lg shadow-emerald-950/20">
+        <div className="flex items-start sm:items-center gap-3">
+          <div className="w-10 h-10 rounded-xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 flex items-center justify-center shrink-0">
+            <Building2 className="w-5 h-5" />
+          </div>
+          <div>
+            <div className="flex items-center gap-2">
+              <span className="text-white font-bold text-sm">
+                Want a licensed broker to beat this rate?
+              </span>
+              <span className="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">
+                Closed Pilot
+              </span>
+            </div>
+            <p className="text-slate-400 text-xs mt-0.5">
+              Connect with 1 curated Ontario RIBO broker. Single-broker lock guarantees zero spam and no double-calling.
+            </p>
+          </div>
         </div>
         <button
           type="button"
-          onClick={onConnectBroker}
-          className="px-4 py-2.5 bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold rounded-xl transition shadow-md shadow-emerald-500/10 whitespace-nowrap cursor-pointer flex items-center gap-1.5 shrink-0"
+          onClick={() => {
+            if (onConnectBroker) onConnectBroker();
+            setBrokerModalOpen(true);
+          }}
+          className="w-full sm:w-auto px-4 py-2.5 bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold rounded-xl transition shadow-md shadow-emerald-500/15 whitespace-nowrap cursor-pointer flex items-center justify-center gap-1.5 shrink-0 text-xs font-sans"
         >
-          <span>Notify me at launch</span>
+          <span>Find My Broker Match</span>
           <ArrowRight className="w-3.5 h-3.5" />
         </button>
       </div>
+
+      <BrokerRequestModal
+        isOpen={brokerModalOpen}
+        onClose={() => setBrokerModalOpen(false)}
+        calculationData={{
+          vehicle,
+          location,
+          driver,
+          currentPremium: isEstimating ? null : currentPremium,
+          activeBenchmarkRate,
+          savings: Math.max(0, currentDiff > 0 ? currentDiff : (monthlySavings || 0)),
+          discounts: scenarioDiscounts,
+          selectedCoverageName: 'Standard Coverage'
+        }}
+      />
 
       {/* 4. Edit Discounts Scenario Modal (INS-64 Section 6) */}
       {isEditingDiscounts && (

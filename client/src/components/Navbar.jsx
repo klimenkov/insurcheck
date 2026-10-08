@@ -90,6 +90,19 @@ export function Navbar({ activeTab, setActiveTab, navigateTab, onOpenContribute 
             >
               Contact Us
             </button>
+            <button
+              onClick={() => handleNavClick('broker')}
+              className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-all flex items-center gap-1.5 cursor-pointer ${
+                activeTab === 'broker'
+                  ? 'bg-emerald-500 text-slate-950 shadow-md font-semibold'
+                  : 'text-slate-400 hover:text-white hover:bg-slate-800/50'
+              }`}
+            >
+              <span>Brokers</span>
+              <span className="px-1.5 py-0.2 text-[9px] font-extrabold uppercase rounded bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">
+                Pilot
+              </span>
+            </button>
           </nav>
 
           {/* Action & Mobile Hamburger */}
@@ -173,6 +186,19 @@ export function Navbar({ activeTab, setActiveTab, navigateTab, onOpenContribute 
             }`}
           >
             📬 Contact Us
+          </button>
+          <button
+            onClick={() => handleNavClick('broker')}
+            className={`w-full text-left px-4 py-2.5 rounded-xl text-sm font-medium transition-all flex items-center justify-between cursor-pointer ${
+              activeTab === 'broker'
+                ? 'bg-emerald-500 text-slate-950 font-semibold shadow-sm'
+                : 'text-slate-300 hover:bg-slate-900 hover:text-white'
+            }`}
+          >
+            <span>🤝 Broker Portal</span>
+            <span className="px-1.5 py-0.5 text-[9px] font-extrabold uppercase rounded bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">
+              Pilot
+            </span>
           </button>
         </div>
       )}

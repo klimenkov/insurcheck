@@ -189,6 +189,75 @@ CREATE TABLE IF NOT EXISTS review_votes (
   created_at TEXT NOT NULL,
   UNIQUE(target_type, target_id, voter_key)
 );
+
+CREATE TABLE IF NOT EXISTS brokerages (
+  id TEXT PRIMARY KEY,
+  name TEXT NOT NULL,
+  license_number TEXT NOT NULL,
+  contact_email TEXT NOT NULL,
+  phone TEXT,
+  territories TEXT DEFAULT '["all"]',
+  status TEXT DEFAULT 'approved',
+  created_at TEXT NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS broker_users (
+  id TEXT PRIMARY KEY,
+  brokerage_id TEXT NOT NULL,
+  name TEXT NOT NULL,
+  email TEXT UNIQUE NOT NULL,
+  token TEXT NOT NULL,
+  role TEXT DEFAULT 'agent',
+  status TEXT DEFAULT 'active',
+  created_at TEXT NOT NULL,
+  FOREIGN KEY (brokerage_id) REFERENCES brokerages(id)
+);
+
+CREATE TABLE IF NOT EXISTS marketplace_leads (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  created_at TEXT NOT NULL,
+  postal_code TEXT NOT NULL,
+  city TEXT NOT NULL,
+  vehicle_year INTEGER NOT NULL,
+  vehicle_make TEXT NOT NULL,
+  vehicle_model TEXT NOT NULL,
+  driver_age INTEGER NOT NULL,
+  years_licensed INTEGER NOT NULL,
+  clean_record INTEGER DEFAULT 1,
+  coverage_type TEXT DEFAULT 'Standard',
+  current_premium INTEGER,
+  benchmark_rate INTEGER NOT NULL,
+  estimated_savings INTEGER DEFAULT 0,
+  renewal_timeline TEXT NOT NULL,
+  discounts TEXT DEFAULT '[]',
+  contact_name TEXT NOT NULL,
+  contact_email TEXT NOT NULL,
+  contact_phone TEXT NOT NULL,
+  contact_pref TEXT DEFAULT 'phone',
+  consent_contact INTEGER NOT NULL DEFAULT 1,
+  consent_timestamp TEXT NOT NULL,
+  status TEXT DEFAULT 'available',
+  claimed_by_brokerage_id TEXT,
+  claimed_by_user_id TEXT,
+  claimed_at TEXT,
+  contacted_at TEXT,
+  resolved_at TEXT,
+  resolution_status TEXT,
+  resolution_notes TEXT,
+  lead_price_nominal INTEGER DEFAULT 15,
+  FOREIGN KEY (claimed_by_brokerage_id) REFERENCES brokerages(id)
+);
+
+CREATE TABLE IF NOT EXISTS lead_events (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  lead_id INTEGER NOT NULL,
+  actor_type TEXT NOT NULL,
+  actor_id TEXT,
+  event_type TEXT NOT NULL,
+  details TEXT,
+  created_at TEXT NOT NULL,
+  FOREIGN KEY (lead_id) REFERENCES marketplace_leads(id)
+);
 `);
 
 // Migration helper for new rating dimensions and verified profiles (INS-62)
