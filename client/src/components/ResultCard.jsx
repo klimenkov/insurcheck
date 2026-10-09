@@ -31,6 +31,7 @@ import {
 import { getDiscountItem, calculateScenarioPricing } from '../data/discounts.js';
 import { DiscountSelector } from './DiscountSelector.jsx';
 import { BrokerRequestModal } from './BrokerRequestModal.jsx';
+import { InsurerMatchCard } from './InsurerMatchCard.jsx';
 
 const DISCOUNT_ICONS = {
   Snowflake,
@@ -810,6 +811,16 @@ export function ResultCard({ result, formData, onConnectBroker, onOpenFsraExplai
           <ArrowRight className="w-3.5 h-3.5" />
         </button>
       </div>
+
+      {/* 2.5 Best-Fit Insurer Matches (INS-66) */}
+      {result.recommendedInsurers && result.recommendedInsurers.length > 0 && (
+        <InsurerMatchCard
+          recommendedInsurers={result.recommendedInsurers}
+          allInsurerMatches={result.allInsurerMatches || result.recommendedInsurers}
+          onConnectBroker={() => setBrokerModalOpen(true)}
+          onNavigateReviews={onNavigateReviews}
+        />
+      )}
 
       {/* 3. Broker Marketplace Pilot (INS-65) */}
       <div className="p-4 sm:p-5 bg-gradient-to-r from-emerald-950/40 via-slate-900/80 to-slate-900/80 border border-emerald-500/30 rounded-2xl flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-slate-300 shadow-lg shadow-emerald-950/20">

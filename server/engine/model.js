@@ -4,6 +4,7 @@ import {
   calculateCompositeDiscount,
   normalizeSubmittedPremium
 } from './discounts.js';
+import { calculateInsurerMatches } from './suitability.js';
 
 /**
  * Normalizes vehicle keys to match VEHICLE_RISK_MAP variations.
@@ -237,6 +238,21 @@ export function evaluateInsurance(params) {
     riskHighlights.push('Young driver graduated licensing surcharge applies');
   }
 
+  // Calculate Insurer Suitability & Best-Fit Matches (INS-66)
+  const suitabilityData = calculateInsurerMatches({
+    driverAge: age,
+    yearsLicensed,
+    cleanRecord: Boolean(cleanRecord),
+    postalCode: cleanFSA,
+    locationInfo,
+    vehicleMake,
+    vehicleModel,
+    vehicleYear,
+    vehicleInfo,
+    discounts: discountState.discounts,
+    coverageLevel: selectedLevel
+  });
+
   return {
     isEstimating,
     insuranceCompany,
@@ -275,6 +291,8 @@ export function evaluateInsurance(params) {
       cleanRecord: Boolean(cleanRecord)
     },
     reliabilityScore: reliability,
-    riskHighlights
+    riskHighlights,
+    recommendedInsurers: suitabilityData.topMatches,
+    allInsurerMatches: suitabilityData.allMatches
   };
 }
